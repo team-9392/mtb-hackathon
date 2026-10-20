@@ -8,6 +8,10 @@ import { hub } from "./hub.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerChildRoutes } from "./routes/child.js";
 import { registerFamilyRoutes } from "./routes/family.js";
+import { registerMoneyRoutes } from "./routes/money.js";
+import { registerBonusRoutes } from "./routes/bonuses.js";
+import { registerPaymentRoutes } from "./routes/payments.js";
+import { configureTelegram, startTelegramPoller } from "./telegram.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyInstance> {
@@ -27,12 +31,19 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
     ok: true,
     service: "moby-family-api",
     demoOtp: Boolean(env.DEMO_OTP),
+    telegram: Boolean(env.TELEGRAM_BOT_TOKEN),
     at: new Date().toISOString(),
   }));
+
+  configureTelegram(env);
+  startTelegramPoller(db, env);
 
   registerAuthRoutes(app, db, env);
   registerFamilyRoutes(app, db, env);
   registerChildRoutes(app, db, env);
+  registerMoneyRoutes(app, db, env);
+  registerPaymentRoutes(app, db, env);
+  registerBonusRoutes(app, db, env);
 
   /**
    * Живая связь двух телефонов: родитель и ребёнок одной семьи получают

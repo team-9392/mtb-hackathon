@@ -68,11 +68,42 @@ export function requireChild(claims: AuthClaims): string {
   return claims.childId;
 }
 
+/** Человеческие тексты для ошибок валидации — вместо простыни из zod. */
+const FIELD_HINTS: Record<string, string> = {
+  fullName: "Укажите имя и фамилию",
+  name: "Укажите имя",
+  phone: "Проверьте номер телефона",
+  accessCode: "Проверьте код доступа",
+  amount: "Проверьте сумму",
+  kind: "Выберите счёт",
+  from: "Выберите, откуда перевести",
+  to: "Выберите, куда перевести",
+  status: "Неизвестное действие",
+  code: "Проверьте код из SMS",
+};
+
 export function sendError(reply: FastifyReply, error: unknown): void {
   if (error instanceof ApiError) {
     void reply.status(error.status).send({ error: error.code, message: error.message });
     return;
   }
-  const message = error instanceof Error ? error.message : "Внутренняя ошибка";
+  // Ошибки схем запросов: отдаём понятный текст и 400 вместо 500 с JSON от zod.
+  const issues = (error as { issues?: { path?: (string | number)[]; code?: string }[] })?.issues;
+  if (Array.isArray(issues) && issues.length > 0) {
+    const first = issues[0];
+    const field = String(first?.path?.[0] ?? "");
+    const message = FIELD_HINTS[field] ?? "Проверьте введённые данные";
+    void reply.status(400).send({ error: "validation", message, fields: issues.map((issue) => issue.path?.[0]) });
+    return;
+  }
+  const raw = error instanceof Error ? error.message : "";
+  // Технические ошибки PostgREST («cannot coerce the result to a single JSON object») наружу не отдаём.
+  if (raw.includes("coerce the result") || raw.includes("JSON object")) {
+    void reply
+      .status(409)
+      .send({ error: "stale_data", message: "Данные устарели — обновите экран и попробуйте ещё раз" });
+    return;
+  }
+  const message = raw.length > 0 ? raw : "Внутренняя ошибка";
   void reply.status(500).send({ error: "internal", message });
 }

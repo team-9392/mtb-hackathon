@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
+import { CARD_SYSTEMS, CARD_TYPES, expiryFromNow, generatePan } from "../cards.js";
 import { hub } from "../hub.js";
 import type { Env } from "../env.js";
 import { badRequest, conflict, forbidden, requireAuth, requireParent, sendError } from "../http.js";
@@ -209,6 +210,12 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
       const claims = requireAuth(request, env);
       const familyId = requireParent(claims);
       const params = z.object({ id: z.string().uuid() }).parse(request.params);
+      const body = z
+        .object({
+          type: z.enum(CARD_TYPES).default("virtual"),
+          system: z.enum(CARD_SYSTEMS).default("visa"),
+        })
+        .parse(request.body ?? {});
       const child = await getChild(db, params.id, familyId);
 
       const { data: existing } = await db
@@ -217,9 +224,20 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
         .eq("child_id", child.id)
         .maybeSingle();
 
+      // Номер генерируем один раз: при повторном выпуске того же типа/системы оставляем прежние реквизиты.
+      const { data: current } = existing
+        ? await db.from("cards").select("number, system, type").eq("id", existing.id).maybeSingle()
+        : { data: null };
+      const keep = current?.number && current.system === body.system && current.type === body.type;
+      const pan = keep ? (current!.number as string) : generatePan(body.system);
+
       const payload = {
         child_id: child.id,
-        last4: randomNumeric(4),
+        last4: pan.slice(-4),
+        number: pan,
+        system: body.system,
+        type: body.type,
+        ...(keep ? {} : { expiry: expiryFromNow() }),
         status: "issued",
         issued_at: new Date().toISOString(),
         blocked_at: null,
@@ -373,12 +391,28 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
 
       const { data: requestRow } = await db
         .from("access_requests")
-        .select("id, target, status")
+        .select("id, target, status, kind, amount, recipient")
         .eq("id", params.requestId)
         .eq("child_id", child.id)
         .maybeSingle();
       if (!requestRow) {
         throw conflict("Запрос не найден");
+      }
+
+      // Платёж ЕРИП или перевод по номеру: списываем только с подтверждения родителя.
+      const requestKind = (requestRow.kind as string | null) ?? "access";
+      const paymentAmount =
+        requestKind === "erip" || requestKind === "phone" ? Number(requestRow.amount ?? 0) : 0;
+      if (paymentAmount > 0 && body.status === "approved") {
+        const { data: pocket } = await db
+          .from("accounts")
+          .select("balance")
+          .eq("child_id", child.id)
+          .eq("kind", "pocket")
+          .maybeSingle();
+        if (Number(pocket?.balance ?? 0) + 0.001 < paymentAmount) {
+          throw conflict("На карте ребёнка недостаточно денег для этого платежа");
+        }
       }
 
       await db
@@ -388,7 +422,33 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
 
       if (body.status === "approved") {
         const target = requestRow.target as string;
-        if (target === "limit") {
+        if (paymentAmount > 0) {
+          const { data: pocket } = await db
+            .from("accounts")
+            .select("balance")
+            .eq("child_id", child.id)
+            .eq("kind", "pocket")
+            .maybeSingle();
+          const balance = Number(pocket?.balance ?? 0);
+          await db
+            .from("accounts")
+            .update({ balance: Math.max(0, Math.round((balance - paymentAmount) * 100) / 100) })
+            .eq("child_id", child.id)
+            .eq("kind", "pocket");
+
+          const isErip = requestKind === "erip";
+          await db.from("transactions").insert({
+            child_id: child.id,
+            amount: paymentAmount,
+            category: requestKind,
+            merchant: (requestRow.recipient as string | null) ?? null,
+            title_ru: isErip ? "Платёж ЕРИП" : "Перевод по номеру",
+            title_be: isErip ? "Платёж АРІП" : "Пераклад па нумары",
+            status: "approved",
+            by_child: true,
+          });
+          await hub.publish(db, familyId, "txn.created", { childId: child.id, amount: paymentAmount });
+        } else if (target === "limit") {
           const { data: currentLimits } = await db
             .from("limits")
             .select("monthly")
@@ -405,6 +465,15 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
               .update({ allowed: true, pending_request: false })
               .eq("child_id", child.id)
               .eq("product_id", product);
+            // подтверждение запроса = открытие счёта родителем
+            if (product === "pocket" || product === "savings" || product === "deposit") {
+              await db
+                .from("accounts")
+                .upsert(
+                  { child_id: child.id, kind: product, balance: 0, currency: "BYN" },
+                  { onConflict: "child_id,kind", ignoreDuplicates: true },
+                );
+            }
           }
         }
       } else {

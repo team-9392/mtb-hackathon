@@ -37,10 +37,17 @@ export default function ChildTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="accounts"
+        options={{
+          title: t("acc.tab"),
+          tabBarIcon: ({ color, size }) => <Ionicons name="wallet-outline" size={size} color={color as string} />,
+        }}
+      />
+      <Tabs.Screen
         name="quests"
         options={{
           title: t("qs.tab"),
-          tabBarIcon: ({ color, size }) => <Ionicons name="game-controller-outline" size={size} color={color as string} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen

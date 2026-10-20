@@ -1,10 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import { OfflineError } from "@/api/client";
-import { isApiConfigured } from "@/api/config";
 import { formatPhoneInput, useAuth } from "@/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { font, palette, radius, spacing } from "@/theme/tokens";
@@ -82,22 +80,6 @@ export default function PhoneScreen() {
       </View>
 
       {savedPhone ? <Text style={styles.hint}>{"Прошлый вход: " + savedPhone}</Text> : null}
-
-      {!isApiConfigured ? (
-        <View style={styles.demoCard}>
-          <Ionicons name="cloud-offline-outline" size={18} color={palette.muted} />
-          <View style={styles.demoText}>
-            <Text style={styles.demoTitle}>{t("auth.demoMode")}</Text>
-            <Text style={styles.demoDesc}>{t("auth.phoneSubtitle")}</Text>
-          </View>
-          <Button
-            variant="secondary"
-            compact
-            label={t("common.continue")}
-            onPress={() => router.replace("/")}
-          />
-        </View>
-      ) : null}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </AuthLayout>

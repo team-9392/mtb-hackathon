@@ -1,155 +1,204 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useI18n } from "@/i18n";
+import { CARD_SYSTEMS, CARD_TYPES, formatPan } from "@/lib/card";
 import { useStore } from "@/store/StoreProvider";
+import type { CardSystem, CardType } from "@/store/types";
 import { font, palette, radius, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { HeroCard } from "@/ui/Hero";
+import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Badge, Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 
-const SERVICES = ["p4.s1", "p4.s2", "p4.s3", "p4.s4", "p4.s5"] as const;
+const SYSTEM_LABEL: Record<CardSystem, string> = {
+  visa: "Visa",
+  mastercard: "Mastercard",
+  belkart: "Белкарт",
+  unionpay: "UnionPay",
+};
 
+/** Выпуск карты: виртуальная или пластиковая, любая платёжная система. */
 export default function IssueScreen() {
   const { t } = useI18n();
-  const { state, issueProducts } = useStore();
+  const { state, issueCard } = useStore();
   const router = useRouter();
-  const [phase, setPhase] = useState<"idle" | "issuing" | "done">("idle");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [type, setType] = useState<CardType>(state.card.type);
+  const [system, setSystem] = useState<CardSystem>(state.card.system);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    return () => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-      }
-    };
-  }, []);
+  const matches = state.card.number.length > 0 && state.card.type === type && state.card.system === system;
+  const preview = matches ? formatPan(state.card.number) : "•••• •••• •••• " + state.card.last4;
+  const expiry = matches && state.card.expiry.length > 0 ? state.card.expiry : "••/••";
 
-  const start = () => {
-    setPhase("issuing");
-    timer.current = setTimeout(() => {
-      issueProducts();
-      setPhase("done");
-    }, 1400);
+  const submit = async () => {
+    setBusy(true);
+    const ok = await issueCard(type, system);
+    setBusy(false);
+    if (ok) {
+      router.replace("/parent/issue");
+    }
   };
 
-  const footer =
-    phase === "done" ? (
-      <Button label={t("p4.toAccess")} icon="key-outline" onPress={() => router.push("/parent/access")} />
-    ) : (
-      <Button
-        label={phase === "issuing" ? t("p4.issuing") : t("p4.cta")}
-        loading={phase === "issuing"}
-        icon="card-outline"
-        onPress={start}
-      />
-    );
-
   return (
-    <Screen showBack title={t("p4.title")} subtitle={t("p4.subtitle")} footer={footer}>
-      <HeroCard gradient={state.child.bracket === "teen_14_17" ? "ink" : "child"}>
+    <Screen
+      showBack
+      title={t("p4.title")}
+      subtitle={t("p4.subtitle")}
+      footer={
+        <Button
+          label={state.card.status === "active" && matches ? t("card.reissue") : t("card.issue")}
+          icon="card-outline"
+          loading={busy}
+          onPress={() => void submit()}
+        />
+      }
+    >
+      <HeroCard gradient={type === "plastic" ? "ink" : "child"}>
         <Row style={styles.cardTop}>
-          <Ionicons name="wifi" size={20} color="rgba(255,255,255,0.85)" />
-          <Text style={styles.cardBrand}>Moby Family</Text>
+          <Text style={styles.brand}>{t("card.brand")}</Text>
+          <PaymentBrand system={system} onDark />
         </Row>
-        <View style={styles.chip} />
-        <Text style={styles.pan}>•••• •••• •••• {state.card.last4}</Text>
+        <View style={styles.cardChip} />
+        <Text style={styles.cardPan}>{preview}</Text>
         <Row style={styles.cardBottom}>
           <View style={styles.cardHolder}>
-            <Text style={styles.cardLabel}>{state.child.name.toUpperCase()}</Text>
-            <Text style={styles.cardName}>{t("p4.virtual")}</Text>
+            <Text style={styles.cardLabel}>{t("card.holder")}</Text>
+            <Text style={styles.cardValue}>{(state.child.name || "MOBY FAMILY").toUpperCase()}</Text>
           </View>
-          <Badge
-            label={phase === "done" ? t("common.on") : t("common.off")}
-            tone={phase === "done" ? "mint" : "danger"}
-            style={{ backgroundColor: "rgba(255,255,255,0.22)" }}
-          />
+          <View>
+            <Text style={styles.cardLabel}>{t("card.expiry")}</Text>
+            <Text style={styles.cardValue}>{expiry}</Text>
+          </View>
         </Row>
       </HeroCard>
 
-      {phase === "done" ? (
+      <SectionTitle>{t("card.type")}</SectionTitle>
+      <Row style={styles.grid}>
+        {CARD_TYPES.map((option) => (
+          <Pressable
+            key={option}
+            onPress={() => setType(option)}
+            style={[styles.option, type === option && styles.optionActive]}
+          >
+            <Ionicons
+              name={option === "virtual" ? "phone-portrait-outline" : "card-outline"}
+              size={20}
+              color={type === option ? palette.primary : palette.ink2}
+            />
+            <Text style={[styles.optionTitle, type === option && styles.optionTitleActive]}>
+              {t(option === "virtual" ? "card.virtual" : "card.plastic")}
+            </Text>
+            <Text style={styles.optionHint}>{t(option === "virtual" ? "card.virtualHint" : "card.plasticHint")}</Text>
+          </Pressable>
+        ))}
+      </Row>
+
+      <SectionTitle>{t("card.system")}</SectionTitle>
+      <Row style={styles.systemRow}>
+        {CARD_SYSTEMS.map((option) => (
+          <Pressable
+            key={option}
+            onPress={() => setSystem(option)}
+            style={[styles.systemOption, system === option && styles.systemOptionActive]}
+          >
+            <PaymentBrand system={option} />
+            <Text style={styles.systemLabel}>{SYSTEM_LABEL[option]}</Text>
+          </Pressable>
+        ))}
+      </Row>
+
+      {matches ? (
         <Card>
-          <Row style={styles.doneRow}>
-            <View style={styles.doneIcon}>
-              <Ionicons name="checkmark" size={20} color={palette.white} />
-            </View>
-            <View style={styles.doneText}>
-              <Text style={styles.doneTitle}>{t("p4.done")}</Text>
-              <Text style={styles.doneDesc}>{t("p4.doneDesc")}</Text>
-            </View>
+          <Row style={styles.issuedTop}>
+            <Text style={styles.issuedTitle}>{t("card.issued")}</Text>
+            <Badge label={t(type === "virtual" ? "card.virtual" : "card.plastic")} tone="mint" />
           </Row>
+          <Row style={styles.issuedRow}>
+            <Text style={styles.issuedLabel}>{t("card.number")}</Text>
+            <Text style={styles.issuedValue}>{formatPan(state.card.number)}</Text>
+          </Row>
+          <Row style={styles.issuedRow}>
+            <Text style={styles.issuedLabel}>{t("card.expiry")}</Text>
+            <Text style={styles.issuedValue}>{state.card.expiry}</Text>
+          </Row>
+          <Row style={styles.issuedRow}>
+            <Text style={styles.issuedLabel}>{t("card.system")}</Text>
+            <Text style={styles.issuedValue}>{SYSTEM_LABEL[state.card.system]}</Text>
+          </Row>
+          <Text style={styles.issuedHint}>{t("card.fullHint")}</Text>
+          <Button
+            compact
+            variant="ghost"
+            icon="key-outline"
+            label={t("card.toAccess")}
+            onPress={() => router.push("/parent/access")}
+            style={styles.toAccess}
+          />
         </Card>
       ) : null}
-
-      <SectionTitle>{t("p4.cardTitle")}</SectionTitle>
-      <Card>
-        <Row style={styles.serviceRow}>
-          <Ionicons name="flash-outline" size={18} color={palette.primary} />
-          <View style={styles.serviceText}>
-            <Text style={styles.serviceTitle}>{t("p4.virtual")}</Text>
-            <Text style={styles.serviceDesc}>{t("p4.virtualReady")}</Text>
-          </View>
-          {phase === "done" ? <Badge label={t("common.on")} tone="mint" /> : null}
-        </Row>
-        <Row style={[styles.serviceRow, styles.serviceBorder]}>
-          <Ionicons name="mail-outline" size={18} color={palette.violet} />
-          <View style={styles.serviceText}>
-            <Text style={styles.serviceTitle}>{t("p4.physical")}</Text>
-            <Text style={styles.serviceDesc}>{t("p4.delivery")}</Text>
-          </View>
-          <Badge label={state.card.physical === "ordered" ? "2–3" : "OK"} tone="warn" />
-        </Row>
-      </Card>
-
-      <SectionTitle>{t("p4.services")}</SectionTitle>
-      <Card tone="alt">
-        {SERVICES.map((key) => (
-          <Row key={key} style={styles.serviceRow}>
-            <Ionicons name="checkmark-circle" size={17} color={palette.mint} />
-            <Text style={styles.serviceListText}>{t(key)}</Text>
-          </Row>
-        ))}
-      </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  cardTop: { justifyContent: "space-between" },
-  cardBrand: { color: palette.white, fontSize: font.small, fontWeight: "800", letterSpacing: 0.5 },
-  chip: {
-    width: 40,
-    height: 30,
-    borderRadius: 8,
+  cardTop: { justifyContent: "space-between", alignItems: "center" },
+  brand: { fontSize: font.small, fontWeight: "800", color: "rgba(255,255,255,0.92)", letterSpacing: 0.4 },
+  cardChip: {
+    width: 34,
+    height: 26,
+    borderRadius: 6,
     backgroundColor: "rgba(255,255,255,0.35)",
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
-  pan: { color: palette.white, fontSize: font.h3, fontWeight: "700", letterSpacing: 2, marginTop: spacing.md },
-  cardBottom: { justifyContent: "space-between", marginTop: spacing.lg, alignItems: "flex-end" },
-  cardHolder: { gap: 2 },
-  cardLabel: { color: palette.white, fontSize: font.small, fontWeight: "700", letterSpacing: 1 },
-  cardName: { color: "rgba(255,255,255,0.85)", fontSize: font.tiny },
-  doneRow: { gap: spacing.md },
-  doneIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: palette.mint,
-    alignItems: "center",
-    justifyContent: "center",
+  cardPan: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: palette.white,
+    letterSpacing: 1.5,
+    marginTop: spacing.md,
   },
-  doneText: { flex: 1, gap: 3 },
-  doneTitle: { fontSize: font.body, fontWeight: "700", color: palette.ink },
-  doneDesc: { fontSize: font.small, color: palette.muted },
-  serviceRow: { gap: spacing.md, paddingVertical: spacing.sm + 2 },
-  serviceBorder: { borderTopWidth: 1, borderTopColor: palette.line },
-  serviceText: { flex: 1, gap: 2 },
-  serviceTitle: { fontSize: font.body, fontWeight: "600", color: palette.ink },
-  serviceDesc: { fontSize: font.tiny, color: palette.muted },
-  serviceListText: { flex: 1, fontSize: font.small, color: palette.ink2, fontWeight: "600" },
-  cardTitleRow: { gap: spacing.md },
-  cardRadius: { borderRadius: radius.lg },
+  cardBottom: { justifyContent: "space-between", alignItems: "flex-end", marginTop: spacing.lg },
+  cardHolder: { flex: 1 },
+  cardLabel: { fontSize: 9.5, color: "rgba(255,255,255,0.7)", letterSpacing: 0.6, textTransform: "uppercase" },
+  cardValue: { fontSize: font.small, fontWeight: "700", color: palette.white, marginTop: 2 },
+  grid: { gap: spacing.sm },
+  option: {
+    flex: 1,
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: palette.line,
+    padding: spacing.md,
+    gap: 6,
+  },
+  optionActive: { borderColor: palette.primary, backgroundColor: palette.primarySoft },
+  optionTitle: { fontSize: font.body, fontWeight: "700", color: palette.ink },
+  optionTitleActive: { color: palette.primary },
+  optionHint: { fontSize: 11.5, color: palette.muted, lineHeight: 15 },
+  systemRow: { flexWrap: "wrap", gap: spacing.sm },
+  systemOption: {
+    flexBasis: "48%",
+    flexGrow: 1,
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: palette.line,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    gap: 8,
+    alignItems: "flex-start",
+  },
+  systemOptionActive: { borderColor: palette.primary, backgroundColor: palette.primarySoft },
+  systemLabel: { fontSize: font.small, fontWeight: "700", color: palette.ink },
+  issuedTop: { justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm },
+  issuedTitle: { fontSize: font.body, fontWeight: "800", color: palette.ink },
+  issuedRow: { justifyContent: "space-between", paddingVertical: 6 },
+  issuedLabel: { fontSize: font.small, color: palette.muted },
+  issuedValue: { fontSize: font.small, fontWeight: "700", color: palette.ink },
+  issuedHint: { fontSize: 12, color: palette.muted, marginTop: spacing.sm, lineHeight: 16 },
+  toAccess: { marginTop: spacing.md },
 });

@@ -1,15 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useI18n, useL } from "@/i18n";
+import { formatPan } from "@/lib/card";
 import { formatDate, formatMoney } from "@/lib/format";
 import { spentThisMonth } from "@/store/permissions";
 import { useStore } from "@/store/StoreProvider";
 import { font, palette, shadow, spacing } from "@/theme/tokens";
 import { HeroCard } from "@/ui/Hero";
-import { Badge, Card, EmptyState, ProgressBar, Row, SectionTitle } from "@/ui/primitives";
+import { PaymentBrand } from "@/ui/PaymentBrand";
+import { Badge, Card, EmptyState, Row, SectionTitle } from "@/ui/primitives";
+import { PrimaryAction } from "@/ui/banking";
+import { TopUpSheet } from "@/ui/TopUpSheet";
 import { Screen } from "@/ui/Screen";
 
 export default function ChildHomeScreen() {
@@ -17,6 +21,7 @@ export default function ChildHomeScreen() {
   const L = useL();
   const { state, showToast } = useStore();
   const router = useRouter();
+  const [topup, setTopup] = useState(false);
 
   const spent = spentThisMonth(state.txns);
   const left = Math.max(0, state.limits.monthly - spent);
@@ -25,9 +30,15 @@ export default function ChildHomeScreen() {
   const canOnline = state.permissions.find((p) => p.id === "online")?.allowed ?? false;
 
   const quick = [
-    { id: "pay", icon: "card-outline" as const, label: t("ch.pay"), allowed: true, route: "/child/goal" },
-    { id: "transfer", icon: "swap-horizontal" as const, label: t("ch.transfer"), allowed: canTransfer, route: "/child/request" },
-    { id: "topup", icon: "gift-outline" as const, label: t("ch.topup"), allowed: true, route: "/child/request" },
+    { id: "pay", icon: "qr-code-outline" as const, label: t("pay.erip"), allowed: true, route: "/child/erip" },
+    {
+      id: "transfer",
+      icon: "call-outline" as const,
+      label: t("pay.phone"),
+      allowed: canTransfer,
+      route: "/child/erip?mode=phone",
+    },
+    { id: "topup", icon: "wallet-outline" as const, label: t("acc.tab"), allowed: true, route: "/child/accounts" },
   ];
 
   return (
@@ -35,20 +46,34 @@ export default function ChildHomeScreen() {
       <HeroCard gradient="child">
         <Row style={styles.heroTop}>
           <Text style={styles.heroLabel}>{t("ch.card")}</Text>
-          <Badge label={t("ch.virtual")} tone="child" style={styles.heroBadge} />
+          <Row style={styles.heroRight}>
+            <PaymentBrand system={state.card.system} onDark />
+            <Badge
+              label={t(state.card.type === "plastic" ? "card.plastic" : "card.virtual")}
+              tone="child"
+              style={styles.heroBadge}
+            />
+          </Row>
         </Row>
         <Text style={styles.heroValue}>{formatMoney(state.balance)}</Text>
-        <Text style={styles.heroSub}>•••• {state.card.last4}</Text>
-        <View style={styles.heroProgress}>
-          <ProgressBar value={spent / Math.max(1, state.limits.monthly)} tone="neutral" />
-        </View>
+        <Text style={styles.heroPan}>{formatPan(state.card.number)}</Text>
         <Row style={styles.heroFooter}>
+          <Text style={styles.heroFooterText}>
+            {t("card.expiry")}: {state.card.expiry.length > 0 ? state.card.expiry : "••/••"}
+          </Text>
           <Text style={styles.heroFooterText}>
             {t("ch.limitLeft")}: {formatMoney(left, 0)}
           </Text>
-          <Text style={styles.heroFooterText}>{t("ov.pocketValue")}</Text>
         </Row>
       </HeroCard>
+
+      <PrimaryAction
+        icon="add-circle"
+        label={t("ch.topupMoney")}
+        hint={t("ch.topupHint")}
+        onPress={() => setTopup(true)}
+      />
+      <TopUpSheet visible={topup} onClose={() => setTopup(false)} />
 
       <SectionTitle>{t("ch.quick")}</SectionTitle>
       <Row style={styles.quickRow}>
@@ -150,8 +175,8 @@ const styles = StyleSheet.create({
   heroLabel: { color: "rgba(255,255,255,0.9)", fontSize: font.small, fontWeight: "600" },
   heroBadge: { backgroundColor: "rgba(255,255,255,0.24)" },
   heroValue: { color: palette.white, fontSize: 36, fontWeight: "800", marginTop: spacing.sm },
-  heroSub: { color: "rgba(255,255,255,0.85)", fontSize: font.small, marginTop: 2 },
-  heroProgress: { marginTop: spacing.lg },
+  heroRight: { alignItems: "center", gap: spacing.sm },
+  heroPan: { color: palette.white, fontSize: font.body, fontWeight: "700", letterSpacing: 1.2, marginTop: 6 },
   heroFooter: { justifyContent: "space-between", marginTop: spacing.sm },
   heroFooterText: { color: "rgba(255,255,255,0.9)", fontSize: font.tiny, fontWeight: "600" },
   quickRow: { gap: spacing.md },

@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { forbidden, notFound } from "./http.js";
+import { sendPush } from "./push.js";
+import { sendTelegram } from "./telegram.js";
 import { defaultLimits, defaultOperationAllowed, defaultAllowed, productsFor, requiresWrittenConsent, ALL_PRODUCTS, consentsFor, type Bracket, type OperationId } from "./rules.js";
 
 export const ALL_OPERATIONS: OperationId[] = ["pay", "online", "transfer", "cash"];
@@ -104,6 +106,13 @@ export async function notify(
     body_ru: bodyRu ?? null,
     body_be: bodyBe ?? null,
   });
+  // Дублируем в push и Telegram: уведомление дойдёт, даже если приложение закрыто.
+  await sendPush(db, userId, titleRu, bodyRu ?? titleBe, { kind });
+  const { data: receiver } = await db.from("users").select("telegram_chat_id").eq("id", userId).maybeSingle();
+  await sendTelegram(
+    "🔔 <b>" + titleRu + "</b>" + (bodyRu ? "\n" + bodyRu : ""),
+    (receiver?.telegram_chat_id as string | null) ?? undefined,
+  );
 }
 
 export async function parentUserIdOfFamily(db: SupabaseClient, familyId: string): Promise<string | null> {

@@ -1,4 +1,5 @@
 import { api } from "./client";
+import type { TransferRow } from "@/store/types";
 import type { AgeBracket, ConsentId, LimitState, Localized, OperationId, ProductId } from "@/store/types";
 
 const child = (childId: string): string => `/children/${childId}`;
@@ -19,8 +20,12 @@ export function setAccessApi(childId: string, granted: boolean): Promise<unknown
 }
 
 /** Выпуск карты. */
-export function issueCardApi(childId: string): Promise<unknown> {
-  return api(`${child(childId)}/card`, { method: "POST", body: {} });
+export function issueCardApi(
+  childId: string,
+  type: "virtual" | "plastic",
+  system: "visa" | "mastercard" | "belkart" | "unionpay",
+): Promise<unknown> {
+  return api(`${child(childId)}/card`, { method: "POST", body: { type, system } });
 }
 
 /** Блокировка и разблокировка карты. */
@@ -85,4 +90,55 @@ export function completeQuestApi(childId: string, questId: string): Promise<unkn
 /** Подтверждение квеста родителем. */
 export function approveQuestApi(childId: string, questId: string): Promise<unknown> {
   return api(`${child(childId)}/quests/${questId}/approve`, { method: "PATCH", body: {} });
+}
+
+/** Открытие счёта. Ребёнку недоступные по возрасту счета сервер заводит только по запросу. */
+export function openAccountApi(
+  childId: string,
+  kind: "pocket" | "savings" | "deposit",
+): Promise<{ status: "opened" | "requested" }> {
+  return api(`${child(childId)}/accounts`, { method: "POST", body: { kind } }) as Promise<{
+    status: "opened" | "requested";
+  }>;
+}
+
+/** Перевод между своими счетами. */
+export function transferApi(
+  childId: string,
+  from: string,
+  to: string,
+  amount: number,
+): Promise<unknown> {
+  return api(`${child(childId)}/transfers`, { method: "POST", body: { from, to, amount } });
+}
+
+/** Родитель переводит деньги ребёнку на карман. */
+export function topUpApi(childId: string, amount: number): Promise<{ ok: boolean; balance: number }> {
+  return api(`${child(childId)}/topup`, { method: "POST", body: { amount } }) as Promise<{
+    ok: boolean;
+    balance: number;
+  }>;
+}
+
+/** Заявка ребёнка: платёж ЕРИП или перевод по номеру. Деньги списывает родитель. */
+export function createPaymentApi(
+  childId: string,
+  kind: "erip" | "phone",
+  amount: number,
+  recipient: string,
+): Promise<{ status: "pending"; requestId: string | null }> {
+  return api(`${child(childId)}/payments`, { method: "POST", body: { kind, amount, recipient } }) as Promise<{
+    status: "pending";
+    requestId: string | null;
+  }>;
+}
+
+/** Токен устройства для push-уведомлений. */
+export function registerPushTokenApi(token: string, platform: string): Promise<unknown> {
+  return api("/push/token", { method: "POST", body: { token, platform } });
+}
+
+/** История переводов. */
+export function loadTransfersApi(childId: string): Promise<{ transfers: TransferRow[] }> {
+  return api(`${child(childId)}/transfers`);
 }

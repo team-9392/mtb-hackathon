@@ -12,7 +12,9 @@ export type Topic =
   | "quest.completed"
   | "card.blocked"
   | "card.unblocked"
-  | "consent.signed";
+  | "consent.signed"
+  | "account.opened"
+  | "money.moved";
 
 interface Sink {
   send: (payload: string) => void;

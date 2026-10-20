@@ -9,6 +9,13 @@ const schema = z.object({
   ACCESS_TTL_MIN: z.coerce.number().default(15),
   REFRESH_TTL_DAYS: z.coerce.number().default(30),
   DEMO_OTP: z.string().optional(),
+  SMS_PROVIDER: z.enum(["demo", "telegram", "twilio"]).default("demo"),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_CHAT_ID: z.string().optional(),
+  TELEGRAM_BOT_USERNAME: z.string().optional(),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM: z.string().optional(),
   CORS_ORIGIN: z.string().optional(),
 });
 

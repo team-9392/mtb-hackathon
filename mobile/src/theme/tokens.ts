@@ -67,7 +67,21 @@ export const shadow = {
   },
 } as const;
 
+/**
+ * Банковская база. Меняем дизайн здесь — экраны подхватывают сами.
+ * heroInk — «тёмная карта» счёта, accentSoft — подложка главного действия.
+ */
+export const banking = {
+  heroInk: ["#111827", "#1F2937"],
+  accentSoft: "#EAF0FF",
+  chip: "#F2F4F7",
+  moneySize: 34,
+  cardRadius: 24,
+  actionRadius: 18,
+} as const;
+
 export const gradients = {
+  hero: ["#111827", "#1F2937"],
   parent: ["#3B5BFD", "#6C4DF6"],
   child: ["#FF9A3D", "#FF5E7E"],
   mint: ["#12B886", "#0EA5A0"],

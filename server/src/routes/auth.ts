@@ -7,6 +7,8 @@ import { badRequest, conflict, notFound, requireAuth, sendError, unauthorized } 
 import { createChallenge, normalizePhone, randomInviteCode, verifyChallenge } from "../otp.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { telegramChatForPhone, telegramEnabled, telegramOtpLink } from "../telegram.js";
+
 const phoneSchema = z.object({ phone: z.string().min(6) });
 
 const verifySchema = z.object({
@@ -30,6 +32,19 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
       }
       const challenge = await createChallenge(db, env, phone);
       return reply.send(challenge);
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
+  /** Привязка Telegram до входа: номер -> чат, код придёт в бот. */
+  app.post("/auth/telegram/link", async (request, reply) => {
+    try {
+      const body = z.object({ phone: z.string().min(5) }).parse(request.body);
+      const phone = normalizePhone(body.phone);
+      const url = telegramOtpLink(phone);
+      const chatId = url ? await telegramChatForPhone(db, phone) : null;
+      return reply.send({ url, linked: Boolean(chatId), botReady: telegramEnabled() });
     } catch (error) {
       return sendError(reply, error);
     }
@@ -112,12 +127,13 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
   app.post("/auth/family", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
-      const body = z.object({ fullName: z.string().min(1).optional() }).parse(request.body ?? {});
+      const body = z.object({ fullName: z.string().max(60).optional() }).parse(request.body ?? {});
       if (claims.familyId) {
         throw conflict("Семья уже создана");
       }
-      if (body.fullName) {
-        await db.from("users").update({ full_name: body.fullName }).eq("id", claims.sub);
+      // Имя могло уже сохраниться на предыдущем шаге — пустое значение не ошибка.
+      if (body.fullName && body.fullName.trim().length > 0) {
+        await db.from("users").update({ full_name: body.fullName.trim() }).eq("id", claims.sub);
       }
       const { data: family, error } = await db
         .from("families")
@@ -188,6 +204,32 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
           fullName: row.full_name ?? null,
           role: claims.role,
         },
+        claims,
+      });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
+  app.patch("/me", async (request, reply) => {
+    try {
+      const claims = requireAuth(request, env);
+      const body = z.object({ fullName: z.string().min(1).max(60) }).parse(request.body);
+      const { data, error } = await db
+        .from("users")
+        .update({ full_name: body.fullName.trim() })
+        .eq("id", claims.sub)
+        .select("id, phone, full_name")
+        .maybeSingle();
+      if (error) {
+        throw new Error("Не удалось сохранить имя: " + error.message);
+      }
+      // Токен мог остаться от аккаунта, который уже удалён (переустановка, очистка базы).
+      if (!data) {
+        return reply.code(401).send({ error: "session_stale", message: "Сессия устарела — войдите заново" });
+      }
+      return reply.send({
+        user: { id: data.id, phone: data.phone, fullName: data.full_name, role: claims.role },
         claims,
       });
     } catch (error) {

@@ -27,10 +27,19 @@ export interface ChildProfile {
   bracket: AgeBracket;
 }
 
+export type CardSystem = "visa" | "mastercard" | "belkart" | "unionpay";
+export type CardType = "virtual" | "plastic";
+
 export interface CardInfo {
   status: "issued" | "active" | "blocked";
   physical: "ordered" | "delivered";
   last4: string;
+  /** Полный 16-значный номер. */
+  number: string;
+  system: CardSystem;
+  type: CardType;
+  /** MM/YY */
+  expiry: string;
 }
 
 export interface Permission {
@@ -120,4 +129,23 @@ export interface FamilyState {
   childId?: string;
   /** UUID цели из базы — только в режиме API. */
   goalId?: string;
+  /** Счета ребёнка из базы. */
+  accounts?: AccountRow[];
+  /** История переводов между своими счетами. */
+  transfers?: TransferRow[];
 }
+
+export interface AccountRow {
+  kind: "pocket" | "savings" | "deposit" | "goal";
+  balance: number;
+}
+
+export interface TransferRow {
+  id: string;
+  from: "pocket" | "savings" | "deposit" | "goal";
+  to: "pocket" | "savings" | "deposit" | "goal";
+  amount: number;
+  at: string;
+}
+
+export type AccountKind = "pocket" | "savings" | "deposit";

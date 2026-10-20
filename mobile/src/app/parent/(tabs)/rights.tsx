@@ -9,6 +9,7 @@ import { font, palette, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Badge, Card, Chip, Divider, Row, SectionTitle, ToggleRow } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import { SlideToConfirm } from "@/ui/SlideToConfirm";
 
 const PRODUCT_LABEL: Record<ProductId, TKey> = {
   card: "rg.prod.card",
@@ -57,13 +58,8 @@ export default function ParentRightsScreen() {
           {pending.map((request) => (
             <View key={request.id} style={styles.pendingItem}>
               <Text style={styles.pendingLabel}>{L(request.label)}</Text>
-              <Row style={styles.pendingButtons}>
-                <Button
-                  compact
-                  label={t("common.approve")}
-                  onPress={() => resolveRequest(request.id, true)}
-                  style={styles.pendingButton}
-                />
+              <View style={styles.pendingButtons}>
+                <SlideToConfirm label={t("common.swipeConfirm")} onConfirm={() => resolveRequest(request.id, true)} />
                 <Button
                   compact
                   variant="ghost"
@@ -71,7 +67,7 @@ export default function ParentRightsScreen() {
                   onPress={() => resolveRequest(request.id, false)}
                   style={styles.pendingButton}
                 />
-              </Row>
+              </View>
             </View>
           ))}
         </Card>

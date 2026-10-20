@@ -15,6 +15,7 @@ import {
   createRequestApi,
   depositGoalApi,
   issueCardApi,
+  openAccountApi,
   patchCardApi,
   patchLimitsApi,
   patchOperationApi,
@@ -22,6 +23,8 @@ import {
   resolveRequestApi,
   setAccessApi,
   signConsentsApi,
+  topUpApi,
+  transferApi,
 } from "@/api/actions";
 import { useRealtime } from "@/api/realtime";
 import { loadChildState, loadParentState } from "@/api/sync";
@@ -30,8 +33,11 @@ import { useAuth } from "@/auth/AuthProvider";
 import { L, buildConsents, buildPermissions, initialState } from "./mock";
 import type {
   AccessRequest,
+  AccountKind,
   AgeBracket,
   AppNotification,
+  CardSystem,
+  CardType,
   ChildProfile,
   ConsentId,
   FamilyState,
@@ -52,10 +58,18 @@ interface StoreValue {
   toggleConsent: (id: ConsentId) => void;
   signAllConsents: () => void;
   issueProducts: () => void;
+  /** Выпуск карты с выбранным типом и платёжной системой. */
+  issueCard: (type: CardType, system: CardSystem) => Promise<boolean>;
   grantAccess: () => void;
   revokeAccess: () => void;
   togglePermission: (id: ProductId | OperationId) => void;
   updateLimits: (patch: Partial<LimitState>) => void;
+  /** Открыть счёт: доступно сразу либо через запрос родителю. */
+  openAccount: (kind: AccountKind) => Promise<"opened" | "requested">;
+  /** Перевод между своими счетами. */
+  moveMoney: (from: AccountKind | "goal", to: AccountKind | "goal", amount: number) => Promise<boolean>;
+  /** Родитель переводит деньги ребёнку на карман. */
+  topUpChild: (amount: number) => Promise<boolean>;
   toggleCardBlock: () => void;
   completeQuest: (id: string) => void;
   approveQuest: (id: string) => void;
@@ -119,6 +133,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, !demoMode && status === "signedIn");
 
   const showToastRef = useRef<((message: string) => void) | null>(null);
+  const balanceOf = useCallback((snapshot: FamilyState, kind: AccountKind | "goal"): number => {
+    if (kind === "goal") {
+      return snapshot.savedOnGoal;
+    }
+    return snapshot.accounts?.find((account) => account.kind === kind)?.balance ?? 0;
+  }, []);
 
   /** Отправить изменение на сервер и перечитать состояние. */
   const push = useCallback(
@@ -128,13 +148,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         await action();
-      } catch {
-        showToastRef.current?.("Сервер недоступен: изменение не сохранилось");
+      } catch (error) {
+        const text = error instanceof Error ? error.message : "";
+        showToastRef.current?.(text || "Сервер недоступен: изменение не сохранилось");
       }
       void hydrateRef.current();
     },
     [],
   );
+
+  /** Отправить изменение и вернуть, получилось ли (для переводов важен результат). */
+  const pushOrFail = useCallback(async (action: () => Promise<unknown>): Promise<boolean> => {
+    if (demoRef.current) {
+      return true;
+    }
+    let ok = true;
+    try {
+      await action();
+    } catch (error) {
+      ok = false;
+      const text = error instanceof Error ? error.message : "";
+      showToastRef.current?.(text || "Сервер недоступен: изменение не сохранилось");
+    }
+    void hydrateRef.current();
+    return ok;
+  }, []);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -224,10 +262,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, [push]);
 
+  /** Выпуск карты: сервер генерирует номер и срок, реквизиты приходят в снапшоте. */
+  const issueCard = useCallback(
+    async (type: CardType, system: CardSystem): Promise<boolean> => {
+      const childId = idsRef.current.childId;
+      if (!childId || demoRef.current) {
+        setState((prev) => ({ ...prev, card: { ...prev.card, status: "active", type, system } }));
+        return true;
+      }
+      const ok = await pushOrFail(() => issueCardApi(childId, type, system));
+      if (ok) {
+        void hydrate();
+      }
+      return ok;
+    },
+    [hydrate, pushOrFail],
+  );
+
   const issueProducts = useCallback(() => {
     const childId = idsRef.current.childId;
     if (childId) {
-      void push(() => issueCardApi(childId));
+      void push(() => issueCardApi(childId, "virtual", "visa"));
     } else if (!demoRef.current) {
       const profile = stateRef.current.child;
       void push(() => createChildApi({ name: profile.name, bracket: profile.bracket }));
@@ -286,6 +341,80 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       permissions: prev.permissions.map((p) => (p.id === id ? { ...p, allowed: !p.allowed } : p)),
     }));
   }, [push]);
+
+  /** Счёт открывает родитель; ребёнок может попросить, и родитель подтвердит запрос. */
+  const openAccount = useCallback(
+    async (kind: AccountKind): Promise<"opened" | "requested"> => {
+      const childId = idsRef.current.childId;
+      const role = stateRef.current.role;
+      if (!childId || demoRef.current) {
+        // Демо-режим: счёт появляется сразу, чтобы можно было показать переводы.
+        setState((prev) => ({
+          ...prev,
+          accounts: [
+            ...(prev.accounts ?? []).filter((account) => account.kind !== kind),
+            { kind, balance: 0 },
+          ],
+          permissions: prev.permissions.map((permission) =>
+            permission.id === kind ? { ...permission, allowed: true, pendingRequest: false } : permission,
+          ),
+        }));
+        return "opened";
+      }
+      if (role === "parent") {
+        const ok = await pushOrFail(() => openAccountApi(childId, kind));
+        return ok ? "opened" : "opened";
+      }
+      let result: "opened" | "requested" = "requested";
+      try {
+        const answer = await openAccountApi(childId, kind);
+        result = answer.status;
+      } catch (error) {
+        showToastRef.current?.(error instanceof Error ? error.message : "Сервер недоступен: попробуйте ещё раз");
+      }
+      void hydrateRef.current();
+      return result;
+    },
+    [pushOrFail],
+  );
+
+  /** Перевод между своими счетами — деньги не покидают семью. */
+  const moveMoney = useCallback(
+    async (from: AccountKind | "goal", to: AccountKind | "goal", amount: number): Promise<boolean> => {
+      if (amount <= 0) {
+        return false;
+      }
+      const snapshot = stateRef.current;
+      if (balanceOf(snapshot, from) + 0.001 < amount) {
+        showToastRef.current?.("Недостаточно денег на этом счёте");
+        return false;
+      }
+      const childId = idsRef.current.childId;
+      if (childId && !demoRef.current) {
+        return pushOrFail(() => transferApi(childId, from, to, amount));
+      }
+      // Демо-режим: переносим локально, чтобы экран жил без сервера.
+      setState((prev) => {
+        const delta = (kind: AccountKind | "goal") => (kind === from ? -amount : kind === to ? amount : 0);
+        return {
+          ...prev,
+          balance: Math.max(0, prev.balance + delta("pocket")),
+          savedOnGoal: Math.max(0, prev.savedOnGoal + delta("goal")),
+          goal: { ...prev.goal, saved: Math.max(0, prev.goal.saved + delta("goal")) },
+          accounts: (prev.accounts ?? []).map((account) => ({
+            ...account,
+            balance: Math.max(0, account.balance + delta(account.kind)),
+          })),
+          transfers: [
+            { id: `t${Date.now()}`, from, to, amount, at: new Date().toISOString() },
+            ...(prev.transfers ?? []),
+          ],
+        };
+      });
+      return true;
+    },
+    [balanceOf, pushOrFail],
+  );
 
   const updateLimits = useCallback(
     (patch: Partial<LimitState>) => {
@@ -427,6 +556,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     showToast("Demo reset");
   }, [showToast]);
 
+  /** Пополнение счёта ребёнка родителем — главное действие в обзоре. */
+  const topUpChild = useCallback(
+    async (amount: number): Promise<boolean> => {
+      if (amount <= 0) {
+        return false;
+      }
+      const childId = idsRef.current.childId;
+      if (childId && !demoRef.current) {
+        const ok = await pushOrFail(() => topUpApi(childId, amount));
+        if (ok) {
+          void hydrate();
+        }
+        return ok;
+      }
+      setState((prev) => ({
+        ...prev,
+        balance: prev.balance + amount,
+        accounts: (prev.accounts ?? []).map((account) =>
+          account.kind === "pocket" ? { ...account, balance: account.balance + amount } : account,
+        ),
+      }));
+      return true;
+    },
+    [hydrate, pushOrFail],
+  );
+
   const value = useMemo<StoreValue>(
     () => ({
       state,
@@ -438,10 +593,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       toggleConsent,
       signAllConsents,
       issueProducts,
+      issueCard,
       grantAccess,
       revokeAccess,
       togglePermission,
       updateLimits,
+      openAccount,
+      moveMoney,
+      topUpChild,
       toggleCardBlock,
       completeQuest,
       approveQuest,
@@ -461,10 +620,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       toggleConsent,
       signAllConsents,
       issueProducts,
+      issueCard,
       grantAccess,
       revokeAccess,
       togglePermission,
       updateLimits,
+      openAccount,
+      moveMoney,
+      topUpChild,
       toggleCardBlock,
       completeQuest,
       approveQuest,

@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { hashSecret, verifySecret } from "./auth.js";
 import type { Env } from "./env.js";
+import { sendOtpSms } from "./sms.js";
+import { sendTelegram, telegramChatForPhone, telegramEnabled } from "./telegram.js";
 
 const TTL_SECONDS = 5 * 60;
 const MAX_ATTEMPTS = 5;
@@ -44,8 +46,33 @@ export async function createChallenge(
     throw new Error("Не удалось создать код подтверждения: " + (error?.message ?? "неизвестно"));
   }
 
-  // Здесь подключается реальный SMS-провайдер. В демо-режиме код фиксированный.
-  console.log("[otp] код для " + phone + " создан" + (env.DEMO_OTP ? " (демо)" : ""));
+  // Основной канал хакатон-продукта: код в Telegram, без SMS и без платных шлюзов.
+  if (telegramEnabled()) {
+    const chatId = await telegramChatForPhone(db, phone);
+    if (chatId) {
+      const sent = await sendTelegram(
+        "🔐 <b>Moby Family</b>\nКод подтверждения: <b>" + code + "</b>\nДействует 5 минут.",
+        chatId,
+      );
+      if (sent) {
+        console.log("[otp] код отправлен в Telegram");
+        return {
+          challengeId: data.id as string,
+          ttlSeconds: TTL_SECONDS,
+          ...(env.DEMO_OTP ? { demoCode: env.DEMO_OTP } : {}),
+        };
+      }
+    }
+  }
+
+  const delivery = await sendOtpSms(env, phone, code);
+  if (delivery.sent) {
+    console.log("[otp] код отправлен через " + delivery.provider);
+  } else if (delivery.error) {
+    console.error("[otp] не удалось отправить код: " + delivery.error);
+  } else {
+    console.log("[otp] демо-режим, код фиксированный");
+  }
 
   return {
     challengeId: data.id as string,

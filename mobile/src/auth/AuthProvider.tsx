@@ -14,6 +14,7 @@ interface AuthValue {
   claims: SessionClaims | null;
   requestCode(phone: string): Promise<OtpChallenge>;
   verifyCode(challengeId: string, code: string, os: string): Promise<SessionClaims>;
+  saveProfile(fullName: string): Promise<void>;
   createFamily(fullName: string): Promise<void>;
   joinFamily(accessCode: string): Promise<SessionClaims>;
   signOut(): Promise<void>;
@@ -82,8 +83,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return session.claims;
   }, []);
 
+  const saveProfile = useCallback(async (fullName: string) => {
+    if (!isApiConfigured) {
+      setUser((prev) => (prev ? { ...prev, full_name: fullName } : prev));
+      return;
+    }
+    const me = await api<{ user: SessionUser; claims: SessionClaims }>("/me", {
+      method: "PATCH",
+      body: { fullName },
+    });
+    setUser(me.user);
+    setClaims(me.claims);
+  }, []);
+
   const createFamily = useCallback(async (fullName: string) => {
-    const family = await api<FamilyResponse>("/auth/family", { method: "POST", body: { fullName } });
+    const cleaned = fullName.trim();
+    // Имя уже сохранено на шаге регистрации: не шлём пустую строку, иначе сервер ответит ошибкой валидации.
+    const family = await api<FamilyResponse>("/auth/family", {
+      method: "POST",
+      body: cleaned.length > 0 ? { fullName: cleaned } : {},
+    });
     await saveTokens(family.accessToken, family.refreshToken);
     setClaims(family.claims);
     return;
@@ -115,12 +134,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       claims,
       requestCode,
       verifyCode,
+      saveProfile,
       createFamily,
       joinFamily,
       signOut,
       reload,
     }),
-    [status, phone, user, claims, requestCode, verifyCode, createFamily, joinFamily, signOut, reload],
+    [status, phone, user, claims, requestCode, verifyCode, saveProfile, createFamily, joinFamily, signOut, reload],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

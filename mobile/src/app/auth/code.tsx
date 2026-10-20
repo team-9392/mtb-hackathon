@@ -1,8 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text } from "react-native";
+import { Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { OfflineError } from "@/api/client";
+import { api, OfflineError } from "@/api/client";
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { font, palette, spacing } from "@/theme/tokens";
@@ -24,7 +25,36 @@ export default function CodeScreen() {
   const [error, setError] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
+  const [tgBusy, setTgBusy] = useState(false);
+  const [tgLinked, setTgLinked] = useState(false);
   const attempted = useRef(false);
+
+  /** Код без SMS: привязываем номер к Telegram-боту, код приходит туда. */
+  const openTelegram = async () => {
+    if (tgBusy) {
+      return;
+    }
+    setTgBusy(true);
+    try {
+      const answer = await api<{ linked: boolean; url: string | null }>("/auth/telegram/link", {
+        method: "POST",
+        body: { phone: params.phone ?? "" },
+        auth: false,
+      });
+      if (answer.url) {
+        await Linking.openURL(answer.url);
+      }
+      if (answer.linked || answer.url) {
+        setTgLinked(true);
+      } else {
+        setMessage(t("tg.notReady"));
+      }
+    } catch {
+      setMessage(t("auth.connectFailed"));
+    } finally {
+      setTgBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (seconds <= 0) {
@@ -47,7 +77,7 @@ export default function CodeScreen() {
     try {
       const claims = await verifyCode(challengeId, candidate, Platform.OS);
       if (!claims.familyId) {
-        router.replace("/auth/family");
+        router.replace("/auth/role");
         return;
       }
       if (claims.role === "child" && !claims.childId) {
@@ -87,7 +117,7 @@ export default function CodeScreen() {
       subtitle={t("auth.codeSubtitle", { phone })}
       footer={
         <>
-          <Button label={t("common.continue")} onPress={() => void submit(code)} loading={busy} disabled={code.length < 6} />
+          <Button label={t("common.continue")} onPress={() => void submit(code)} loading={busy} disabled={code.length < 4} />
           <Pressable onPress={() => void resend()} disabled={seconds > 0} style={styles.resend}>
             <Text style={[styles.resendText, seconds > 0 && styles.resendDisabled]}>
               {seconds > 0 ? t("auth.resendIn", { sec: String(seconds) }) : t("auth.resend")}
@@ -99,6 +129,17 @@ export default function CodeScreen() {
       <CodeInput value={code} onChange={setCode} error={error} autoFocus onComplete={(value) => void submit(value)} />
 
       {message ? <Text style={styles.error}>{message}</Text> : null}
+
+      <Pressable style={styles.telegram} onPress={() => void openTelegram()} disabled={tgBusy}>
+        <View style={styles.telegramHead}>
+          <Ionicons name="send-outline" size={18} color={palette.primary} />
+          <Text style={styles.telegramTitle}>{t("tg.otpTitle")}</Text>
+        </View>
+        <Text style={styles.telegramHint}>{t("tg.otpHint")}</Text>
+        <Text style={styles.telegramLink}>
+          {tgBusy ? t("tg.opening") : tgLinked ? t("tg.otpReady") : t("tg.otpButton")}
+        </Text>
+      </Pressable>
 
       {demoCode ? (
         <Pressable
@@ -138,6 +179,17 @@ const styles = StyleSheet.create({
   },
   demoText: { fontSize: font.tiny, color: palette.muted, fontWeight: "700" },
   demoLink: { fontSize: font.small, color: palette.primary, fontWeight: "700" },
+  telegram: {
+    marginTop: spacing.xl,
+    padding: spacing.lg,
+    backgroundColor: palette.primarySoft,
+    borderRadius: 20,
+    gap: 6,
+  },
+  telegramHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  telegramTitle: { fontSize: font.body, fontWeight: "800", color: palette.ink },
+  telegramHint: { fontSize: 13, color: palette.ink2, lineHeight: 18 },
+  telegramLink: { fontSize: font.small, fontWeight: "700", color: palette.primary },
   change: { marginTop: spacing.lg, alignItems: "center" },
   changeText: { fontSize: font.small, color: palette.muted, fontWeight: "600" },
 });

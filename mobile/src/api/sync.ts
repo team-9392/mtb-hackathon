@@ -5,10 +5,13 @@ import type {
   AppNotification,
   CategoryId,
   ConsentId,
+  CardSystem,
+  CardType,
   FamilyState,
   OperationId,
   ProductId,
   Quest,
+  TransferRow,
   Txn,
 } from "@/store/types";
 
@@ -37,6 +40,10 @@ export interface ApiLimits {
 export interface ApiCard {
   last4: string;
   status: string;
+  number?: string | null;
+  system?: string | null;
+  type?: string | null;
+  expiry?: string | null;
 }
 export interface ApiGoal {
   id: string;
@@ -129,6 +136,15 @@ export function mapChildBlock(block: ApiChildBlock): Partial<FamilyState> {
   return {
     childId: block.child.id,
     goalId: goal?.id,
+    accounts: [
+      ...block.accounts
+        .filter((account) => ["pocket", "savings", "deposit"].includes(account.kind))
+        .map((account) => ({
+          kind: account.kind as "pocket" | "savings" | "deposit" | "goal",
+          balance: num(account.balance),
+        })),
+      ...(goal ? [{ kind: "goal" as const, balance: num(goal.saved) }] : []),
+    ],
     onboarded: true,
     child: {
       name: block.child.name,
@@ -140,10 +156,22 @@ export function mapChildBlock(block: ApiChildBlock): Partial<FamilyState> {
     card: block.card
       ? {
           status: block.card.status === "blocked" ? "blocked" : block.card.status === "active" ? "active" : "issued",
-          physical: "delivered",
+          physical: block.card.type === "plastic" ? "delivered" : "ordered",
           last4: block.card.last4,
+          number: block.card.number ?? "",
+          system: (block.card.system as CardSystem | null) ?? "visa",
+          type: (block.card.type as CardType | null) ?? "virtual",
+          expiry: block.card.expiry ?? "",
         }
-      : { status: "issued", physical: "ordered", last4: "0000" },
+      : {
+          status: "issued",
+          physical: "ordered",
+          last4: "0000",
+          number: "",
+          system: "visa",
+          type: "virtual",
+          expiry: "",
+        },
     consents: CONSENT_ORDER.map((id) => ({
       id,
       required: id === "written14" ? bracket === "teen_14_17" : true,
@@ -222,9 +250,32 @@ export async function loadParentState(): Promise<Partial<FamilyState>> {
 }
 
 /** Состояние ребёнка: свои лимиты, карта, цели, квесты. */
+/** Последние переводы между счетами ребёнка. */
+async function loadTransfers(childId: string): Promise<TransferRow[]> {
+  try {
+    const answer = await api<{
+      transfers: { id: string; from_kind: string; to_kind: string; amount: number | string; created_at: string }[];
+    }>(`/children/${childId}/transfers`);
+    return answer.transfers.map((row) => ({
+      id: row.id,
+      from: row.from_kind as TransferRow["from"],
+      to: row.to_kind as TransferRow["to"],
+      amount: num(row.amount),
+      at: row.created_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function loadChildState(childId: string): Promise<Partial<FamilyState>> {
   const block = await api<ApiChildBlock>(`/children/${childId}/state`);
-  return { ...mapChildBlock(block), role: "child", childSession: true };
+  return {
+    ...mapChildBlock(block),
+    role: "child",
+    childSession: true,
+    transfers: await loadTransfers(childId),
+  };
 }
 
 /** Уведомления семьи. */
