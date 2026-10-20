@@ -24,7 +24,7 @@ const SYSTEM_LABEL: Record<CardSystem, string> = {
 /** Выпуск карты: виртуальная или пластиковая, любая платёжная система. */
 export default function IssueScreen() {
   const { t } = useI18n();
-  const { state, issueCard } = useStore();
+  const { state, issueCard, showToast } = useStore();
   const router = useRouter();
   const [type, setType] = useState<CardType>(state.card.type);
   const [system, setSystem] = useState<CardSystem>(state.card.system);
@@ -35,11 +35,20 @@ export default function IssueScreen() {
   const expiry = matches && state.card.expiry.length > 0 ? state.card.expiry : "••/••";
 
   const submit = async () => {
+    if (busy) {
+      return;
+    }
     setBusy(true);
-    const ok = await issueCard(type, system);
-    setBusy(false);
+    let ok = false;
+    try {
+      ok = await issueCard(type, system);
+    } finally {
+      // Спиннер не должен остаться, что бы ни случилось.
+      setBusy(false);
+    }
     if (ok) {
-      router.replace("/parent/issue");
+      // Никуда не переходим: реквизиты приходят в состояние, экран обновляется сам.
+      showToast(t("card.issued"));
     }
   };
 

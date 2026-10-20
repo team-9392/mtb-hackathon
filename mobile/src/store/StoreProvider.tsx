@@ -128,9 +128,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [hydrate]);
 
   // Живой канал: любое изменение в семье — перечитываем состояние.
+  // Без семьи следить не за чем, а токен без familyId бесконечно переподключался бы.
   useRealtime(() => {
     void hydrateRef.current();
-  }, !demoMode && status === "signedIn");
+  }, !demoMode && status === "signedIn" && Boolean(claims?.familyId));
 
   const showToastRef = useRef<((message: string) => void) | null>(null);
   const balanceOf = useCallback((snapshot: FamilyState, kind: AccountKind | "goal"): number => {

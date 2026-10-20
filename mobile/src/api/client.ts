@@ -72,6 +72,9 @@ interface RequestOptions {
   retry?: boolean;
 }
 
+/** Дольше этого не ждём: лучше показать ошибку, чем вечный спиннер. */
+const REQUEST_TIMEOUT_MS = 20000;
+
 async function send(path: string, options: RequestOptions): Promise<Response> {
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (options.auth !== false) {
@@ -82,14 +85,21 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
   }
 
   let response: Response;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     response = await fetch(API_URL + path, {
       method: options.method ?? "GET",
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: controller.signal,
     });
   } catch {
-    throw new OfflineError();
+    throw controller.signal.aborted
+      ? new ApiError(0, "timeout", "Сервер не ответил — попробуйте ещё раз")
+      : new OfflineError();
+  } finally {
+    clearTimeout(timer);
   }
   return response;
 }
