@@ -1,0 +1,112 @@
+import crypto from "node:crypto";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { hashSecret, verifySecret } from "./auth.js";
+import type { Env } from "./env.js";
+
+const TTL_SECONDS = 5 * 60;
+const MAX_ATTEMPTS = 5;
+
+export function normalizePhone(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (digits.length === 12 && digits.startsWith("375")) {
+    return "+" + digits;
+  }
+  if (digits.length === 9) {
+    return "+375" + digits;
+  }
+  return "+" + digits;
+}
+
+export function generateCode(env: Env): string {
+  if (env.DEMO_OTP) {
+    return env.DEMO_OTP;
+  }
+  return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+export async function createChallenge(
+  db: SupabaseClient,
+  env: Env,
+  phone: string,
+): Promise<{ challengeId: string; ttlSeconds: number; demoCode?: string }> {
+  const code = generateCode(env);
+  const expiresAt = new Date(Date.now() + TTL_SECONDS * 1000).toISOString();
+
+  const { data, error } = await db
+    .from("otp_challenges")
+    .insert({ phone, code_hash: hashSecret(code), expires_at: expiresAt })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    throw new Error("Не удалось создать код подтверждения: " + (error?.message ?? "неизвестно"));
+  }
+
+  // Здесь подключается реальный SMS-провайдер. В демо-режиме код фиксированный.
+  console.log("[otp] код для " + phone + " создан" + (env.DEMO_OTP ? " (демо)" : ""));
+
+  return {
+    challengeId: data.id as string,
+    ttlSeconds: TTL_SECONDS,
+    ...(env.DEMO_OTP ? { demoCode: env.DEMO_OTP } : {}),
+  };
+}
+
+export type VerifyResult =
+  | { ok: true; phone: string }
+  | { ok: false; reason: "not_found" | "expired" | "too_many_attempts" | "wrong_code" };
+
+export async function verifyChallenge(
+  db: SupabaseClient,
+  env: Env,
+  challengeId: string,
+  code: string,
+): Promise<VerifyResult> {
+  const { data: challenge } = await db
+    .from("otp_challenges")
+    .select("id, phone, code_hash, attempts, expires_at, consumed_at")
+    .eq("id", challengeId)
+    .maybeSingle();
+
+  if (!challenge || challenge.consumed_at) {
+    return { ok: false, reason: "not_found" };
+  }
+  if (new Date(challenge.expires_at as string).getTime() < Date.now()) {
+    return { ok: false, reason: "expired" };
+  }
+  if ((challenge.attempts as number) >= MAX_ATTEMPTS) {
+    return { ok: false, reason: "too_many_attempts" };
+  }
+
+  const isDemo = Boolean(env.DEMO_OTP) && code === env.DEMO_OTP;
+  const isValid = isDemo || verifySecret(code, challenge.code_hash as string);
+
+  if (!isValid) {
+    await db
+      .from("otp_challenges")
+      .update({ attempts: (challenge.attempts as number) + 1 })
+      .eq("id", challengeId);
+    return { ok: false, reason: "wrong_code" };
+  }
+
+  await db
+    .from("otp_challenges")
+    .update({ consumed_at: new Date().toISOString() })
+    .eq("id", challengeId);
+
+  return { ok: true, phone: challenge.phone as string };
+}
+
+export function randomNumeric(length: number): string {
+  let out = "";
+  while (out.length < length) {
+    out += String(crypto.randomInt(0, 10));
+  }
+  return out;
+}
+
+export function randomInviteCode(): string {
+  return crypto.randomBytes(4).toString("hex").toUpperCase();
+}
