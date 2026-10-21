@@ -33,6 +33,27 @@ export function CardPeek({
 }) {
   const [index, setIndex] = useState(0);
   const [width, setWidth] = useState(340);
+  const shift = useRef(new Animated.Value(0)).current;
+  const widthRef = useRef(340);
+  widthRef.current = width;
+  const indexValue = useRef(index);
+  indexValue.current = index;
+  const countValue = useRef(cards.length);
+  countValue.current = cards.length;
+  const swipe = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.3,
+      onPanResponderMove: (_e, g) => shift.setValue(Math.max(-widthRef.current * 0.4, Math.min(widthRef.current * 0.4, g.dx))),
+      onPanResponderRelease: (_e, g) => {
+        if (g.dx < -50 && indexValue.current < countValue.current - 1) {
+          setIndex(indexValue.current + 1);
+        } else if (g.dx > 50 && indexValue.current > 0) {
+          setIndex(indexValue.current - 1);
+        }
+        Animated.spring(shift, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+      },
+    }),
+  ).current;
   const indexRef = useRef(index);
   indexRef.current = index;
   const count = cards.length;
@@ -70,16 +91,14 @@ export function CardPeek({
 
   return (
     <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      <Animated.View style={[styles.sheet, { height, marginHorizontal: edge, transform: [{ rotate }] }]}>
+      <Animated.View style={[styles.sheet, { height, marginHorizontal: edge, transform: [{ rotate }, { translateX: shift }] }]} {...swipe.panHandlers}>
         <View style={styles.card}>
           <Animated.Text style={[styles.watermark, { opacity: watermarkOpacity }]}>MT</Animated.Text>
 
-          <View style={styles.chip}>
-            <View style={styles.chipLineH} />
-            <View style={styles.chipLineV} />
-          </View>
 
-          <PaymentBrand system={card.system} onDark />
+          <View style={styles.brandPos}>
+            <PaymentBrand system={card.system} onDark />
+          </View>
 
           <Text style={styles.holder} numberOfLines={1}>
             {(card.holder ?? holder).toUpperCase()}
@@ -140,18 +159,7 @@ const styles = StyleSheet.create({
     color: "#2236ff",
     opacity: 0.9,
   },
-  chip: {
-    width: 42,
-    height: 30,
-    borderRadius: 5,
-    backgroundColor: "#c9c9c9",
-    borderWidth: 1,
-    borderColor: "#7a7a7a",
-    marginTop: 6,
-    overflow: "hidden",
-  },
-  chipLineH: { position: "absolute", left: 0, right: 0, top: 14, height: 1, backgroundColor: "#8a8a8a" },
-  chipLineV: { position: "absolute", top: 0, bottom: 0, left: 20, width: 1, backgroundColor: "#8a8a8a" },
+
   holder: {
     position: "absolute",
     left: spacing.lg,
@@ -162,7 +170,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     maxWidth: "62%",
   },
-  expanded: { marginTop: "auto", gap: 5 },
+  brandPos: { position: "absolute", right: spacing.lg, bottom: spacing.md },
+  expanded: { marginTop: "auto", gap: 5, paddingBottom: 34 },
   balance: { color: "#fff", fontSize: 24, fontWeight: "800", letterSpacing: -0.5 },
   pan: { color: "#fff", fontSize: 18, fontWeight: "700", letterSpacing: 2, fontFamily: "monospace" },
   metaRow: { flexDirection: "row", gap: spacing.md },
