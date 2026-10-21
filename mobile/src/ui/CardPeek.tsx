@@ -29,6 +29,7 @@ export function CardPeek({
   onIssue,
   onDetails,
   onIndexChange,
+  balance,
 }: {
   cards: CardInfo[];
   holder: string;
@@ -37,6 +38,7 @@ export function CardPeek({
   onIssue?: () => void;
   onDetails?: (card: CardInfo) => void;
   onIndexChange?: (index: number) => void;
+  balance?: number;
 }) {
   const styles = useThemedStyles(makeStyles);
   const [index, setIndex] = useState(0);
@@ -100,7 +102,8 @@ export function CardPeek({
     );
   }
 
-  const height = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [COLLAPSED, EXPANDED], extrapolate: "clamp" });
+  const expandedHeight = Math.max(196, Math.round(((width || 340) - 2 * spacing.lg) / 1.586));
+  const height = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [COLLAPSED, expandedHeight], extrapolate: "clamp" });
   const rotate = scrollY.interpolate({ inputRange: [0, PULL], outputRange: ["-4deg", "0deg"], extrapolate: "clamp" });
   const scale = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.97, 1], extrapolate: "clamp" });
   const glowOpacity = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.4, 0.95], extrapolate: "clamp" });
@@ -143,6 +146,8 @@ export function CardPeek({
           </View>
 
           <Animated.View style={[styles.center, { opacity: detailsOpacity }]}>
+            {typeof balance === number ? null : null}
+            {typeof balance === "number" ? <Text style={styles.cardBalance}>{Math.round(balance).toLocaleString("ru-RU")} BYN</Text> : null}
             <Text style={styles.pan}>{formatPan(card.number)}</Text>
             <Animated.View style={[styles.metaRow, { transform: [{ translateY: metaShift }] }]}>
               <Text style={styles.meta}>Срок: {card.expiry.length > 0 ? card.expiry : "••/••"}</Text>
@@ -166,6 +171,18 @@ export function CardPeek({
           </View>
         </LinearGradient>
       </Animated.View>
+
+      {count > 1 ? (
+        <View style={styles.arrows}>
+          <Pressable style={styles.arrow} onPress={() => setIndex((prev) => Math.max(0, prev - 1))} hitSlop={8}>
+            <Ionicons name="chevron-back" size={18} color="#fff" />
+          </Pressable>
+          <Text style={styles.counter}>{(index + 1) + " / " + count}</Text>
+          <Pressable style={styles.arrow} onPress={() => setIndex((prev) => Math.min(count - 1, prev + 1))} hitSlop={8}>
+            <Ionicons name="chevron-forward" size={18} color="#fff" />
+          </Pressable>
+        </View>
+      ) : null}
 
       <Animated.View style={[styles.hintRow, { opacity: dotsOpacity }]} pointerEvents="none">
         <Ionicons name="chevron-down" size={14} color="rgba(255,255,255,0.5)" />
@@ -217,6 +234,10 @@ const makeStyles = (colors: Palette) =>
     paddingVertical: 5,
   },
   detailsText: { color: "#dbeafe", fontSize: 11, fontWeight: "700" },
+  cardBalance: { color: "#fff", fontSize: 26, fontWeight: "800", letterSpacing: -0.5, marginBottom: 2 },
+  arrows: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 8 },
+  arrow: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" },
+  counter: { color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: "700" },
   hintRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, marginTop: spacing.sm },
   hint: { color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: "600" },
   emptyWrap: {},
