@@ -3,8 +3,10 @@ import React, { useRef, useState } from "react";
 import { Animated, Image, PanResponder, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { formatPan } from "@/lib/card";
+import { translit } from "@/lib/translit";
 import type { CardInfo } from "@/store/types";
 import { radius, spacing } from "@/theme/tokens";
+import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Text } from "@/ui/Text";
 
 const LIFT = 150;
@@ -24,6 +26,7 @@ export function CardPeek({
   onIssue,
   onDetails,
   onRefresh,
+  refreshing,
 }: {
   cards: CardInfo[];
   holder: string;
@@ -34,6 +37,7 @@ export function CardPeek({
   onIssue?: () => void;
   onDetails?: (card: CardInfo) => void;
   onRefresh?: () => void;
+  refreshing?: boolean;
   limitLeft?: number;
 }) {
   const { width } = useWindowDimensions();
@@ -129,6 +133,13 @@ export function CardPeek({
             </Pressable>
           ) : null}
 
+          <Text style={styles.holder} numberOfLines={1}>
+            {translit((card.holder ?? holder) || "").toUpperCase()}
+          </Text>
+          <View style={styles.brand}>
+            <PaymentBrand system={card.system} onDark />
+          </View>
+
           <Animated.View style={[styles.details, { opacity: expanded }]}>
             <View style={styles.detailsRow}>
               <View style={{ flex: 1 }}>
@@ -173,6 +184,8 @@ const styles = StyleSheet.create({
   },
   face: { width: "100%", height: "100%" },
   refresh: { position: "absolute", top: 14, right: 18, width: 26, height: 26, alignItems: "center", justifyContent: "center" },
+  holder: { position: "absolute", left: 18, bottom: 48, color: "#fff", fontSize: 13, fontWeight: "700", letterSpacing: 1.4, maxWidth: "60%", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  brand: { position: "absolute", right: 18, bottom: 44 },
   details: {
     position: "absolute",
     left: 18,

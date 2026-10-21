@@ -213,7 +213,7 @@ export default function ParentHomeScreen() {
                     {/* Баланс отдельно над картой */}
                     <View style={[styles.balanceRow, pulled && styles.hidden]}>
                         <Text style={styles.balance}>
-                            {formatMoney(activeBalance, 0).replace(" BYN", "")}
+                            {refreshing ? "•••" : formatMoney(activeBalance, 0).replace(" BYN", "")}
                         </Text>
                         <Text style={styles.currency}>BYN</Text>
                     </View>
@@ -228,6 +228,7 @@ export default function ParentHomeScreen() {
                             balance={activeBalance}
                             onIssue={() => void issueMyCard()}
                             activeIndex={activeIndex}
+                            refreshing={refreshing}
                             onIndexChange={setActiveIndex}
                             onDetails={(card) => setPendingCard(card)}
                             onRefresh={() => {

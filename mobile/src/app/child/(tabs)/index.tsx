@@ -174,7 +174,7 @@ export default function ChildHomeScreen() {
                     {/* Баланс (отдельно над картой!) */}
                     <View style={[styles.balanceRow, pulled && styles.hidden]}>
                         <Text style={styles.balance}>
-                            {formatMoney(state.balance, 0).replace(" BYN", "")}
+                            {refreshing ? "•••" : formatMoney(state.balance, 0).replace(" BYN", "")}
                         </Text>
                         <Text style={styles.currency}>BYN</Text>
                     </View>
@@ -188,6 +188,7 @@ export default function ChildHomeScreen() {
                             scrollY={pull}
                             balance={state.balance}
                             onIssue={() => router.push("/child/accounts")}
+                            refreshing={refreshing}
                             onDetails={(card) => setPendingCard(card)}
                             onRefresh={() => {
                                 setRefreshing(true);
