@@ -12,6 +12,7 @@ import { bracketLabel, spentThisMonth } from "@/store/permissions";
 import { useStore } from "@/store/StoreProvider";
 import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { AiInsights } from "@/ui/AiInsights";
 import { GlassCard } from "@/ui/GlassCard";
 import { HeroGlow } from "@/ui/Glow";
 import { ListRow, SectionTitle, Segmented } from "@/ui/primitives";
@@ -140,6 +141,8 @@ export default function ChildProfileScreen() {
             </Text>
           </View>
         </GlassCard>
+
+        <AiInsights />
 
         <SpendCard
           categories={categories}
