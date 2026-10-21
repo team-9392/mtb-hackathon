@@ -18,6 +18,9 @@ const schema = z.object({
   TELEGRAM_CHAT_ID: z.string().optional(),
   TELEGRAM_BOT_USERNAME: z.string().optional(),
   CORS_ORIGIN: z.string().optional(),
+  PROXYAPI_KEY: z.string().optional(),
+  PROXYAPI_URL: z.string().optional(),
+  PROXYAPI_MODEL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
