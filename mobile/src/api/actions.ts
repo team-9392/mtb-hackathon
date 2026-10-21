@@ -203,6 +203,7 @@ export interface MyCardDto {
   expiry: string;
   status: string;
   masked: string;
+  balance?: number;
 }
 export function myCardsApi(): Promise<{ cards: MyCardDto[] }> {
   return api("/me/cards");

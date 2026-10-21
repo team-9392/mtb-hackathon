@@ -46,6 +46,7 @@ function toDto(row: Record<string, unknown>, withSecrets = false) {
     expiry: row.expiry as string,
     status: row.status as string,
     masked: "•••• " + String(row.number ?? "").slice(-4),
+    balance: Number(row.balance ?? 0),
     ...(withSecrets ? { cvv: row.cvv as string, pin: row.pin as string } : {}),
   };
 }
@@ -61,7 +62,7 @@ export async function registerParentCardRoutes(
       const claims = requireAuth(request, env);
       const { data } = await db
         .from("parent_cards")
-        .select("id, number, system, type, expiry, status")
+        .select("id, number, system, type, expiry, status, balance")
         .eq("user_id", claims.sub)
         .order("created_at", { ascending: true });
       return reply.send({ cards: (data ?? []).map((row) => toDto(row)) });

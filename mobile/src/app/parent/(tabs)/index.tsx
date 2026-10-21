@@ -29,11 +29,14 @@ export default function ParentHomeScreen() {
   const styles = useThemedStyles(makeStyles);
   const [topup, setTopup] = useState(false);
   const [myCards, setMyCards] = useState<CardInfo[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [parentBalance, setParentBalance] = useState(0);
   const [myCardBusy, setMyCardBusy] = useState(false);
 
   const loadMyCards = useCallback(async () => {
     try {
       const answer = await myCardsApi();
+      setParentBalance(Number(answer.cards?.[0]?.balance ?? 0));
       setMyCards(
         (answer.cards ?? []).map((item) => ({
           id: item.id,
@@ -137,7 +140,7 @@ export default function ParentHomeScreen() {
           </View>
 
           <View style={styles.balanceRow}>
-            <Text style={styles.balance}>{formatMoney(state.balance, 0).replace(" BYN", "")}</Text>
+            <Text style={styles.balance}>{formatMoney(myCards.length > 0 && activeIndex === 0 ? parentBalance : state.balance, 0).replace(" BYN", "")}</Text>
             <Text style={styles.currency}>BYN</Text>
           <View style={styles.cardWrap}>
                       <CardPeek
@@ -146,7 +149,8 @@ export default function ParentHomeScreen() {
                                   limitLeft={left}
                                   scrollY={scrollY}
                                   onIssue={() => void issueMyCard()}
-                                  onDetails={(card) => {
+                                  onIndexChange={setActiveIndex}
+            onDetails={(card) => {
                                     if (!card.id) return;
                                     void requestMyCardDetailsApi(card.id)
                                       .then(() => showToast(t("card.detailsSent")))
@@ -155,7 +159,7 @@ export default function ParentHomeScreen() {
                                 />
                     </View>
           </View>
-          <Text style={styles.greeting}>{firstName} · {state.child.name}</Text>
+          <Text style={styles.greeting}>{firstName} · {myCards.length > 0 && activeIndex === 0 ? t("pr.myCard") : state.child.name}</Text>
 
         </View>
 
@@ -274,7 +278,7 @@ const makeStyles = (colors: Palette) =>
       borderTopWidth: 1,
       borderTopColor: colors.line,
     },
-    cardWrap: { marginHorizontal: spacing.xl, marginBottom: spacing.md },
+    cardWrap: { marginBottom: spacing.md },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm, width: 64 },
     actionCircle: {

@@ -28,6 +28,7 @@ export function CardPeek({
   scrollY,
   onIssue,
   onDetails,
+  onIndexChange,
 }: {
   cards: CardInfo[];
   holder: string;
@@ -35,6 +36,7 @@ export function CardPeek({
   scrollY: Animated.Value;
   onIssue?: () => void;
   onDetails?: (card: CardInfo) => void;
+  onIndexChange?: (index: number) => void;
 }) {
   const styles = useThemedStyles(makeStyles);
   const [index, setIndex] = useState(0);
@@ -51,6 +53,10 @@ export function CardPeek({
   useEffect(() => {
     setIndex((prev) => Math.min(prev, Math.max(0, cards.length - 1)));
   }, [cards.length]);
+
+  useEffect(() => {
+    onIndexChange?.(index);
+  }, [index, onIndexChange]);
 
   useEffect(() => {
     const id = scrollY.addListener(({ value }) => setElevated(value > 24));
@@ -103,7 +109,8 @@ export function CardPeek({
   const metaShift = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [10, 0], extrapolate: "clamp" });
   const glowScale = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.92, 1.08], extrapolate: "clamp" });
   // Свернутая карта уходит краями за экран — как в макете, рёбра видны только после раскрытия.
-  const edge = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [-18, spacing.lg], extrapolate: "clamp" });
+  // Свернута — уже экрана, раскрыта — до самых границ.
+  const edge = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [spacing.xl, 0], extrapolate: "clamp" });
 
   return (
     <View style={[styles.wrap, elevated && styles.wrapElevated]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
