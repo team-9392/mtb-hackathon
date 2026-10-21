@@ -92,6 +92,7 @@ export default function ChildHomeScreen() {
     { id: "transfer", icon: "swap-horizontal" as const, label: t("ch.transfer"), onPress: () => router.push("/child/accounts") },
     { id: "goal", icon: "heart-outline" as const, label: t("ch.kopilka"), onPress: () => router.push("/child/goal") },
     { id: "quests", icon: "checkbox-outline" as const, label: t("ch.quests"), onPress: () => router.push("/child/quests") },
+    { id: "game", icon: "game-controller-outline" as const, label: t("game.title"), onPress: () => router.push("/game-budget") },
   ];
 
   return (

@@ -538,6 +538,7 @@ export const be: Record<TKey, string> = {
   "cf.success": "Гатова",
   "cf.successHint": "CVV і PIN адпраўлены ў Telegram",
   "ov.overview": "Агляд",
+  "game.title": "Гульня",
 "common.swipeConfirm": "Правядзіце ўправа, каб пацвердзіць",
   "common.swipeTransfer": "Правядзіце ўправа, каб перавесці",
   "pay.title": "Аплата і пераводы",
