@@ -439,7 +439,7 @@ const makeStyles = (_colors: Palette) =>
             marginBottom: spacing.sm,
         },
         refreshText: { color: "#8b94a3", fontSize: 12, fontWeight: "700" },
-        overscrollBg: { position: "absolute", top: -260, left: 0, right: 0, height: 900 },
+        overscrollBg: { position: "absolute", top: -400, left: 0, right: 0, height: 1800 },
         hero: {
             overflow: "visible",
             paddingHorizontal: 24,
