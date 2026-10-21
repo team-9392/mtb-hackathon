@@ -132,10 +132,11 @@ export function SlideToConfirm({
 
   const travel = Math.max(1, width - THUMB - PADDING * 2);
 
-  // Заливка тянется следом за ручкой: от круглой подложки под ней до всей ширины.
-  const fillWidth = translate.interpolate({
+  // Заливка тянется следом за ручкой. Ширину анимировать нельзя нативным драйвером,
+  // поэтому растягиваем её через scaleX.
+  const fillScale = translate.interpolate({
     inputRange: [0, travel],
-    outputRange: [TRACK_HEIGHT, width || TRACK_HEIGHT],
+    outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
@@ -179,7 +180,12 @@ export function SlideToConfirm({
         <Animated.View
           style={[
             styles.fill,
-            { width: fillWidth, backgroundColor: colors.primarySoft },
+            {
+              width: Math.max(1, width),
+              transformOrigin: "left",
+              transform: [{ scaleX: fillScale }],
+              backgroundColor: colors.primarySoft,
+            },
           ]}
         />
       )}

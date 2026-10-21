@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import React, { useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, View, TextInput } from "react-native";
+import { Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useI18n, useL } from "@/i18n";
@@ -85,6 +86,10 @@ export default function ChildGoalScreen() {
             </View>
           </View>
           <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.brandRow}>
+          <Image source={require("../../../../assets/brand/logo.png")} style={styles.brandLogo} resizeMode="contain" />
+          <Text style={styles.brandName}>MobyFamily</Text>
         </View>
         <Text secondary style={styles.subtitle}>
           {t("sp.kopilkaSubtitle")}
@@ -315,7 +320,10 @@ const makeStyles = (colors: Palette) =>
     },
     brandText: { fontSize: 11, fontWeight: "500", color: colors.primary },
     headerSpacer: { width: 40, height: 40 },
-    subtitle: { fontSize: 13, color: colors.muted, paddingLeft: 4, marginTop: -6 },
+    brandRow: { flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center", marginBottom: 4 },
+  brandLogo: { width: 18, height: 18 },
+  brandName: { color: "#8b94a3", fontSize: 12, fontWeight: "700" },
+  subtitle: { fontSize: 13, color: colors.muted, paddingLeft: 4, marginTop: -6 },
     totalCard: { padding: 16, overflow: "hidden", borderRadius: 16, marginTop: 2 },
     totalGlow: { right: -50, bottom: -60 },
     totalLabel: {

@@ -17,7 +17,7 @@ import { Text } from "@/ui/Text";
 export default function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t, lang, setLang } = useI18n();
+  const { lang, setLang } = useI18n();
   const { mode, setMode, isDark } = useTheme();
   const { user, signOut } = useAuth();
   const { showToast } = useStore();

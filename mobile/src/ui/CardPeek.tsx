@@ -146,7 +146,7 @@ export function CardPeek({
             <View style={styles.detailsRow}>
               <View style={{ flex: 1 }}>
                 {typeof balance === "number" ? (
-                  <Text style={styles.balance}>{Math.round(balance).toLocaleString("ru-RU")} BYN</Text>
+                  <Text style={styles.balance}>{refreshing ? "•••" : Math.round(balance).toLocaleString("ru-RU") + " BYN"}</Text>
                 ) : null}
                 <Text style={styles.pan}>{formatPan(card.number)}</Text>
                 <Text style={styles.meta}>

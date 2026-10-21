@@ -5,7 +5,6 @@ import { ActivityIndicator, Animated, PanResponder, Pressable, StyleSheet, View 
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { requestCardDetailsApi } from "@/api/actions";
-import { api } from "@/api/client";
 import { useI18n } from "@/i18n";
 import { formatDate, formatMoney } from "@/lib/format";
 import { spentThisMonth } from "@/store/permissions";
@@ -25,7 +24,7 @@ import { TopUpSheet } from "@/ui/TopUpSheet";
 export default function ChildHomeScreen() {
     const { t, lang } = useI18n();
     const { state, showToast, refresh } = useStore();
-    const [skin, setSkin] = useState("classic");
+    const [skin] = useState("classic");
     const router = useRouter();
     const { colors } = useTheme();
     const styles = useThemedStyles(makeStyles);
@@ -480,15 +479,17 @@ const makeStyles = (_colors: Palette) =>
         },
         actions: {
             flexDirection: "row",
-            justifyContent: "space-between",
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
             alignItems: "flex-start",
             paddingHorizontal: 2,
             marginBottom: 4,
+            rowGap: 12,
         },
         action: {
             alignItems: "center",
-            gap: 8,
-            flex: 1,
+            gap: 6,
+            width: "33.33%",
         },
         actionCircle: {
             width: 58,

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { api } from "@/api/client";
-import { radius, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
 import { Text } from "@/ui/Text";
 
 type Alert = { id: string; title_ru: string; body_ru: string | null; created_at: string };

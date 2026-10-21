@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleProp,
@@ -54,6 +55,10 @@ export function Screen({
 
   const header = title || showBack ? (
     <View style={styles.header}>
+      <View style={styles.brandRow}>
+        <Image source={require("../../assets/brand/logo.png")} style={styles.brandLogo} resizeMode="contain" />
+        <Text style={styles.brandName}>MobyFamily</Text>
+      </View>
       {showBack ? (
         <Pressable
           onPress={goBack}
@@ -116,6 +121,9 @@ export function Screen({
 }
 
 const styles = StyleSheet.create({
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "center", marginBottom: 6, opacity: 0.9 },
+  brandLogo: { width: 18, height: 18 },
+  brandName: { color: "#8b94a3", fontSize: 12, fontWeight: "700", letterSpacing: 0.3 },
   root: { flex: 1 },
   header: {
     flexDirection: "row",

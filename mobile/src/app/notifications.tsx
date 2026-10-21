@@ -38,7 +38,7 @@ function formatWhen(value: string, lang: string): string {
 export default function NotificationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t, lang } = useI18n();
+  const { lang } = useI18n();
   const [items, setItems] = useState<ApiNotification[]>([]);
   const [busy, setBusy] = useState(false);
 

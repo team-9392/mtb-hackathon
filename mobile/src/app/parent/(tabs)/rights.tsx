@@ -13,7 +13,6 @@ import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
 import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
-import { GameCenterLink } from "@/ui/GameCenterLink";
 import { Text } from "@/ui/Text";
 
 const PRODUCT_LABEL: Record<ProductId, TKey> = {
