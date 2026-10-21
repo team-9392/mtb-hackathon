@@ -103,6 +103,7 @@ export default function ParentHomeScreen() {
     { id: "limit", icon: "speedometer-outline" as const, label: t("ov.limitAction"), onPress: () => router.push("/parent/limits") },
     { id: "tasks", icon: "checkbox-outline" as const, label: t("ch.quests"), onPress: () => router.push("/parent/bonuses") },
     { id: "access", icon: "people-outline" as const, label: t("kid.title"), onPress: () => router.push("/parent/child-access") },
+    { id: "task", icon: "create-outline" as const, label: t("pt.short"), onPress: () => router.push("/parent/task-new") },
   ];
 
   return (
@@ -210,7 +211,8 @@ export default function ParentHomeScreen() {
               <Text style={styles.empty}>{t("ch.noOps")}</Text>
             ) : (
               state.txns.slice(0, 4).map((txn, index) => {
-                const income = txn.amount > 0;
+                const outgoing = txn.amount > 0;
+                const income = false;
                 return (
                   <View key={txn.id}>
                     {index > 0 ? <View style={styles.divider} /> : null}
@@ -220,10 +222,10 @@ export default function ParentHomeScreen() {
                       </View>
                       <View style={styles.opText}>
                         <Text style={styles.opTitle} numberOfLines={1}>
-                          {lang === "be" ? txn.title.be : txn.title.ru}
+                          {outgoing ? t("ov.transferChild") : lang === "be" ? txn.title.be : txn.title.ru}
                         </Text>
                         <Text style={[styles.opAmount, { color: income ? colors.mint : colors.text }]}>
-                          {income ? "+" : "−"}
+                          {outgoing ? "−" : income ? "+" : "−"}
                           {formatMoney(Math.abs(txn.amount), 0)}
                         </Text>
                         <Text style={styles.opDate}>{formatDate(txn.at, lang)}</Text>
@@ -269,11 +271,11 @@ const makeStyles = (colors: Palette) =>
       borderTopColor: colors.line,
     },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
-    action: { alignItems: "center", gap: spacing.sm, width: 76 },
+    action: { alignItems: "center", gap: spacing.sm, width: 64 },
     actionCircle: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
+      width: 54,
+      height: 54,
+      borderRadius: 27,
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.line,
