@@ -5,7 +5,6 @@ import { Animated, PanResponder, Pressable, StyleSheet, View } from "react-nativ
 import { formatPan } from "@/lib/card";
 import type { CardInfo } from "@/store/types";
 import { radius, spacing } from "@/theme/tokens";
-import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Text } from "@/ui/Text";
 
 const COLLAPSED = 200;
@@ -14,9 +13,9 @@ const PULL = 150;
 /** Карта как в макете: чёрная, с водяным знаком MT, чипом, именем и логотипом системы. */
 export function CardPeek({
   cards,
-  holder,
+  holder: _holder,
   balance,
-  limitLeft,
+  limitLeft: _limitLeft,
   scrollY,
   onIssue,
   onDetails,
@@ -42,7 +41,9 @@ export function CardPeek({
   countValue.current = cards.length;
   const swipe = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.3,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.2,
+      onPanResponderTerminationRequest: () => false,
       onPanResponderMove: (_e, g) => shift.setValue(Math.max(-widthRef.current * 0.4, Math.min(widthRef.current * 0.4, g.dx))),
       onPanResponderRelease: (_e, g) => {
         if (g.dx < -50 && indexValue.current < countValue.current - 1) {
@@ -90,19 +91,21 @@ export function CardPeek({
   const watermarkOpacity = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.9, 0.55], extrapolate: "clamp" });
 
   return (
-    <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      <Animated.View style={[styles.sheet, { height, marginHorizontal: edge, transform: [{ rotate }, { translateX: shift }] }]} {...swipe.panHandlers}>
+    <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)} {...swipe.panHandlers}>
+      <Animated.View style={[styles.sheet, { height, marginHorizontal: edge, transform: [{ rotate }, { translateX: shift }] }]}>
         <View style={styles.card}>
+          <Text style={styles.currencyTop}>BYN</Text>
+          <View style={styles.bankTop}>
+            <View style={styles.bankBadge}>
+              <Ionicons name="snow" size={16} color="#000" />
+            </View>
+            <Text style={styles.bankName}>МТбанк</Text>
+          </View>
           <Animated.Text style={[styles.watermark, { opacity: watermarkOpacity }]}>MT</Animated.Text>
 
 
-          <View style={styles.brandPos}>
-            <PaymentBrand system={card.system} onDark />
-          </View>
 
-          <Text style={styles.holder} numberOfLines={1}>
-            {(card.holder ?? holder).toUpperCase()}
-          </Text>
+
 
           <Animated.View style={[styles.expanded, { opacity: detailsOpacity }]}>
             {typeof balance === "number" ? (
@@ -153,13 +156,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignSelf: "center",
     top: 24,
-    fontSize: 150,
+    fontSize: 190,
     fontWeight: "900",
     letterSpacing: -6,
-    color: "#2236ff",
+    color: "#1b2bff",
     opacity: 0.9,
   },
 
+  currencyTop: { position: "absolute", left: spacing.lg, top: 26, color: "#fff", fontSize: 20, fontWeight: "600", letterSpacing: 1 },
+  bankTop: { position: "absolute", right: spacing.lg, top: 22, flexDirection: "row", alignItems: "center", gap: 8 },
+  bankBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
+  bankName: { color: "#fff", fontSize: 20, fontWeight: "800", letterSpacing: -0.3 },
   holder: {
     position: "absolute",
     left: spacing.lg,

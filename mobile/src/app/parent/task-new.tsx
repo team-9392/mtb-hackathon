@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
 import type { Palette } from "@/theme/palette";
 import { radius, spacing } from "@/theme/tokens";
-import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { useThemedStyles } from "@/theme/ThemeProvider";
 import { Button } from "@/ui/Button";
 import { Text } from "@/ui/Text";
 
