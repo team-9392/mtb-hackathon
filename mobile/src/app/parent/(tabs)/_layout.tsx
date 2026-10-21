@@ -44,16 +44,20 @@ export default function ParentTabsLayout() {
       <Tabs.Screen
         name="bonuses"
         options={{
-          title: t("bc.tab"),
+          title: t("ov.tasksTab"),
           tabBarIcon: ({ color, size }) => <Ionicons name="gift-outline" size={size} color={color as string} />,
         }}
       />
       <Tabs.Screen
-        name="limits"
+        name="products"
         options={{
-          title: t("lm.tab"),
-          tabBarIcon: ({ color, size }) => <Ionicons name="speedometer-outline" size={size} color={color as string} />,
+          title: t("ov.tabProducts"),
+          tabBarIcon: ({ color, size }) => <Ionicons name="albums-outline" size={size} color={color as string} />,
         }}
+      />
+      <Tabs.Screen
+        name="limits"
+        options={{ title: t("lm.tab"), href: null }}
       />
     </Tabs>
   );

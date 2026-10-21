@@ -130,7 +130,7 @@ export default function ParentHomeScreen() {
           </View>
 
           <View style={styles.balanceRow}>
-            <Text style={styles.balance}>{formatMoney(state.balance, 0)}</Text>
+            <Text style={styles.balance}>{formatMoney(state.balance, 0).replace(" BYN", "")}</Text>
             <Text style={styles.currency}>BYN</Text>
           </View>
           <Text style={styles.greeting}>{firstName} · {state.child.name}</Text>
@@ -260,7 +260,7 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.panel,
       gap: spacing.md,
       borderTopWidth: 1,
-      borderTopColor: "rgba(255,255,255,0.04)",
+      borderTopColor: colors.line,
     },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm, width: 76 },
@@ -270,7 +270,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: 30,
       backgroundColor: colors.card,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      borderColor: colors.line,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -280,7 +280,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: 24,
       padding: spacing.lg,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      borderColor: colors.line,
       gap: 6,
     },
     cardTitle: { color: colors.text, fontSize: 15, fontWeight: "700", marginBottom: spacing.sm },
@@ -299,7 +299,7 @@ const makeStyles = (colors: Palette) =>
     progressTrack: { height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.06)", overflow: "hidden", marginTop: spacing.sm },
     progressFill: { height: "100%", borderRadius: 4, backgroundColor: colors.primary },
     empty: { color: colors.muted, fontSize: 13, fontWeight: "600" },
-    divider: { height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginVertical: spacing.md },
+    divider: { height: 1, backgroundColor: colors.line, marginVertical: spacing.md },
     opRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
     opIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(59,130,246,0.18)", alignItems: "center", justifyContent: "center" },
     opText: { flex: 1 },

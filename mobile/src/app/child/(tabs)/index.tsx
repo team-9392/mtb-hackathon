@@ -103,7 +103,7 @@ export default function ChildHomeScreen() {
           </View>
 
           <View style={styles.balanceRow}>
-            <Text style={styles.balance}>{formatMoney(state.balance, 0)}</Text>
+            <Text style={styles.balance}>{formatMoney(state.balance, 0).replace(" BYN", "")}</Text>
             <Text style={styles.currency}>BYN</Text>
           </View>
 
@@ -210,7 +210,7 @@ const makeStyles = (colors: Palette) =>
       backgroundColor: colors.panel,
       gap: spacing.md,
       borderTopWidth: 1,
-      borderTopColor: "rgba(255,255,255,0.04)",
+      borderTopColor: colors.line,
     },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm },
@@ -220,7 +220,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: 30,
       backgroundColor: colors.card,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      borderColor: colors.line,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -230,7 +230,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: 24,
       padding: spacing.lg,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      borderColor: colors.line,
       gap: 6,
     },
     goalHead: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -245,11 +245,11 @@ const makeStyles = (colors: Palette) =>
       borderRadius: 24,
       padding: spacing.lg,
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.05)",
+      borderColor: colors.line,
     },
     opsTitle: { color: colors.text, fontSize: 15, fontWeight: "700", marginBottom: spacing.lg },
     empty: { color: colors.muted, fontSize: 13, fontWeight: "600" },
-    divider: { height: 1, backgroundColor: "rgba(255,255,255,0.05)", marginVertical: spacing.md },
+    divider: { height: 1, backgroundColor: colors.line, marginVertical: spacing.md },
     opRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
     opIcon: {
       width: 44,

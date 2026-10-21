@@ -7,6 +7,8 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { formatPan } from "@/lib/card";
 import type { CardInfo } from "@/store/types";
 import { radius, spacing } from "@/theme/tokens";
+import type { Palette } from "@/theme/palette";
+import { useThemedStyles } from "@/theme/ThemeProvider";
 import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Text } from "@/ui/Text";
 
@@ -34,6 +36,7 @@ export function CardPeek({
   onIssue?: () => void;
   onDetails?: (card: CardInfo) => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   const [index, setIndex] = useState(0);
   const [width, setWidth] = useState(340);
   const shift = useRef(new Animated.Value(0)).current;
@@ -157,7 +160,8 @@ export function CardPeek({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
   wrap: { marginTop: spacing.sm },
   flex: { flex: 1 },
   glow: { position: "absolute", top: 26, left: "-2%", right: "-2%", height: 200 },
@@ -167,7 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: colors.line,
     justifyContent: "space-between",
     overflow: "hidden",
     shadowColor: "#000",
@@ -202,9 +206,9 @@ const styles = StyleSheet.create({
   emptyWrap: {},
   emptyCard: {
     borderRadius: 24,
-    backgroundColor: "#262a31",
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: colors.line,
     padding: spacing.xl,
     gap: 6,
   },
