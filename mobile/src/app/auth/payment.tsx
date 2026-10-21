@@ -203,8 +203,9 @@ export default function PaymentScreen() {
       await clear();
       showToast(t("reg.paySuccess"));
       router.replace({
-        pathname: "/auth/success",
+        pathname: "/auth/card-setup",
         params: {
+          childId: created.child?.id ?? "",
           childName: (draft.childName ?? "").trim(),
           amount: String(payment.amount),
           method: methodLabel(),
