@@ -92,23 +92,6 @@ export default function ParentHomeScreen() {
   const pending = state.requests.filter((request) => request.status === "pending");
   const firstName = (user?.full_name ?? "").trim().split(" ")[0] ?? "родитель";
 
-  const requestDetails = useCallback(
-    async (card: CardInfo) => {
-      const childId = state.childId;
-      if (!childId || !card.id) {
-        showToast(t("card.detailsHint"));
-        return;
-      }
-      try {
-        await requestCardDetailsApi(childId, card.id);
-        showToast(t("card.detailsSent"));
-      } catch (error) {
-        showToast(error instanceof Error ? error.message : t("auth.connectFailed"));
-      }
-    },
-    [showToast, state.childId, t],
-  );
-
   const actions = [
     { id: "topup", icon: "add" as const, label: t("ov.transferChild"), onPress: () => setTopup(true) },
     { id: "limit", icon: "speedometer-outline" as const, label: t("ov.limitAction"), onPress: () => router.push("/parent/limits") },
