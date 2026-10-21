@@ -60,8 +60,8 @@ export function PetCard() {
 
 const styles = StyleSheet.create({
   card: { flexDirection: "row", gap: spacing.md, alignItems: "center", backgroundColor: "rgba(147,197,253,0.1)", borderRadius: radius.lg, borderWidth: 1, borderColor: "rgba(147,197,253,0.28)", padding: spacing.md },
-  face: { width: 62, height: 62, borderRadius: 31, backgroundColor: "rgba(147,197,253,0.16)", alignItems: "center", justifyContent: "center" },
-  emoji: { fontSize: 34 },
+  face: { width: 84, height: 84, borderRadius: 42, backgroundColor: "rgba(147,197,253,0.16)", alignItems: "center", justifyContent: "center" },
+  emoji: { fontSize: 52 },
   text: { flex: 1, gap: 2 },
   title: { color: "#fff", fontSize: 14, fontWeight: "800" },
   speech: { color: "#c7d2e0", fontSize: 11, fontWeight: "500", lineHeight: 15 },
