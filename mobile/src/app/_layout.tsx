@@ -1,3 +1,5 @@
+import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { LogBox } from "react-native";
@@ -78,7 +80,8 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
       <ThemeProvider>
         <I18nProvider>
           <AuthProvider>
@@ -88,6 +91,7 @@ export default function RootLayout() {
           </AuthProvider>
         </I18nProvider>
       </ThemeProvider>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
