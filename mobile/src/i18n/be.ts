@@ -522,6 +522,7 @@ export const be: Record<TKey, string> = {
   "pt.newTitle": "Заданне дзіцяці",
   "pt.newSubtitle": "Апішыце задачу і прызначце ўзнагароду ў манетах",
   "pt.coinsLabel": "Узнагарода",
+  "pt.coinsShort": "манет",
   "pt.customPlaceholder": "Свая сума, манеты",
   "pt.create": "Стварыць заданне",
   "pt.short": "Заданне",

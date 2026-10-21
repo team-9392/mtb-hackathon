@@ -520,6 +520,7 @@ export const ru = {
   "pt.newTitle": "Задание ребёнку",
   "pt.newSubtitle": "Опишите задачу и назначьте награду в монетах",
   "pt.coinsLabel": "Награда",
+  "pt.coinsShort": "монет",
   "pt.customPlaceholder": "Своя сумма, монеты",
   "pt.create": "Создать задание",
   "pt.short": "Задание",

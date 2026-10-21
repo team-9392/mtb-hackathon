@@ -88,7 +88,7 @@ export function TasksFromParent({ mode }: { mode: "parent" | "child" }) {
           <View style={styles.presets}>
             {PRESETS.map((value) => (
               <Pressable key={value} onPress={() => setPoints(value)} style={[styles.preset, points === value && styles.presetActive]}>
-                <Text style={[styles.presetText, points === value && styles.presetTextActive]}>+{value}</Text>
+                <Text style={[styles.presetText, points === value && styles.presetTextActive]}>+{value} {t("pt.coinsShort")}</Text>
               </Pressable>
             ))}
             <Pressable style={styles.add} onPress={() => void create()} disabled={busy}>
@@ -104,7 +104,7 @@ export function TasksFromParent({ mode }: { mode: "parent" | "child" }) {
           <View style={styles.flex}>
             <Text style={styles.title}>{task.title}</Text>
             <Text style={styles.meta}>
-              +{task.points} · {task.status === "new" ? t("pt.statusNew") : task.status === "done" ? t("pt.statusDone") : t("pt.statusApproved")}
+              +{task.points} {t("pt.coinsShort")} · {task.status === "new" ? t("pt.statusNew") : task.status === "done" ? t("pt.statusDone") : t("pt.statusApproved")}
             </Text>
           </View>
           {mode === "child" && task.status === "new" ? (

@@ -381,11 +381,7 @@ export default function ParentHomeScreen() {
                                             </View>
                                             <View style={styles.opText}>
                                                 <Text style={styles.opTitle} numberOfLines={1}>
-                                                    {outgoing
-                                                        ? t("ov.transferChild")
-                                                        : lang === "be"
-                                                            ? txn.title.be
-                                                            : txn.title.ru}
+                                                    {(lang === "be" ? txn.title.be : txn.title.ru) || t("ov.transferChild")}
                                                 </Text>
                                                 <Text
                                                     style={[
