@@ -31,6 +31,8 @@ export type CardSystem = "visa" | "mastercard" | "belkart" | "unionpay";
 export type CardType = "virtual" | "plastic";
 
 export interface CardInfo {
+  /** Имя держателя (у родителя и ребёнка свои карты). */
+  holder?: string;
   /** UUID карты в базе (для запроса реквизитов). */
   id?: string;
   status: "issued" | "active" | "blocked";

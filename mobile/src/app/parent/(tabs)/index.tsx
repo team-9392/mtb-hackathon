@@ -86,7 +86,13 @@ export default function ParentHomeScreen() {
 
   const spent = spentThisMonth(state.txns);
   const left = Math.max(0, state.limits.monthly - spent);
-  const cards: CardInfo[] = myCards;
+  const childCards: CardInfo[] =
+    state.cards && state.cards.length > 0
+      ? state.cards.map((card) => ({ ...card, holder: state.child.name }))
+      : state.card.number.length > 0
+        ? [{ ...state.card, holder: state.child.name }]
+        : [];
+  const cards: CardInfo[] = [...myCards.map((card) => ({ ...card, holder: user?.full_name ?? "Моя карта" })), ...childCards];
   const goal = state.goal;
   const progress = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
   const pending = state.requests.filter((request) => request.status === "pending");

@@ -12,6 +12,7 @@ import { registerChildRoutes } from "./routes/child.js";
 import { registerFamilyRoutes } from "./routes/family.js";
 import { registerMoneyRoutes } from "./routes/money.js";
 import { registerBonusRoutes } from "./routes/bonuses.js";
+import { registerParentTaskRoutes } from "./routes/parentTasks.js";
 import { registerParentCardRoutes } from "./routes/parentCards.js";
 import { registerPartnerRoutes } from "./routes/partners.js";
 import { registerPaymentRoutes } from "./routes/payments.js";
@@ -128,6 +129,7 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
   registerBonusRoutes(app, db, env);
   registerPartnerRoutes(app);
   registerParentCardRoutes(app, db, env);
+  registerParentTaskRoutes(app, db, env);
 
   /**
    * Живая связь двух телефонов: родитель и ребёнок одной семьи получают

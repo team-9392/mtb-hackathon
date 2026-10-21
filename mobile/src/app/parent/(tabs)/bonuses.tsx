@@ -1,3 +1,4 @@
+import { TasksFromParent } from "@/ui/TasksFromParent";
 import React from "react";
 
 import { useI18n } from "@/i18n";
@@ -8,7 +9,8 @@ export default function ParentBonusesScreen() {
   const { t } = useI18n();
   return (
     <Screen title={t("bc.title")} subtitle={t("bc.subtitle")}>
-      <BonusesView audience="parent" />
+      <TasksFromParent mode="parent" />
+<BonusesView audience="parent" />
     </Screen>
   );
 }

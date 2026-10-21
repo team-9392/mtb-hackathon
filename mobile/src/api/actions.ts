@@ -213,3 +213,21 @@ export function issueMyCardApi(body: { type: string; system: string }): Promise<
 export function requestMyCardDetailsApi(cardId: string): Promise<{ ok: boolean; message?: string }> {
   return api(`/me/cards/${cardId}/details`, { method: "POST", body: {} });
 }
+
+export interface ParentTaskDto {
+  id: string;
+  title: string;
+  points: number;
+  status: "new" | "done" | "approved";
+  created_at?: string;
+  done_at?: string | null;
+}
+export function childTasksApi(childId: string): Promise<{ tasks: ParentTaskDto[] }> {
+  return api("/children/" + childId + "/tasks");
+}
+export function createTaskApi(childId: string, title: string, points: number): Promise<{ task: ParentTaskDto }> {
+  return api("/children/" + childId + "/tasks", { method: "POST", body: { title, points } });
+}
+export function updateTaskApi(childId: string, taskId: string, status: "done" | "approved"): Promise<{ task: ParentTaskDto }> {
+  return api("/children/" + childId + "/tasks/" + taskId, { method: "PATCH", body: { status } });
+}

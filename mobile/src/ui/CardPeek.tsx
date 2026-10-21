@@ -96,6 +96,8 @@ export function CardPeek({
   const dotsOpacity = scrollY.interpolate({ inputRange: [0, 70], outputRange: [1, 0], extrapolate: "clamp" });
   const metaShift = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [10, 0], extrapolate: "clamp" });
   const glowScale = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.92, 1.08], extrapolate: "clamp" });
+  // Свернутая карта уходит краями за экран — как в макете, рёбра видны только после раскрытия.
+  const edge = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [-18, spacing.lg], extrapolate: "clamp" });
 
   return (
     <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
@@ -115,13 +117,13 @@ export function CardPeek({
         </Svg>
       </Animated.View>
 
-      <Animated.View style={[styles.sheet, { height, transform: [{ rotate }, { scale }, { translateX: shift }] }]} {...responder.panHandlers}>
+      <Animated.View style={[styles.sheet, { height, marginHorizontal: edge, transform: [{ rotate }, { scale }, { translateX: shift }] }]} {...responder.panHandlers}>
         <LinearGradient colors={["#1d3159", "#16233f", "#11182c"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
           <View style={styles.cardTop}>
             <View style={styles.flex}>
               <Text style={styles.brand}>МОЯ КАРТА</Text>
               <Text style={styles.holder} numberOfLines={1}>
-                {holder.toUpperCase()}
+                {(card.holder ?? holder).toUpperCase()}
               </Text>
             </View>
             <PaymentBrand system={card.system} onDark />
