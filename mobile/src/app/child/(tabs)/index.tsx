@@ -196,6 +196,13 @@ export default function ChildHomeScreen() {
                             <Text style={styles.caption}>МТБанк • #9392</Text>
                         </View>
                         <Pressable
+                            onPress={() => router.push("/notifications")}
+                            hitSlop={10}
+                            style={styles.headerIcon}
+                        >
+                            <Ionicons name="notifications-outline" size={22} color="#ffffff" />
+                        </Pressable>
+                        <Pressable
                             onPress={() => router.push("/child/erip")}
                             hitSlop={10}
                             style={styles.headerIcon}

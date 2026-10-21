@@ -14,6 +14,7 @@ import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { AiInsights } from "@/ui/AiInsights";
 import { GameCenterLink } from "@/ui/GameCenterLink";
+import { LinkCard } from "@/ui/LinkCard";
 import { GlassCard } from "@/ui/GlassCard";
 import { HeroGlow } from "@/ui/Glow";
 import { ListRow, SectionTitle, Segmented } from "@/ui/primitives";
@@ -144,6 +145,8 @@ export default function ChildProfileScreen() {
         </GlassCard>
 
         <GameCenterLink />
+
+        <LinkCard icon="settings-outline" title="Настройки" subtitle="Тема, язык, Telegram, уведомления" href="/settings" />
 
         <AiInsights />
 

@@ -236,11 +236,25 @@ export default function ParentHomeScreen() {
                             </Text>
                         </View>
                         <Pressable
-                            onPress={() => router.push("/parent/settings")}
+                            onPress={() => router.push("/notifications")}
+                            hitSlop={10}
+                            style={styles.headerIcon}
+                        >
+                            <Ionicons name="notifications-outline" size={22} color="#ffffff" />
+                        </Pressable>
+                        <Pressable
+                            onPress={() => router.push("/settings")}
                             hitSlop={10}
                             style={styles.headerIcon}
                         >
                             <Ionicons name="settings-outline" size={22} color="#ffffff" />
+                        </Pressable>
+                        <Pressable
+                            onPress={() => router.push("/parent/settings")}
+                            hitSlop={10}
+                            style={styles.headerIcon}
+                        >
+                            <Ionicons name="person-circle-outline" size={22} color="#ffffff" />
                         </Pressable>
                     </View>
 

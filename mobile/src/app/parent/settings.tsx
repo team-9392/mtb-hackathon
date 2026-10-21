@@ -16,6 +16,7 @@ import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { Button } from "@/ui/Button";
 import { GameCenterLink } from "@/ui/GameCenterLink";
+import { LinkCard } from "@/ui/LinkCard";
 import { GlassCard } from "@/ui/GlassCard";
 import { HeroGlow } from "@/ui/Glow";
 import { SectionTitle, Segmented } from "@/ui/primitives";
@@ -186,6 +187,8 @@ export default function ParentSettingsScreen() {
         </GlassCard>
 
         <GameCenterLink />
+
+        <LinkCard icon="settings-outline" title="Настройки" subtitle="Тема, язык, Telegram, уведомления" href="/settings" />
 
         <SpendCard
           categories={categories}
