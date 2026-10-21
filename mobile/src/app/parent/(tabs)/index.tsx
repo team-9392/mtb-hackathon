@@ -192,6 +192,10 @@ export default function ParentHomeScreen() {
 
     return (
         <SafeAreaView style={styles.root} edges={[]}>
+            {/* Фон для overscroll: при оттягивании сверху/снизу виден градиент, а не пустота */}
+            <View pointerEvents="none" style={styles.overscrollBg}>
+                <HeroGlow />
+            </View>
             <Animated.ScrollView
                 contentContainerStyle={styles.scroll}
                 showsVerticalScrollIndicator={false}
@@ -435,6 +439,7 @@ const makeStyles = (_colors: Palette) =>
             marginBottom: spacing.sm,
         },
         refreshText: { color: "#8b94a3", fontSize: 12, fontWeight: "700" },
+        overscrollBg: { position: "absolute", top: -260, left: 0, right: 0, height: 900 },
         hero: {
             overflow: "visible",
             paddingHorizontal: 24,
