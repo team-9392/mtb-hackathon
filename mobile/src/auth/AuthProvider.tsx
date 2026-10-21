@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+import { createFamilyApi, updateProfileApi, type FamilySignupInput, type FamilySignupResponse } from "@/api/actions";
 import { api, clearTokens, hasSession, lastPhone, OfflineError, rememberPhone, saveTokens } from "@/api/client";
 import { isApiConfigured } from "@/api/config";
 import type { FamilyResponse, OtpChallenge, SessionClaims, SessionResponse, SessionUser } from "@/api/types";
@@ -14,8 +15,9 @@ interface AuthValue {
   claims: SessionClaims | null;
   requestCode(phone: string): Promise<OtpChallenge>;
   verifyCode(challengeId: string, code: string, os: string): Promise<SessionClaims>;
-  saveProfile(fullName: string): Promise<void>;
-  createFamily(fullName: string): Promise<void>;
+  saveProfile(fullName: string, idNumber?: string): Promise<void>;
+  /** Один запрос на шаге оплаты: семья, ребёнок, права, счета и согласия. */
+  createFamily(input: FamilySignupInput): Promise<FamilySignupResponse>;
   joinFamily(accessCode: string): Promise<SessionClaims>;
   signOut(): Promise<void>;
   reload(): Promise<void>;
@@ -83,29 +85,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return session.claims;
   }, []);
 
-  const saveProfile = useCallback(async (fullName: string) => {
+  const saveProfile = useCallback(async (fullName: string, idNumber?: string) => {
+    const cleaned = (fullName ?? "").trim();
     if (!isApiConfigured) {
-      setUser((prev) => (prev ? { ...prev, full_name: fullName } : prev));
+      setUser((prev) => (prev ? { ...prev, full_name: cleaned } : prev));
       return;
     }
-    const me = await api<{ user: SessionUser; claims: SessionClaims }>("/me", {
-      method: "PATCH",
-      body: { fullName },
-    });
-    setUser(me.user);
+    const patch: { fullName?: string; idNumber?: string } = {};
+    if (cleaned.length > 0) {
+      patch.fullName = cleaned;
+    }
+    if (idNumber !== undefined) {
+      patch.idNumber = idNumber.trim();
+    }
+    const me = await updateProfileApi(patch);
+    setUser((prev) => (prev ? { ...prev, full_name: me.user.fullName ?? cleaned } : prev));
     setClaims(me.claims);
   }, []);
 
-  const createFamily = useCallback(async (fullName: string) => {
-    const cleaned = fullName.trim();
-    // Имя уже сохранено на шаге регистрации: не шлём пустую строку, иначе сервер ответит ошибкой валидации.
-    const family = await api<FamilyResponse>("/auth/family", {
-      method: "POST",
-      body: cleaned.length > 0 ? { fullName: cleaned } : {},
+  const createFamily = useCallback(async (input: FamilySignupInput): Promise<FamilySignupResponse> => {
+    const fullName = (input.fullName ?? "").trim();
+    const created = await createFamilyApi({
+      fullName,
+      idNumber: (input.idNumber ?? "").trim(),
+      childName: (input.childName ?? "").trim(),
+      bracket: input.bracket,
     });
-    await saveTokens(family.accessToken, family.refreshToken);
-    setClaims(family.claims);
-    return;
+    await saveTokens(created.accessToken, created.refreshToken);
+    setClaims(created.claims);
+    setUser((prev) => (prev ? { ...prev, full_name: fullName.length > 0 ? fullName : prev.full_name } : prev));
+    return created;
   }, []);
 
   const joinFamily = useCallback(async (accessCode: string) => {

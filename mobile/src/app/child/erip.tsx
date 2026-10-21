@@ -1,19 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createPaymentApi } from "@/api/actions";
 import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
+import { TextInput } from "@/ui/TextInput";
 
 type Mode = "erip" | "phone";
 
 /** ЕРИП и перевод по номеру. Ребёнок только просит — деньги уходят после подтверждения родителя. */
 export default function ChildEripScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, showToast } = useStore();
   const router = useRouter();
@@ -126,7 +134,9 @@ export default function ChildEripScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
   content: { padding: spacing.lg, gap: spacing.md },
   titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
@@ -158,4 +168,5 @@ const styles = StyleSheet.create({
   label: { fontSize: font.tiny, color: palette.muted, marginTop: spacing.sm, fontWeight: "600" },
   input: { paddingBottom: spacing.md, fontSize: font.title, color: palette.ink },
   note: { fontSize: font.small, color: palette.muted2, lineHeight: 18 },
-});
+  });
+};

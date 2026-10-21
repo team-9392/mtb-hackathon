@@ -1,58 +1,80 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import { useI18n } from "@/i18n";
-import { font, palette, radius, spacing } from "@/theme/tokens";
-import { AuthLayout } from "@/ui/AuthLayout";
+import { useAuth } from "@/auth/AuthProvider";
+import {
+  emptySignupDraft,
+  loadSignupDraft,
+  persistSignupDraft,
+  phoneParts,
+  routeForStep,
+  type SignupDraft,
+  type SignupStep,
+} from "@/auth/signup/draft";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 
-/** Шаг регистрации: кем входит человек. Родитель оформляет пакет, ребёнок вводит код доступа. */
+/**
+ * Переход после кода из Telegram.
+ *
+ * Экран кода ведёт сюда, поэтому здесь же восстанавливаем регистрацию:
+ * если пакет ещё не оформлен — открываем шаг, на котором человек остановился
+ * (минимум шаг 3, потому что номер уже подтверждён). Ребёнок может войти
+ * по коду доступа со шага данных родителя.
+ */
 export default function RoleScreen() {
-  const { t } = useI18n();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+  const { status, claims, phone } = useAuth();
   const router = useRouter();
+  const startedRef = useRef(false);
+
+  useEffect(() => {
+    if (status === "loading" || startedRef.current) {
+      return;
+    }
+    startedRef.current = true;
+    let alive = true;
+
+    void (async () => {
+      if (status === "signedIn" && claims?.familyId) {
+        router.replace(claims.role === "child" ? "/child" : "/parent");
+        return;
+      }
+
+      const stored = await loadSignupDraft();
+      if (!alive) {
+        return;
+      }
+      const base = stored ?? emptySignupDraft();
+      const parts = phoneParts(phone);
+      const withPhone: SignupDraft =
+        base.phone.length === 0 && parts.subscriber.length === 7
+          ? { ...base, ...parts, phone: "375" + parts.operator + parts.subscriber }
+          : base;
+      const step = (withPhone.step < 3 ? 3 : withPhone.step) as SignupStep;
+      const next: SignupDraft = { ...withPhone, step, updatedAt: new Date().toISOString() };
+      await persistSignupDraft(next);
+      if (!alive) {
+        return;
+      }
+      router.replace(routeForStep(step, next));
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [status, claims, phone, router]);
 
   return (
-    <AuthLayout title={t("auth.roleTitle")} subtitle={t("auth.roleSubtitle")}>
-      <Pressable style={styles.card} onPress={() => router.push("/auth/name")}>
-        <View style={[styles.icon, { backgroundColor: palette.primarySoft }]}>
-          <Ionicons name="people-outline" size={22} color={palette.primary as string} />
-        </View>
-        <View style={styles.texts}>
-          <Text style={styles.title}>{t("auth.roleParent")}</Text>
-          <Text style={styles.hint}>{t("auth.roleParentHint")}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={palette.muted2 as string} />
-      </Pressable>
-
-      <Pressable style={styles.card} onPress={() => router.push("/auth/join")}>
-        <View style={[styles.icon, { backgroundColor: palette.childSoft }]}>
-          <Ionicons name="happy-outline" size={22} color={palette.child as string} />
-        </View>
-        <View style={styles.texts}>
-          <Text style={styles.title}>{t("auth.roleChild")}</Text>
-          <Text style={styles.hint}>{t("auth.roleChildHint")}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={palette.muted2 as string} />
-      </Pressable>
-    </AuthLayout>
+    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+      <ActivityIndicator color={colors.primary} />
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    backgroundColor: palette.surface,
-    borderWidth: 1,
-    borderColor: palette.line,
-    marginBottom: spacing.md,
-  },
-  icon: { width: 44, height: 44, borderRadius: radius.md, alignItems: "center", justifyContent: "center" },
-  texts: { flex: 1, gap: 3 },
-  title: { fontSize: font.title, fontWeight: "700", color: palette.ink },
-  hint: { fontSize: font.small, color: palette.muted },
-});
+const makeStyles = (_colors: Palette) =>
+  StyleSheet.create({
+    root: { flex: 1, alignItems: "center", justifyContent: "center" },
+  });

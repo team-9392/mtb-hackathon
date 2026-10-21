@@ -1,17 +1,22 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { api, OfflineError } from "@/api/client";
 import { useI18n } from "@/i18n";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { AuthLayout } from "@/ui/AuthLayout";
 import { Button } from "@/ui/Button";
 import { CodeInput } from "@/ui/CodeInput";
+import type { Palette } from "@/theme/palette";
+import { useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 const LENGTH = 4;
 
 export default function AppCodeScreen() {
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const router = useRouter();
   const [first, setFirst] = useState("");
@@ -80,6 +85,9 @@ export default function AppCodeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   message: { marginTop: spacing.lg, fontSize: font.small, color: palette.muted, fontWeight: "600" },
-});
+  });
+};

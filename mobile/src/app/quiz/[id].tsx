@@ -1,20 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { loadQuiz, submitQuizApi, type QuizDto } from "@/api/bonuses";
 import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Badge, Card, ProgressBar, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 type QuizResult = Awaited<ReturnType<typeof submitQuizApi>>;
 
 /** Тест по финансовой грамотности: один вопрос за раз, проверка на сервере. */
 export default function QuizScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t, lang } = useI18n();
   const { showToast } = useStore();
   const router = useRouter();
@@ -239,7 +246,9 @@ export default function QuizScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   progressHead: { justifyContent: "space-between", marginTop: spacing.sm },
   progressText: { fontSize: font.small, fontWeight: "700", color: palette.ink2 },
   desc: { fontSize: font.small, color: palette.muted, lineHeight: 19 },
@@ -281,4 +290,5 @@ const styles = StyleSheet.create({
   why: { fontSize: font.small, color: palette.muted, lineHeight: 19, marginTop: spacing.sm },
   footerRow: { gap: spacing.sm },
   footerButton: { flex: 1 },
-});
+  });
+};

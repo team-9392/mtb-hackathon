@@ -1,15 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useI18n, useL, type TKey } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
 import type { CategoryId, OperationId, ProductId } from "@/store/types";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Badge, Card, Chip, Divider, Row, SectionTitle, ToggleRow } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 const PRODUCT_LABEL: Record<ProductId, TKey> = {
   card: "rg.prod.card",
@@ -39,6 +42,10 @@ const CATEGORY_LABEL: Record<CategoryId, TKey> = {
 const ALLOWED_CATEGORIES: CategoryId[] = ["kids", "fun", "pharmacy", "groceries"];
 
 export default function ParentRightsScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const L = useL();
   const { state, togglePermission, resolveRequest, showToast } = useStore();
@@ -138,7 +145,9 @@ export default function ParentRightsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   pendingHead: { gap: spacing.sm, marginBottom: spacing.sm },
   pendingTitle: { fontSize: font.body, fontWeight: "700", color: palette.ink },
   pendingItem: { gap: spacing.sm, paddingVertical: spacing.sm },
@@ -161,4 +170,5 @@ const styles = StyleSheet.create({
   hardDesc: { fontSize: font.small, color: palette.muted },
   hardNote: { fontSize: font.tiny, color: palette.muted, marginTop: spacing.md, lineHeight: 16 },
   save: { marginTop: spacing.lg },
-});
+  });
+};

@@ -1,14 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Card, Divider, Row, SectionTitle, Segmented, ToggleRow } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 function Stepper({
   label,
@@ -23,6 +26,10 @@ function Stepper({
   max: number;
   onChange: (next: number) => void;
 }) {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   return (
     <Row style={styles.stepperRow}>
       <Text style={styles.stepperLabel}>{label}</Text>
@@ -48,6 +55,8 @@ function Stepper({
 }
 
 export default function ParentLimitsScreen() {
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, updateLimits, togglePermission, showToast } = useStore();
 
@@ -148,7 +157,9 @@ export default function ParentLimitsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   summary: { fontSize: font.small, color: palette.ink2, fontWeight: "600", lineHeight: 19 },
   stepperRow: { justifyContent: "space-between", paddingVertical: spacing.sm },
   stepperLabel: { flex: 1, fontSize: font.body, color: palette.ink, fontWeight: "600" },
@@ -165,4 +176,5 @@ const styles = StyleSheet.create({
   dayBlock: { gap: spacing.sm, paddingVertical: spacing.sm },
   zero: { marginVertical: spacing.sm },
   save: { marginTop: spacing.lg },
-});
+  });
+};

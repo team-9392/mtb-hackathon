@@ -1,16 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { rightKeys } from "@/store/permissions";
 import { useStore } from "@/store/StoreProvider";
 import type { AgeBracket } from "@/store/types";
-import { font, palette, radius, shadow, spacing } from "@/theme/tokens";
+import { font, radius, shadow, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Card, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
+import { TextInput } from "@/ui/TextInput";
 
 const BRACKETS: { id: AgeBracket; title: "p2.b1title" | "p2.b2title"; desc: "p2.b1desc" | "p2.b2desc"; icon: "happy-outline" | "rocket-outline" }[] = [
   { id: "child_7_13", title: "p2.b1title", desc: "p2.b1desc", icon: "happy-outline" },
@@ -21,6 +25,10 @@ const RIGHTS = ["p2.r1", "p2.r2", "p2.r3", "p2.r4", "p2.r5"] as const;
 const PACKAGE = ["p2.pack1", "p2.pack2", "p2.pack3", "p2.pack4", "p2.pack5"] as const;
 
 export default function ChildProfileScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, setChild, setBracket } = useStore();
   const router = useRouter();
@@ -100,7 +108,9 @@ export default function ChildProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   label: { fontSize: font.small, fontWeight: "700", color: palette.muted, marginTop: spacing.sm },
   input: {
     backgroundColor: palette.surface,
@@ -149,4 +159,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   packageText: { fontSize: font.small, color: palette.ink2, fontWeight: "600" },
-});
+  });
+};

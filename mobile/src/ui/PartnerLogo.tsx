@@ -2,10 +2,14 @@ import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 
 import { API_URL } from "@/api/config";
-import { palette } from "@/theme/tokens";
+import type { Palette } from "@/theme/palette";
+import { useThemedStyles } from "@/theme/ThemeProvider";
+
 
 /** Логотип партнёра приходит файлом с сервера: команда кладёт PNG, приложение подхватывает. */
 export function PartnerLogo({ file, size = 40 }: { file: string | null; size?: number }) {
+  const styles = useThemedStyles(makeStyles);
+
   if (!file) {
     return null;
   }
@@ -20,6 +24,9 @@ export function PartnerLogo({ file, size = 40 }: { file: string | null; size?: n
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   wrap: { backgroundColor: palette.surfaceAlt, alignItems: "center", justifyContent: "center" },
-});
+  });
+};

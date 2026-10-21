@@ -1,27 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 
-import { font, palette, radius, shadow, spacing } from "@/theme/tokens";
+import { font, radius, shadow, spacing } from "@/theme/tokens";
+import { useTheme } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 import type { IconName } from "./primitives";
 
 export type ButtonVariant = "primary" | "child" | "secondary" | "ghost" | "danger";
-
-const backgrounds: Record<ButtonVariant, string> = {
-  primary: palette.primary,
-  child: palette.child,
-  secondary: palette.primarySoft,
-  ghost: "transparent",
-  danger: palette.dangerSoft,
-};
-
-const foregrounds: Record<ButtonVariant, string> = {
-  primary: palette.white,
-  child: palette.white,
-  secondary: palette.primary,
-  ghost: palette.primary,
-  danger: palette.danger,
-};
 
 export function Button({
   label,
@@ -42,7 +28,26 @@ export function Button({
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
 }) {
+  const { colors } = useTheme();
+
+  const backgrounds: Record<ButtonVariant, string> = {
+    primary: colors.primary,
+    child: colors.child,
+    secondary: colors.primarySoft,
+    ghost: "transparent",
+    danger: colors.dangerSoft,
+  };
+
+  const foregrounds: Record<ButtonVariant, string> = {
+    primary: colors.white,
+    child: colors.white,
+    secondary: colors.primary,
+    ghost: colors.primary,
+    danger: colors.danger,
+  };
+
   const fg = foregrounds[variant];
+
   return (
     <Pressable
       onPress={disabled || loading ? undefined : onPress}
@@ -52,10 +57,10 @@ export function Button({
         {
           backgroundColor: backgrounds[variant],
           borderWidth: variant === "ghost" ? 1 : 0,
-          borderColor: palette.line,
-          opacity: disabled ? 0.5 : pressed ? 0.88 : 1,
+          borderColor: colors.lineStrong,
+          opacity: disabled ? 0.45 : pressed ? 0.88 : 1,
         },
-        variant !== "ghost" && shadow.card,
+        variant === "primary" && shadow.card,
         style,
       ]}
     >

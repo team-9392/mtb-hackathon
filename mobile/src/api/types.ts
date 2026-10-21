@@ -14,7 +14,7 @@ export interface SessionClaims {
 export interface OtpChallenge {
   challengeId: string;
   ttlSeconds: number;
-  demoCode?: string;
+  channel: "telegram" | "none";
 }
 
 export interface SessionResponse {

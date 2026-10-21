@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { formatMoney } from "@/lib/format";
-import { banking, font, gradients, palette, radius, shadow, spacing } from "@/theme/tokens";
+import { banking, font, radius, shadow, spacing } from "@/theme/tokens";
+import { useTheme } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 /**
  * Базовые «банковские» блоки. Все экраны собираются из них,
@@ -22,6 +24,7 @@ export function MoneyHero({
   note?: string;
   progress?: number;
 }) {
+  const { gradients } = useTheme();
   return (
     <LinearGradient
       colors={gradients.hero}
@@ -29,9 +32,15 @@ export function MoneyHero({
       end={{ x: 1, y: 1 }}
       style={styles.hero}
     >
-      <Text style={styles.heroLabel}>{label}</Text>
+      <Text secondary style={styles.heroLabel}>
+        {label}
+      </Text>
       <Text style={styles.heroAmount}>{formatMoney(amount)}</Text>
-      {note ? <Text style={styles.heroNote}>{note}</Text> : null}
+      {note ? (
+        <Text secondary style={styles.heroNote}>
+          {note}
+        </Text>
+      ) : null}
       <View style={styles.heroTrack}>
         <View style={[styles.heroFill, { width: Math.min(100, Math.max(0, progress * 100)) + "%" }]} />
       </View>
@@ -51,16 +60,31 @@ export function PrimaryAction({
   hint?: string;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.action, pressed && { opacity: 0.9 }]}>
-      <View style={styles.actionIcon}>
-        <Ionicons name={icon} size={22} color={palette.primary as string} />
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.action,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.line,
+        },
+        pressed && { opacity: 0.9 },
+      ]}
+    >
+      <View style={[styles.actionIcon, { backgroundColor: colors.primarySoft }]}>
+        <Ionicons name={icon} size={22} color={colors.primary} />
       </View>
       <View style={styles.actionTexts}>
-        <Text style={styles.actionLabel}>{label}</Text>
-        {hint ? <Text style={styles.actionHint}>{hint}</Text> : null}
+        <Text style={[styles.actionLabel, { color: colors.ink }]}>{label}</Text>
+        {hint ? (
+          <Text secondary style={[styles.actionHint, { color: colors.muted }]}>
+            {hint}
+          </Text>
+        ) : null}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={palette.muted2 as string} />
+      <Ionicons name="chevron-forward" size={18} color={colors.muted2} />
     </Pressable>
   );
 }
@@ -73,7 +97,7 @@ const styles = StyleSheet.create({
     ...shadow.floating,
   },
   heroLabel: { color: "rgba(255,255,255,0.72)", fontSize: font.small, fontWeight: "600" },
-  heroAmount: { color: palette.white, fontSize: banking.moneySize, fontWeight: "800", marginTop: 6 },
+  heroAmount: { color: "#ffffff", fontSize: banking.moneySize, fontWeight: "700", marginTop: 6 },
   heroNote: { color: "rgba(255,255,255,0.72)", fontSize: font.small, marginTop: 6 },
   heroTrack: {
     height: 6,
@@ -82,13 +106,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     overflow: "hidden",
   },
-  heroFill: { height: 6, borderRadius: radius.pill, backgroundColor: palette.white },
+  heroFill: { height: 6, borderRadius: radius.pill, backgroundColor: "#ffffff" },
   action: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    backgroundColor: palette.surface,
     borderRadius: banking.actionRadius,
+    borderWidth: 1,
     padding: spacing.lg,
     marginBottom: spacing.md,
     ...shadow.card,
@@ -96,12 +120,11 @@ const styles = StyleSheet.create({
   actionIcon: {
     width: 44,
     height: 44,
-    borderRadius: radius.md,
-    backgroundColor: banking.accentSoft,
+    borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
   actionTexts: { flex: 1, gap: 2 },
-  actionLabel: { fontSize: font.title, fontWeight: "700", color: palette.ink },
-  actionHint: { fontSize: font.small, color: palette.muted },
+  actionLabel: { fontSize: font.title, fontWeight: "700" },
+  actionHint: { fontSize: font.small },
 });

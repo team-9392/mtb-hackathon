@@ -88,12 +88,11 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
       const child = await loadChild(db, params.id);
       assertChildAccess(claims, child);
 
-      const [limitsRes, opsRes, txnsRes, accountsRes, cardRes] = await Promise.all([
+      const [limitsRes, opsRes, txnsRes, accountsRes] = await Promise.all([
         db.from("limits").select("monthly, per_txn").eq("child_id", child.id).maybeSingle(),
         db.from("operation_permissions").select("operation_id, allowed").eq("child_id", child.id),
         db.from("transactions").select("amount, status, by_child, created_at").eq("child_id", child.id).limit(200),
         db.from("accounts").select("id, kind, balance").eq("child_id", child.id),
-        db.from("cards").select("status").eq("child_id", child.id).maybeSingle(),
       ]);
 
       const monthlyLimit = Number(limitsRes.data?.monthly ?? 0);
@@ -121,10 +120,13 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
         operationAllowed,
       });
 
+      // Платим первой (самой ранней) картой; заблокирована ли она — решает статус.
       const { data: card } = await db
         .from("cards")
         .select("id, status")
         .eq("child_id", child.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
         .maybeSingle();
 
       let status: "approved" | "declined" = decision.status;

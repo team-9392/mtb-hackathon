@@ -1,15 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, Share, StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
 import type { AgeBracket } from "@/store/types";
-import { font, palette, radius, shadow, spacing } from "@/theme/tokens";
+import { font, radius, shadow, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Badge, Card, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
+import { TextInput } from "@/ui/TextInput";
 
 const BRACKETS: {
   id: AgeBracket;
@@ -29,6 +33,10 @@ function groupCode(code: string): string {
 }
 
 export default function ChildAccessScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, setChild, setBracket, createChild, grantAccess, revokeAccess, showToast } = useStore();
   const [creating, setCreating] = useState(false);
@@ -140,7 +148,9 @@ export default function ChildAccessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   need: { fontSize: font.body, color: palette.ink2, fontWeight: "600", marginTop: spacing.sm },
   input: {
     backgroundColor: palette.surface,
@@ -205,4 +215,5 @@ const styles = StyleSheet.create({
   accessCard: { gap: spacing.md },
   accessRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   accessTitle: { flex: 1, fontSize: font.body, fontWeight: "700", color: palette.ink },
-});
+  });
+};

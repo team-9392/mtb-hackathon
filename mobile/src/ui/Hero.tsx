@@ -2,7 +2,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 
-import { gradients, radius, shadow } from "@/theme/tokens";
+import { gradients as fallbackGradients, radius, shadow } from "@/theme/tokens";
+import { useTheme } from "@/theme/ThemeProvider";
 
 export function HeroCard({
   children,
@@ -10,9 +11,10 @@ export function HeroCard({
   style,
 }: {
   children: React.ReactNode;
-  gradient?: keyof typeof gradients;
+  gradient?: keyof typeof fallbackGradients;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { gradients } = useTheme();
   return (
     <LinearGradient
       colors={gradients[gradient]}
@@ -27,7 +29,7 @@ export function HeroCard({
 
 const styles = StyleSheet.create({
   hero: {
-    borderRadius: radius.xl,
+    borderRadius: radius.lg,
     padding: 22,
     ...shadow.floating,
   },

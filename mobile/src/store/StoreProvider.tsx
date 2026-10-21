@@ -104,7 +104,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   /** Перечитать состояние с сервера. В демо-режиме ничего не делает. */
   const hydrate = useCallback(async () => {
-    if (demoMode || status !== "signedIn") {
+    if (demoMode || status !== "signedIn" || !claims?.familyId) {
       return;
     }
     try {
@@ -118,7 +118,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Сервер недоступен — экраны продолжают работать на локальных данных.
     }
-  }, [demoMode, status, claims?.childId]);
+    // familyId меняется после оформления пакета: без него состояние семьи
+    // не перечиталось бы до первого realtime-события.
+  }, [demoMode, status, claims?.childId, claims?.familyId]);
 
   const hydrateRef = useRef(hydrate);
   hydrateRef.current = hydrate;

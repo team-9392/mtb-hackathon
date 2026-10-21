@@ -1,6 +1,49 @@
 import { api } from "./client";
+import type { SessionClaims } from "./types";
 import type { TransferRow } from "@/store/types";
 import type { AgeBracket, ConsentId, LimitState, Localized, OperationId, ProductId } from "@/store/types";
+
+/** Данные родителя и ребёнка, которые уходят одним запросом на шаге оплаты. */
+export interface FamilySignupInput {
+  fullName: string;
+  idNumber: string;
+  childName: string;
+  bracket: AgeBracket;
+}
+
+export interface FamilySignupChild {
+  id: string;
+  name: string;
+  bracket: AgeBracket;
+  access_code?: string;
+  access_granted?: boolean;
+  points?: number;
+}
+
+export interface FamilySignupResponse {
+  family: { id: string; invite_code: string; tariff: string; currency?: string };
+  child: FamilySignupChild;
+  packageComplete: boolean;
+  accessToken: string;
+  refreshToken: string;
+  claims: SessionClaims;
+}
+
+/**
+ * Создание семьи вместе с ребёнком. Сервер сам выпускает права, счета
+ * и согласия, поэтому отдельный /family/children при регистрации не нужен.
+ */
+export function createFamilyApi(body: FamilySignupInput): Promise<FamilySignupResponse> {
+  return api<FamilySignupResponse>("/auth/family", { method: "POST", body });
+}
+
+/** Профиль родителя: имя и идентификационный номер можно менять по отдельности. */
+export function updateProfileApi(patch: { fullName?: string; idNumber?: string }): Promise<{
+  user: { id: string; phone: string; fullName?: string | null; idNumber?: string | null };
+  claims: SessionClaims;
+}> {
+  return api("/me", { method: "PATCH", body: patch });
+}
 
 const child = (childId: string): string => `/children/${childId}`;
 

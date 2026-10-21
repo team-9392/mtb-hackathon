@@ -11,7 +11,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/rules.test.ts"
+    "test": "tsx --test src/rules.test.ts src/cards.test.ts src/consents.test.ts"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",

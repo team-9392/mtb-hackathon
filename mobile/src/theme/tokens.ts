@@ -1,27 +1,22 @@
-export const palette = {
-  primary: "#3B5BFD",
-  primaryDark: "#2A43C9",
-  primarySoft: "#E8EDFF",
-  violet: "#6C4DF6",
-  child: "#FF7A3D",
-  childDark: "#EA5F1F",
-  childSoft: "#FFF0E6",
-  mint: "#12B886",
-  mintSoft: "#E3F8F0",
-  danger: "#E5484D",
-  dangerSoft: "#FDE8E8",
-  warn: "#F5A524",
-  warnSoft: "#FFF4E0",
-  ink: "#0F172A",
-  ink2: "#344054",
-  muted: "#667085",
-  muted2: "#98A2B3",
-  line: "#E4E7EC",
-  bg: "#F4F5FA",
-  surface: "#FFFFFF",
-  surfaceAlt: "#EEF1F8",
-  white: "#FFFFFF",
-} as const;
+/**
+ * Дизайн-токены MobyFamily.
+ *
+ * Цвета живут в theme/palette.ts (тёмная/светлая палитры), здесь — размеры,
+ * радиусы, тени и банковская база. palette/gradients реэкспортируются
+ * для обратной совместимости: это тёмная тема по умолчанию.
+ */
+export {
+  darkColors,
+  darkGradients,
+  gradients,
+  lightColors,
+  lightGradients,
+  palette,
+  type GradientName,
+  type Gradients,
+  type Palette,
+  type ThemeMode,
+} from "./palette";
 
 export const spacing = {
   xs: 4,
@@ -32,14 +27,20 @@ export const spacing = {
   xxl: 28,
 } as const;
 
+/** Макеты: скругления 24 у карточек и 32 у больших панелей. */
 export const radius = {
-  sm: 10,
-  md: 14,
-  lg: 20,
-  xl: 28,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
   pill: 999,
 } as const;
 
+/**
+ * Размеры текста из макетов:
+ * title 22 bold, body 13–15, labels 11–12, баланс ~3.5rem (56).
+ * Старые ключи не меняем, чтобы не ломать существующие экраны.
+ */
 export const font = {
   h1: 30,
   h2: 24,
@@ -48,22 +49,26 @@ export const font = {
   body: 15.5,
   small: 13.5,
   tiny: 11.5,
+  titleScreen: 22,
+  balance: 56,
+  label: 11,
+  labelLarge: 12,
 } as const;
 
 export const shadow = {
   card: {
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
+    shadowColor: "#000000",
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
   floating: {
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.16,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
+    shadowColor: "#000000",
+    shadowOpacity: 0.32,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 10,
   },
 } as const;
 
@@ -72,20 +77,10 @@ export const shadow = {
  * heroInk — «тёмная карта» счёта, accentSoft — подложка главного действия.
  */
 export const banking = {
-  heroInk: ["#111827", "#1F2937"],
-  accentSoft: "#EAF0FF",
+  heroInk: ["#1D3159", "#16233F", "#11182C"],
+  accentSoft: "#E8EFFF",
   chip: "#F2F4F7",
   moneySize: 34,
   cardRadius: 24,
   actionRadius: 18,
 } as const;
-
-export const gradients = {
-  hero: ["#111827", "#1F2937"],
-  parent: ["#3B5BFD", "#6C4DF6"],
-  child: ["#FF9A3D", "#FF5E7E"],
-  mint: ["#12B886", "#0EA5A0"],
-  ink: ["#1E2537", "#3A4460"],
-} as const;
-
-export type GradientName = keyof typeof gradients;

@@ -1,15 +1,24 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { OfflineError } from "@/api/client";
+import { clearSignupDraft } from "@/auth/signup/draft";
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n } from "@/i18n";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { AuthLayout } from "@/ui/AuthLayout";
 import { Button } from "@/ui/Button";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
+import { TextInput } from "@/ui/TextInput";
 
 export default function JoinScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { joinFamily, signOut } = useAuth();
   const router = useRouter();
@@ -21,7 +30,9 @@ export default function JoinScreen() {
     setBusy(true);
     setMessage(null);
     try {
-      const claims = await joinFamily(code.trim().toUpperCase());
+      const claims = await joinFamily((code ?? "").trim().toUpperCase());
+      // Ребёнок вошёл по коду доступа: черновик родительской регистрации больше не нужен.
+      await clearSignupDraft();
       router.replace(claims.childId ? "/child" : "/");
     } catch (caught) {
       setMessage(caught instanceof OfflineError ? t("auth.connectFailed") : (caught as Error).message);
@@ -71,7 +82,9 @@ export default function JoinScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   field: {
     backgroundColor: palette.surface,
     borderRadius: radius.lg,
@@ -88,4 +101,5 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   error: { marginTop: spacing.md, fontSize: font.small, color: palette.danger, fontWeight: "600" },
-});
+  });
+};

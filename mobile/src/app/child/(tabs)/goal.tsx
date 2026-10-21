@@ -1,18 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useI18n, useL } from "@/i18n";
 import { formatMoney, formatPercent } from "@/lib/format";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { HeroCard } from "@/ui/Hero";
 import { Badge, Card, ProgressBar, Row, SectionTitle, ToggleRow } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 export default function ChildGoalScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const L = useL();
   const { state, addToGoal, showToast } = useStore();
@@ -40,11 +47,11 @@ export default function ChildGoalScreen() {
       <HeroCard gradient="mint">
         <Row style={styles.heroTop}>
           <Text style={styles.emoji}>{state.goal.emoji}</Text>
-          <Badge label={formatPercent(ratio)} tone="mint" style={styles.heroBadge} />
+          <Badge label={formatPercent(ratio)} tone="mint" style={styles.heroBadge} onDark />
         </Row>
         <Text style={styles.heroTitle}>{L(state.goal.title)}</Text>
         <Text style={styles.heroValue}>{formatMoney(state.goal.saved)}</Text>
-        <ProgressBar value={ratio} tone="neutral" height={12} />
+        <ProgressBar value={ratio} tone="neutral" height={12} onDark />
         <Row style={styles.heroFooter}>
           <Text style={styles.heroFooterText}>
             {t("gl.target")}: {formatMoney(state.goal.target, 0)}
@@ -107,7 +114,9 @@ export default function ChildGoalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   heroTop: { justifyContent: "space-between", alignItems: "center" },
   emoji: { fontSize: 34 },
   heroBadge: { backgroundColor: "rgba(255,255,255,0.24)" },
@@ -122,4 +131,5 @@ const styles = StyleSheet.create({
   addConfirm: { marginTop: spacing.md },
   hintRow: { gap: spacing.md },
   hint: { flex: 1, fontSize: font.small, color: palette.muted, lineHeight: 18 },
-});
+  });
+};

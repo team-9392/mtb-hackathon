@@ -1,18 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Card, Row } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 const DIGITS = () => String(Math.floor(100000 + Math.random() * 900000));
 
 export default function AccessScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, grantAccess, revokeAccess, showToast } = useStore();
   const router = useRouter();
@@ -85,7 +92,9 @@ export default function AccessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   codeCard: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xxl },
   codeLabel: { fontSize: font.small, color: palette.muted, fontWeight: "700" },
   code: { fontSize: 42, fontWeight: "800", color: palette.ink, letterSpacing: 8 },
@@ -116,4 +125,5 @@ const styles = StyleSheet.create({
   revokeText: { flex: 1, gap: 2 },
   revokeTitle: { fontSize: font.body, fontWeight: "700", color: palette.danger },
   revokeDesc: { fontSize: font.tiny, color: palette.danger },
-});
+  });
+};

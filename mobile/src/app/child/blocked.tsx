@@ -1,15 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 export default function ChildBlockedScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, toggleCardBlock, showToast } = useStore();
   const blocked = state.card.status === "blocked";
@@ -97,11 +104,14 @@ export default function ChildBlockedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   row: { gap: spacing.md },
   icon: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   text: { flex: 1, gap: 3 },
   title: { fontSize: font.small, fontWeight: "700", color: palette.ink },
   desc: { fontSize: font.tiny, color: palette.muted, lineHeight: 16 },
   action: { marginTop: spacing.lg },
-});
+  });
+};

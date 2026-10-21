@@ -1,19 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { CARD_SYSTEMS, CARD_TYPES, formatPan } from "@/lib/card";
 import { useStore } from "@/store/StoreProvider";
 import type { CardSystem, CardType } from "@/store/types";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { HeroCard } from "@/ui/Hero";
 import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Badge, Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 const SYSTEM_LABEL: Record<CardSystem, string> = {
   visa: "Visa",
@@ -24,6 +27,10 @@ const SYSTEM_LABEL: Record<CardSystem, string> = {
 
 /** Выпуск карты: виртуальная или пластиковая, любая платёжная система. */
 export default function IssueScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, issueCard, showToast } = useStore();
   const router = useRouter();
@@ -155,7 +162,9 @@ export default function IssueScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   cardTop: { justifyContent: "space-between", alignItems: "center" },
   brand: { fontSize: font.small, fontWeight: "800", color: "rgba(255,255,255,0.92)", letterSpacing: 0.4 },
   cardChip: {
@@ -212,4 +221,5 @@ const styles = StyleSheet.create({
   issuedValue: { fontSize: font.small, fontWeight: "700", color: palette.ink },
   issuedHint: { fontSize: 12, color: palette.muted, marginTop: spacing.sm, lineHeight: 16 },
   toAccess: { marginTop: spacing.md },
-});
+  });
+};

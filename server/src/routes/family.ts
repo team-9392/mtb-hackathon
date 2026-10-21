@@ -2,13 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import { CARD_SYSTEMS, CARD_TYPES, expiryFromNow, generatePan } from "../cards.js";
 import { hub } from "../hub.js";
 import type { Env } from "../env.js";
 import { badRequest, conflict, forbidden, requireAuth, requireParent, sendError } from "../http.js";
+import { consentFlags, consentViews, type ConsentRow } from "../consents.js";
 import { bootstrapChild, childState, getChild, notify, parentUserIdOfFamily } from "../repo.js";
-import { randomNumeric, randomInviteCode } from "../otp.js";
-import { defaultAllowed, productsFor, requiresWrittenConsent, type Bracket, type ProductId, type OperationId, type ConsentId } from "../rules.js";
+import { randomInviteCode } from "../otp.js";
+import { productsFor, requiresWrittenConsent, type Bracket, type ProductId, type OperationId, type ConsentId } from "../rules.js";
 
 const PRODUCTS = ["card", "pocket", "savings", "deposit", "insurance", "subscriptions"] as const;
 const OPERATIONS = ["pay", "online", "transfer", "cash"] as const;
@@ -168,6 +168,43 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
     }
   });
 
+  /** Все четыре согласия: подписанные и неподписанные — с флагами и датой. */
+  app.get("/children/:id/consents", async (request, reply) => {
+    try {
+      const claims = requireAuth(request, env);
+      const params = z.object({ id: z.string().uuid() }).parse(request.params);
+
+      let childId: string;
+      if (claims.role === "child") {
+        const { data } = await db
+          .from("children")
+          .select("id, user_id")
+          .eq("id", params.id)
+          .maybeSingle();
+        if (!data || data.user_id !== claims.sub || claims.childId !== data.id) {
+          throw forbidden("Это профиль другого ребёнка");
+        }
+        childId = data.id as string;
+      } else {
+        const child = await getChild(db, params.id, requireParent(claims));
+        childId = child.id;
+      }
+
+      const { data } = await db
+        .from("consents")
+        .select("kind, signed_at, signed_by_user_id")
+        .eq("child_id", childId);
+      const rows = (data ?? []) as unknown as ConsentRow[];
+      return reply.send({
+        childId,
+        consents: consentViews(rows),
+        flags: consentFlags(rows),
+      });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
   app.post("/children/:id/access", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
@@ -197,81 +234,6 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
         granted: body.granted,
       });
       return reply.send({ ok: true, accessGranted: body.granted });
-    } catch (error) {
-      return sendError(reply, error);
-    }
-  });
-
-  app.post("/children/:id/card", async (request, reply) => {
-    try {
-      const claims = requireAuth(request, env);
-      const familyId = requireParent(claims);
-      const params = z.object({ id: z.string().uuid() }).parse(request.params);
-      const body = z
-        .object({
-          type: z.enum(CARD_TYPES).default("virtual"),
-          system: z.enum(CARD_SYSTEMS).default("visa"),
-        })
-        .parse(request.body ?? {});
-      const child = await getChild(db, params.id, familyId);
-
-      const { data: existing } = await db
-        .from("cards")
-        .select("id")
-        .eq("child_id", child.id)
-        .maybeSingle();
-
-      // Номер генерируем один раз: при повторном выпуске того же типа/системы оставляем прежние реквизиты.
-      const { data: current } = existing
-        ? await db.from("cards").select("number, system, type").eq("id", existing.id).maybeSingle()
-        : { data: null };
-      const keep = current?.number && current.system === body.system && current.type === body.type;
-      const pan = keep ? (current!.number as string) : generatePan(body.system);
-
-      const payload = {
-        child_id: child.id,
-        last4: pan.slice(-4),
-        number: pan,
-        system: body.system,
-        type: body.type,
-        ...(keep ? {} : { expiry: expiryFromNow() }),
-        status: "issued",
-        issued_at: new Date().toISOString(),
-        blocked_at: null,
-      };
-
-      const { data: card, error } = existing
-        ? await db.from("cards").update(payload).eq("id", existing.id).select("*").single()
-        : await db.from("cards").insert(payload).select("*").single();
-
-      if (error || !card) {
-        throw new Error("Не удалось выпустить карту: " + (error?.message ?? ""));
-      }
-      await hub.publish(db, familyId, "permission.updated", { childId: child.id, cardIssued: true });
-      return reply.status(201).send({ card });
-    } catch (error) {
-      return sendError(reply, error);
-    }
-  });
-
-  app.patch("/children/:id/card", async (request, reply) => {
-    try {
-      const claims = requireAuth(request, env);
-      const familyId = requireParent(claims);
-      const params = z.object({ id: z.string().uuid() }).parse(request.params);
-      const body = z.object({ blocked: z.boolean() }).parse(request.body);
-      const child = await getChild(db, params.id, familyId);
-
-      await db
-        .from("cards")
-        .update({
-          status: body.blocked ? "blocked" : "issued",
-          blocked_at: body.blocked ? new Date().toISOString() : null,
-        })
-        .eq("child_id", child.id);
-
-      await hub.publish(db, familyId, body.blocked ? "card.blocked" : "card.unblocked", { childId: child.id });
-      return reply.send({ ok: true, blocked: body.blocked });
     } catch (error) {
       return sendError(reply, error);
     }

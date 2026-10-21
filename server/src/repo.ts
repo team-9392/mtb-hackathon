@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { cardView, type CardRow } from "./cards.js";
+import { consentFlags, consentViews, type ConsentRow } from "./consents.js";
 import { forbidden, notFound } from "./http.js";
 import { sendPush } from "./push.js";
 import { sendTelegram } from "./telegram.js";
@@ -144,7 +146,8 @@ export async function childState(db: SupabaseClient, child: ChildRow) {
       db.from("permissions").select("*").eq("child_id", child.id),
       db.from("operation_permissions").select("*").eq("child_id", child.id),
       db.from("allowed_categories").select("category_id, allowed").eq("child_id", child.id),
-      db.from("cards").select("*").eq("child_id", child.id).order("created_at", { ascending: false }),
+      // Первая карта — самая ранняя: её же отдаёт legacy-поле card.
+      db.from("cards").select("*").eq("child_id", child.id).order("created_at", { ascending: true }),
       db.from("accounts").select("*").eq("child_id", child.id),
       db.from("consents").select("*").eq("child_id", child.id),
       db.from("goals").select("*").eq("child_id", child.id).eq("status", "active").order("created_at", { ascending: false }),
@@ -154,6 +157,9 @@ export async function childState(db: SupabaseClient, child: ChildRow) {
       db.from("access_requests").select("*").eq("child_id", child.id).order("created_at", { ascending: false }).limit(20),
       db.from("transactions").select("*").eq("child_id", child.id).order("created_at", { ascending: false }).limit(30),
     ]);
+
+  const cardRows = (cards.data ?? []) as unknown as CardRow[];
+  const consentRows = (consents.data ?? []) as unknown as ConsentRow[];
 
   return {
     child: {
@@ -169,9 +175,12 @@ export async function childState(db: SupabaseClient, child: ChildRow) {
     permissions: permissions.data ?? [],
     operations: operations.data ?? [],
     categories: categories.data ?? [],
-    card: (cards.data ?? [])[0] ?? null,
+    // Обратная совместимость: card = первая карта, cards = все карты ребёнка.
+    card: cardRows[0] ? cardView(cardRows[0]) : null,
+    cards: cardRows.map(cardView),
     accounts: accounts.data ?? [],
-    consents: consents.data ?? [],
+    consents: consentViews(consentRows),
+    consentsGranted: consentFlags(consentRows),
     goals: goals.data ?? [],
     quests: [],
     requests: requests.data ?? [],

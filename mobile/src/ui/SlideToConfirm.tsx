@@ -1,18 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import React, { useMemo, useRef, useState } from "react";
-import { Animated, PanResponder, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, PanResponder, StyleSheet, View } from "react-native";
 
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { radius, spacing } from "@/theme/tokens";
+import { useTheme } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
+/** Высота дорожки по макету: 52 + 6 + 6 = 64. */
+const TRACK_HEIGHT = 64;
 const THUMB = 52;
 const PADDING = 6;
-const TRACK_HEIGHT = THUMB + PADDING * 2;
 
 /**
- * Подтверждение движением: круглый ползунок идёт по скруглённой дорожке.
- * Под дорожкой — подпись, пока не провели; после подтверждения появляется галочка.
- * Жест ловит вся полоса (не только кружок), иначе ScrollView вокруг съедает движение.
+ * Подтверждение движением.
+ *
+ * Подпись лежит НА дорожке по центру, ручка едет поверх неё и перекрывает.
+ * Ручка ходит строго внутри pill-дорожки: от PADDING до width - THUMB - PADDING.
+ * Ширина берётся из onLayout самой дорожки, а не экрана, поэтому компонент
+ * одинаково работает в шторках, ScrollView, модалках и карточках.
+ * После подтверждения — зелёная заливка всей дорожки и галочка на ручке.
  */
 export function SlideToConfirm({
   label,
@@ -25,171 +32,238 @@ export function SlideToConfirm({
   disabled?: boolean;
   doneLabel?: string;
 }) {
+  const { colors } = useTheme();
   const [width, setWidth] = useState(0);
   const [done, setDone] = useState(false);
   const translate = useRef(new Animated.Value(0)).current;
-  const maxRef = useRef(1);
-  const widthRef = useRef(0);
-  const confirmed = useRef(onConfirm);
-  confirmed.current = onConfirm;
-  const locked = useRef(false);
+  const posRef = useRef(0);
+  const travelRef = useRef(1);
+  const doneRef = useRef(false);
+  const lockedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const confirmedRef = useRef(onConfirm);
+  confirmedRef.current = onConfirm;
 
-  const reset = useRef(() => {
-    Animated.spring(translate, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 18 }).start();
-  }).current;
+  const clamp = (value: number) =>
+    Math.max(0, Math.min(travelRef.current, value));
 
-  const finish = useRef(() => {
-    if (locked.current) {
+  const reset = () => {
+    posRef.current = 0;
+    Animated.spring(translate, {
+      toValue: 0,
+      bounciness: 0,
+      speed: 18,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const finish = () => {
+    if (lockedRef.current) {
       return;
     }
-    locked.current = true;
-    Animated.timing(translate, { toValue: maxRef.current, duration: 120, useNativeDriver: true }).start(() => {
+    lockedRef.current = true;
+    Animated.timing(translate, {
+      toValue: travelRef.current,
+      duration: 120,
+      useNativeDriver: true,
+    }).start(() => {
+      posRef.current = travelRef.current;
+      doneRef.current = true;
       setDone(true);
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      confirmed.current();
-      setTimeout(() => {
-        locked.current = false;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+        () => undefined,
+      );
+      confirmedRef.current();
+
+      timerRef.current = setTimeout(() => {
+        lockedRef.current = false;
+        doneRef.current = false;
         setDone(false);
         reset();
-      }, 1400);
+      }, 1300);
     });
-  }).current;
+  };
+
+  // Колбэки для PanResponder: он создаётся один раз и читает актуальные через ref.
+  const actionsRef = useRef({ finish, reset });
+  actionsRef.current = { finish, reset };
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    },
+    [],
+  );
 
   const responder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => !disabled,
-        onMoveShouldSetPanResponder: () => !disabled,
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          !disabled &&
+          !lockedRef.current &&
+          Math.abs(gesture.dx) > 6 &&
+          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.2,
         onPanResponderTerminationRequest: () => false,
+        onPanResponderGrant: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+            () => undefined,
+          );
+        },
         onPanResponderMove: (_, gesture) => {
-          const max = maxRef.current;
-          translate.setValue(Math.min(max, Math.max(0, gesture.dx)));
+          const next = clamp(gesture.dx);
+          posRef.current = next;
+          translate.setValue(next);
         },
         onPanResponderRelease: (_, gesture) => {
-          const max = maxRef.current;
-          if (max > 40 && gesture.dx >= max * 0.75) {
-            finish();
+          const travel = travelRef.current;
+          if (travel > 40 && gesture.dx >= travel * 0.75) {
+            actionsRef.current.finish();
             return;
           }
-          reset();
+          actionsRef.current.reset();
         },
-        onPanResponderTerminate: () => reset(),
+        onPanResponderTerminate: () => actionsRef.current.reset(),
       }),
-    [disabled, finish, reset, translate],
+    [disabled, translate],
   );
 
   const travel = Math.max(1, width - THUMB - PADDING * 2);
 
-  return (
-    <View style={styles.wrapper}>
-      <View
-        style={[styles.track, disabled && styles.trackDisabled]}
-        onLayout={(event) => {
-          const next = event.nativeEvent.layout.width;
-          widthRef.current = next;
-          maxRef.current = Math.max(1, next - THUMB - PADDING * 2);
-          setWidth(next);
-        }}
-        {...responder.panHandlers}
-      >
-        {width > 0 ? (
-          <Animated.View
-            style={[
-              styles.fill,
-              done && styles.fillDone,
-              {
-                width: translate.interpolate({
-                  inputRange: [0, travel],
-                  outputRange: [THUMB + PADDING * 2, width],
-                  extrapolate: "clamp",
-                }),
-              },
-            ]}
-          />
-        ) : null}
-        <Text style={styles.trackLabel} numberOfLines={1} pointerEvents="none">
-          {done ? "" : label}
-        </Text>
-        <Animated.View style={[styles.thumb, { transform: [{ translateX: translate }] }]} pointerEvents="none">
-          <Ionicons
-            name={done ? "checkmark" : "chevron-forward"}
-            size={done ? 26 : 24}
-            color={done ? palette.white : palette.primary}
-          />
-        </Animated.View>
-      </View>
+  // Заливка тянется следом за ручкой: от круглой подложки под ней до всей ширины.
+  const fillWidth = translate.interpolate({
+    inputRange: [0, travel],
+    outputRange: [TRACK_HEIGHT, width || TRACK_HEIGHT],
+    extrapolate: "clamp",
+  });
 
+  return (
+    <View
+      style={[
+        styles.track,
+        {
+          backgroundColor: colors.surfaceAlt,
+          borderColor: done ? colors.mint : colors.line,
+        },
+        disabled && styles.trackDisabled,
+      ]}
+      onLayout={(event) => {
+        const next = Math.round(event.nativeEvent.layout.width);
+        if (next <= 0) {
+          return;
+        }
+        setWidth(next);
+        const maxTravel = Math.max(1, next - THUMB - PADDING * 2);
+        travelRef.current = maxTravel;
+        if (doneRef.current || posRef.current > maxTravel) {
+          posRef.current = maxTravel;
+          translate.setValue(maxTravel);
+        }
+      }}
+      accessible
+      accessibilityRole="adjustable"
+      accessibilityState={{ disabled }}
+      accessibilityLabel={label}
+      {...responder.panHandlers}
+    >
       {done ? (
-        <View style={styles.doneRow}>
-          <View style={styles.doneBadge}>
-            <Ionicons name="checkmark" size={14} color={palette.white} />
-          </View>
-          <Text style={styles.doneText}>{doneLabel ?? label}</Text>
-        </View>
+        <View
+          style={[
+            styles.fillDone,
+            { backgroundColor: colors.mint },
+          ]}
+        />
       ) : (
-        <Text style={styles.hint}>{label}</Text>
+        <Animated.View
+          style={[
+            styles.fill,
+            { width: fillWidth, backgroundColor: colors.primarySoft },
+          ]}
+        />
       )}
+
+      <Text
+        secondary
+        style={[
+          styles.label,
+          { color: done ? colors.white : colors.muted },
+          done && styles.labelDone,
+        ]}
+        numberOfLines={1}
+      >
+        {done ? doneLabel ?? label : label}
+      </Text>
+
+      <Animated.View
+        style={[
+          styles.thumb,
+          {
+            backgroundColor: colors.white,
+            transform: [{ translateX: translate }],
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Ionicons
+          name={done ? "checkmark" : "chevron-forward"}
+          size={done ? 28 : 24}
+          color={done ? colors.mint : colors.primary}
+        />
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: spacing.sm },
   track: {
     height: TRACK_HEIGHT,
     borderRadius: radius.pill,
-    backgroundColor: palette.surfaceAlt,
     borderWidth: 1,
-    borderColor: palette.line,
     justifyContent: "center",
     overflow: "hidden",
     padding: PADDING,
   },
-  trackDisabled: { opacity: 0.5 },
+  trackDisabled: { opacity: 0.45 },
   fill: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
     borderRadius: radius.pill,
-    backgroundColor: palette.primarySoft,
   },
-  fillDone: { backgroundColor: palette.mint },
-  trackLabel: {
+  fillDone: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: radius.pill,
+  },
+  label: {
+    fontSize: 12.5,
+    fontWeight: "600",
     textAlign: "center",
-    color: palette.ink2,
-    fontSize: font.small,
-    fontWeight: "700",
-    paddingHorizontal: THUMB + spacing.md,
+    letterSpacing: 0.1,
+    paddingHorizontal: spacing.lg,
+    zIndex: 1,
   },
+  labelDone: { fontWeight: "700" },
   thumb: {
+    position: "absolute",
+    left: PADDING,
+    top: PADDING,
     width: THUMB,
     height: THUMB,
     borderRadius: radius.pill,
-    backgroundColor: palette.surface,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#0B1220",
-    shadowOpacity: 0.14,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    shadowColor: "#000000",
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+    zIndex: 2,
   },
-  hint: {
-    textAlign: "center",
-    fontSize: font.small,
-    color: palette.muted,
-    fontWeight: "600",
-    paddingHorizontal: spacing.md,
-  },
-  doneRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
-  doneBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: radius.pill,
-    backgroundColor: palette.mint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  doneText: { fontSize: font.small, color: palette.mint, fontWeight: "800" },
 });

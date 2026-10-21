@@ -8,14 +8,15 @@ const schema = z.object({
   JWT_SECRET: z.string().min(16),
   ACCESS_TTL_MIN: z.coerce.number().default(15),
   REFRESH_TTL_DAYS: z.coerce.number().default(30),
-  DEMO_OTP: z.string().optional(),
-  SMS_PROVIDER: z.enum(["demo", "telegram", "twilio"]).default("demo"),
+  // Только для автотестов: писать реальный код в лог строкой OTP_DEBUG.
+  // В проде выключено; в API код не отдаётся никогда.
+  OTP_DEBUG: z
+    .string()
+    .optional()
+    .transform((value) => value === "1" || value === "true"),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
   TELEGRAM_BOT_USERNAME: z.string().optional(),
-  TWILIO_ACCOUNT_SID: z.string().optional(),
-  TWILIO_AUTH_TOKEN: z.string().optional(),
-  TWILIO_FROM: z.string().optional(),
   CORS_ORIGIN: z.string().optional(),
 });
 

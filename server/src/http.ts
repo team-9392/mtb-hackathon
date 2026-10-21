@@ -34,6 +34,10 @@ export function conflict(message: string): ApiError {
   return new ApiError(409, "conflict", message);
 }
 
+export function tooMany(message = "Слишком много попыток, подождите"): ApiError {
+  return new ApiError(429, "too_many_requests", message);
+}
+
 export function requireAuth(request: FastifyRequest, env: Env): AuthClaims {
   const header = request.headers.authorization;
   if (!header || !header.startsWith("Bearer ")) {

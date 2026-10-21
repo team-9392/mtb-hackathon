@@ -1,13 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useI18n, type TKey } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
 import type { AccountKind } from "@/store/types";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
+import { TextInput } from "@/ui/TextInput";
 
 type Pot = AccountKind | "goal";
 
@@ -30,6 +34,10 @@ const ICON: Record<Pot, keyof typeof Ionicons.glyphMap> = {
 
 /** Счета ребёнка и переводы между ними. Наружу деньги не уходят ни на шаг. */
 export default function ChildAccountsScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, showToast, moveMoney, openAccount } = useStore();
   const [from, setFrom] = useState<Pot>("pocket");
@@ -219,7 +227,9 @@ export default function ChildAccountsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   title: { fontSize: font.h2, fontWeight: "800", color: palette.ink },
@@ -297,4 +307,5 @@ const styles = StyleSheet.create({
   },
   historyText: { fontSize: font.small, color: palette.ink2 },
   historyAmount: { fontSize: font.small, fontWeight: "700", color: palette.ink },
-});
+  });
+};

@@ -1,16 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useI18n, useL, type TKey } from "@/i18n";
 import { be } from "@/i18n/be";
 import { ru } from "@/i18n/ru";
 import { useStore } from "@/store/StoreProvider";
 import type { ProductId } from "@/store/types";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Badge, Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 type Target = ProductId | "limit";
 
@@ -21,6 +24,10 @@ const TARGETS: { target: Target; label: TKey; icon: keyof typeof import("@expo/v
 ];
 
 export default function ChildRequestScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const L = useL();
   const { state, requestAccess, showToast } = useStore();
@@ -129,7 +136,9 @@ export default function ChildRequestScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   row: { gap: spacing.md },
   icon: {
     width: 42,
@@ -145,4 +154,5 @@ const styles = StyleSheet.create({
   requestRow: { gap: spacing.md, paddingVertical: spacing.sm + 2 },
   border: { borderTopWidth: 1, borderTopColor: palette.line },
   requestText: { flex: 1, fontSize: font.small, color: palette.ink2, fontWeight: "600" },
-});
+  });
+};

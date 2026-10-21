@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Animated, Pressable, StyleSheet, TextInput, View } from "react-native";
 
-import { font, palette, radius } from "@/theme/tokens";
+import { font, radius } from "@/theme/tokens";
+import { useTheme } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 interface CodeInputProps {
   value: string;
@@ -19,6 +21,7 @@ interface CodeInputProps {
 export function CodeInput({ value, onChange, length = 6, autoFocus, error, onComplete }: CodeInputProps) {
   const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   const shake = useRef(new Animated.Value(0)).current;
+  const { colors } = useTheme();
   const cells = Array.from({ length }, (_, index) => value[index] ?? "");
 
   useEffect(() => {
@@ -55,12 +58,13 @@ export function CodeInput({ value, onChange, length = 6, autoFocus, error, onCom
               key={index}
               style={[
                 styles.cell,
-                filled && styles.cellFilled,
-                active && styles.cellActive,
-                error && styles.cellError,
+                { backgroundColor: colors.surface, borderColor: colors.line },
+                filled && { borderColor: colors.primary },
+                active && { borderColor: colors.primary, backgroundColor: colors.primarySoft },
+                error && { borderColor: colors.danger, backgroundColor: colors.dangerSoft },
               ]}
             >
-              <Text style={styles.cellText}>{digit}</Text>
+              <Text style={[styles.cellText, { color: colors.ink }]}>{digit}</Text>
             </View>
           );
         })}
@@ -90,15 +94,10 @@ const styles = StyleSheet.create({
     aspectRatio: 0.85,
     maxWidth: 60,
     borderRadius: radius.md,
-    backgroundColor: palette.surface,
     borderWidth: 1.5,
-    borderColor: palette.line,
     alignItems: "center",
     justifyContent: "center",
   },
-  cellFilled: { borderColor: palette.primary, backgroundColor: palette.surface },
-  cellActive: { borderColor: palette.primary, backgroundColor: palette.primarySoft },
-  cellError: { borderColor: palette.danger, backgroundColor: palette.dangerSoft },
-  cellText: { fontSize: font.h2, fontWeight: "700", color: palette.ink },
+  cellText: { fontSize: font.h2, fontWeight: "700" },
   hidden: { position: "absolute", opacity: 0, height: 1, width: 1 },
 });

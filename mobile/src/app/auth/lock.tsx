@@ -1,17 +1,22 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 
 import { api, OfflineError } from "@/api/client";
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n } from "@/i18n";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { AuthLayout } from "@/ui/AuthLayout";
 import { Button } from "@/ui/Button";
 import { CodeInput } from "@/ui/CodeInput";
+import type { Palette } from "@/theme/palette";
+import { useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 /** Экран возврата в приложение: код приложения или выход другим номером. */
 export default function LockScreen() {
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { signOut, user } = useAuth();
   const router = useRouter();
@@ -54,9 +59,12 @@ export default function LockScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   message: { marginTop: spacing.lg, fontSize: font.small, color: palette.danger, fontWeight: "600" },
   button: { marginTop: spacing.xl },
   link: { alignItems: "center", paddingVertical: spacing.sm },
   linkText: { fontSize: font.small, color: palette.primary, fontWeight: "700" },
-});
+  });
+};

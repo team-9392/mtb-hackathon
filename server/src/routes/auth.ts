@@ -3,13 +3,34 @@ import { z } from "zod";
 
 import { hashSecret, issueSession, rotateRefresh, verifySecret } from "../auth.js";
 import type { Env } from "../env.js";
-import { badRequest, conflict, notFound, requireAuth, sendError, unauthorized } from "../http.js";
+import {
+  badRequest,
+  conflict,
+  notFound,
+  requireAuth,
+  sendError,
+  tooMany,
+  unauthorized,
+} from "../http.js";
 import { createChallenge, normalizePhone, randomInviteCode, verifyChallenge } from "../otp.js";
+import { checkRate } from "../ratelimit.js";
+import { bootstrapChild } from "../repo.js";
+import { isPackageComplete, type Bracket } from "../rules.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { telegramChatForPhone, telegramEnabled, telegramOtpLink } from "../telegram.js";
+import {
+  createTelegramLinkToken,
+  telegramChatForPhone,
+  telegramEnabled,
+  telegramUsername,
+} from "../telegram.js";
 
 const phoneSchema = z.object({ phone: z.string().min(6) });
+
+/** Лимиты запросов кода и ссылок привязки (один инстанс API -> in-memory Map). */
+const TEN_MINUTES_MS = 10 * 60 * 1000;
+const OTP_PER_IP = 10;
+const LINK_PER_PHONE = 3;
 
 const verifySchema = z.object({
   challengeId: z.string().uuid(),
@@ -23,13 +44,21 @@ const joinSchema = z.object({
 });
 
 export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env: Env): void {
+  /** Запрос кода: только Telegram, без demoCode и без SMS-фолбэка. */
   app.post("/auth/otp/request", async (request, reply) => {
     try {
       const body = phoneSchema.parse(request.body);
       const phone = normalizePhone(body.phone);
-      if (phone.length < 12) {
-        throw badRequest("Проверьте номер телефона");
+      if (!/^\+375(29|33|44|25)\d{7}$/.test(phone)) {
+        throw badRequest("Выберите код оператора 29, 33, 44 или 25 и введите 7 цифр номера");
       }
+
+      const ipLimit = checkRate("otp:ip:" + request.ip, OTP_PER_IP, TEN_MINUTES_MS);
+      if (!ipLimit.allowed) {
+        reply.header("Retry-After", String(ipLimit.retryAfterSeconds));
+        throw tooMany();
+      }
+
       const challenge = await createChallenge(db, env, phone);
       return reply.send(challenge);
     } catch (error) {
@@ -37,14 +66,37 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
     }
   });
 
-  /** Привязка Telegram до входа: номер -> чат, код придёт в бот. */
+  /**
+   * Ссылка привязки Telegram до входа: номер остаётся на сервере,
+   * в URL уходит только одноразовый криптостойкий токен (TTL 10 минут).
+   */
   app.post("/auth/telegram/link", async (request, reply) => {
     try {
       const body = z.object({ phone: z.string().min(5) }).parse(request.body);
       const phone = normalizePhone(body.phone);
-      const url = telegramOtpLink(phone);
-      const chatId = url ? await telegramChatForPhone(db, phone) : null;
-      return reply.send({ url, linked: Boolean(chatId), botReady: telegramEnabled() });
+      if (!/^\+375(29|33|44|25)\d{7}$/.test(phone)) {
+        throw badRequest("Выберите код оператора 29, 33, 44 или 25 и введите 7 цифр номера");
+      }
+
+      const botReady = telegramEnabled() && telegramUsername() !== null;
+      if (!botReady) {
+        return reply.send({ url: null, linked: false, botReady: false });
+      }
+
+      const chatId = await telegramChatForPhone(db, phone);
+      if (chatId) {
+        // Уже привязан: новая ссылка не нужна, приложение сразу запросит код.
+        return reply.send({ url: null, linked: true, botReady: true });
+      }
+
+      const limit = checkRate("tg-link:phone:" + phone, LINK_PER_PHONE, TEN_MINUTES_MS);
+      if (!limit.allowed) {
+        reply.header("Retry-After", String(limit.retryAfterSeconds));
+        throw tooMany();
+      }
+
+      const url = await createTelegramLinkToken(db, phone);
+      return reply.send({ url, linked: false, botReady: Boolean(url) });
     } catch (error) {
       return sendError(reply, error);
     }
@@ -53,7 +105,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
   app.post("/auth/otp/verify", async (request, reply) => {
     try {
       const body = verifySchema.parse(request.body);
-      const result = await verifyChallenge(db, env, body.challengeId, body.code);
+      const result = await verifyChallenge(db, body.challengeId, body.code);
       if (!result.ok) {
         const messages: Record<string, string> = {
           not_found: "Код не найден, запросите новый",
@@ -123,18 +175,43 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
     }
   });
 
-  /** Родитель без семьи создаёт пакет «Фэмили» и получает код приглашения. */
+  /**
+   * Родитель без семьи создаёт пакет «Фэмили»: имя, идентификационный номер
+   * и ребёнок обязательны. Без ребёнка и без idNumber пакет не оформляется.
+   */
   app.post("/auth/family", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
-      const body = z.object({ fullName: z.string().max(60).optional() }).parse(request.body ?? {});
+      const body = z
+        .object({
+          fullName: z.string().max(60).optional(),
+          idNumber: z.string().max(40).optional(),
+          childName: z.string().max(40).optional(),
+          bracket: z.enum(["child_7_13", "teen_14_17"]).optional(),
+        })
+        .parse(request.body ?? {});
+
       if (claims.familyId) {
         throw conflict("Семья уже создана");
       }
-      // Имя могло уже сохраниться на предыдущем шаге — пустое значение не ошибка.
-      if (body.fullName && body.fullName.trim().length > 0) {
-        await db.from("users").update({ full_name: body.fullName.trim() }).eq("id", claims.sub);
+
+      // Гейтинг пакета: сначала идентификационный номер, затем ребёнок.
+      const idNumber = (body.idNumber ?? "").trim().toUpperCase();
+      if (!/^\d{7}[A-Z]\d{3}[A-Z]{2}\d$/.test(idNumber)) {
+        throw badRequest("Проверьте идентификационный номер: 7 цифр, буква, 3 цифры, 2 буквы, цифра — например 5120609A014PB2");
       }
+      const childName = (body.childName ?? "").trim();
+      if (childName.length === 0) {
+        throw badRequest("Добавьте ребёнка");
+      }
+      const fullName = (body.fullName ?? "").trim();
+      const bracket = (body.bracket ?? "child_7_13") as Bracket;
+
+      await db
+        .from("users")
+        .update({ id_number: idNumber, ...(fullName ? { full_name: fullName } : {}) })
+        .eq("id", claims.sub);
+
       const { data: family, error } = await db
         .from("families")
         .insert({ owner_user_id: claims.sub, invite_code: randomInviteCode() })
@@ -143,11 +220,39 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
       if (error || !family) {
         throw new Error("Не удалось создать семью: " + (error?.message ?? ""));
       }
-      await db
-        .from("family_members")
-        .insert({ family_id: family.id, user_id: claims.sub, role: "parent", status: "active" });
+
+      let child;
+      try {
+        const { error: memberError } = await db
+          .from("family_members")
+          .insert({ family_id: family.id, user_id: claims.sub, role: "parent", status: "active" });
+        if (memberError) {
+          throw new Error("Не удалось добавить родителя: " + memberError.message);
+        }
+
+        const { data: createdChild, error: childError } = await db
+          .from("children")
+          .insert({
+            family_id: family.id,
+            name: childName,
+            bracket,
+            access_code: randomInviteCode(),
+          })
+          .select("id, name, bracket, points, access_granted, access_code")
+          .single();
+        if (childError || !createdChild) {
+          throw new Error("Не удалось добавить ребёнка: " + (childError?.message ?? ""));
+        }
+        child = createdChild;
+        await bootstrapChild(db, child.id as string, bracket);
+      } catch (error) {
+        // Пакет без ребёнка не должен оставаться полуоформленным.
+        await db.from("families").delete().eq("id", family.id);
+        throw error;
+      }
+
       const session = await issueSession(db, env, claims.sub, null, null);
-      return reply.send({ family, ...session });
+      return reply.send({ family, child, packageComplete: true, ...session });
     } catch (error) {
       return sendError(reply, error);
     }
@@ -195,15 +300,41 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
   app.get("/me", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
-      const { data } = await db.from("users").select("phone, full_name").eq("id", claims.sub).maybeSingle();
-      const row = (data ?? {}) as { phone?: string; full_name?: string | null };
+      const { data } = await db
+        .from("users")
+        .select("phone, full_name, id_number")
+        .eq("id", claims.sub)
+        .maybeSingle();
+      const row = (data ?? {}) as { phone?: string; full_name?: string | null; id_number?: string | null };
+      const idNumber = row.id_number ?? null;
+
+      // Признак «пакет оформлен»: тариф family + есть ребёнок + есть idNumber.
+      let family: { id: string; tariff: string; invite_code: string } | null = null;
+      let childCount = 0;
+      if (claims.familyId) {
+        const [familyRes, childrenRes] = await Promise.all([
+          db
+            .from("families")
+            .select("id, tariff, invite_code")
+            .eq("id", claims.familyId)
+            .maybeSingle(),
+          db.from("children").select("id").eq("family_id", claims.familyId),
+        ]);
+        family = (familyRes.data as { id: string; tariff: string; invite_code: string } | null) ?? null;
+        childCount = (childrenRes.data ?? []).length;
+      }
+      const packageComplete = isPackageComplete(family?.tariff, childCount, idNumber);
+
       return reply.send({
         user: {
           id: claims.sub,
           phone: row.phone ?? "",
           fullName: row.full_name ?? null,
+          idNumber,
           role: claims.role,
+          packageComplete,
         },
+        family,
         claims,
       });
     } catch (error) {
@@ -214,22 +345,56 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
   app.patch("/me", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
-      const body = z.object({ fullName: z.string().min(1).max(60) }).parse(request.body);
+      const body = z
+        .object({
+          fullName: z.string().max(60).optional(),
+          idNumber: z.string().max(40).optional(),
+        })
+        .parse(request.body ?? {});
+
+      const patch: Record<string, string> = {};
+      if (body.fullName !== undefined) {
+        const value = body.fullName.trim();
+        if (value.length === 0) {
+          throw badRequest("Укажите имя и фамилию");
+        }
+        patch.full_name = value;
+      }
+      if (body.idNumber !== undefined) {
+        const value = body.idNumber.trim().toUpperCase();
+        if (!/^\d{7}[A-Z]\d{3}[A-Z]{2}\d$/.test(value)) {
+          throw badRequest("Проверьте идентификационный номер: 7 цифр, буква, 3 цифры, 2 буквы, цифра — например 5120609A014PB2");
+        }
+        if (value.length === 0) {
+          throw badRequest("Укажите идентификационный номер");
+        }
+        patch.id_number = value;
+      }
+      if (Object.keys(patch).length === 0) {
+        throw badRequest("Передайте имя или идентификационный номер");
+      }
+
       const { data, error } = await db
         .from("users")
-        .update({ full_name: body.fullName.trim() })
+        .update(patch)
         .eq("id", claims.sub)
-        .select("id, phone, full_name")
+        .select("id, phone, full_name, id_number")
         .maybeSingle();
       if (error) {
-        throw new Error("Не удалось сохранить имя: " + error.message);
+        throw new Error("Не удалось сохранить профиль: " + error.message);
       }
       // Токен мог остаться от аккаунта, который уже удалён (переустановка, очистка базы).
       if (!data) {
         return reply.code(401).send({ error: "session_stale", message: "Сессия устарела — войдите заново" });
       }
       return reply.send({
-        user: { id: data.id, phone: data.phone, fullName: data.full_name, role: claims.role },
+        user: {
+          id: data.id,
+          phone: data.phone,
+          fullName: data.full_name,
+          idNumber: data.id_number,
+          role: claims.role,
+        },
         claims,
       });
     } catch (error) {

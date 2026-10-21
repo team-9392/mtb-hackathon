@@ -6,13 +6,14 @@ import {
   ScrollView,
   StyleProp,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
+import { useTheme } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 export function Screen({
   children,
@@ -37,6 +38,7 @@ export function Screen({
 }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colors } = useTheme();
 
   const goBack = () => {
     if (onBack) {
@@ -53,20 +55,32 @@ export function Screen({
   const header = title || showBack ? (
     <View style={styles.header}>
       {showBack ? (
-        <Pressable onPress={goBack} style={styles.back} hitSlop={10}>
-          <Ionicons name="chevron-back" size={22} color={palette.ink} />
+        <Pressable
+          onPress={goBack}
+          style={[styles.back, { backgroundColor: colors.surface, borderColor: colors.line }]}
+          hitSlop={10}
+        >
+          <Ionicons name="chevron-back" size={22} color={colors.ink} />
         </Pressable>
       ) : null}
       <View style={styles.headerText}>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        {title ? (
+          <Text style={[styles.title, { color: colors.ink }]} numberOfLines={1}>
+            {title}
+          </Text>
+        ) : null}
+        {subtitle ? (
+          <Text secondary style={[styles.subtitle, { color: colors.muted }]} numberOfLines={2}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
       {right}
     </View>
   ) : null;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.sm }]}>
+    <View style={[styles.root, { backgroundColor: colors.bg, paddingTop: insets.top + spacing.sm }]}>
       {header}
       {scroll ? (
         <ScrollView
@@ -84,14 +98,25 @@ export function Screen({
         <View style={styles.contentStatic}>{children}</View>
       )}
       {footer ? (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>{footer}</View>
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: insets.bottom + spacing.md,
+              backgroundColor: colors.panel,
+              borderTopColor: colors.line,
+            },
+          ]}
+        >
+          {footer}
+        </View>
       ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.bg },
+  root: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -100,16 +125,16 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   back: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: palette.surface,
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  headerText: { flex: 1, gap: 2 },
-  title: { fontSize: font.h3, fontWeight: "800", color: palette.ink },
-  subtitle: { fontSize: font.tiny, color: palette.muted, lineHeight: 16 },
+  headerText: { flex: 1, gap: 3 },
+  title: { fontSize: font.titleScreen, fontWeight: "700", letterSpacing: -0.3 },
+  subtitle: { fontSize: 12, lineHeight: 16 },
   content: { paddingHorizontal: spacing.lg, gap: spacing.md },
   contentStatic: { flex: 1, paddingHorizontal: spacing.lg, gap: spacing.md },
   footer: {
@@ -119,9 +144,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    backgroundColor: palette.surface,
     borderTopWidth: 1,
-    borderTopColor: palette.line,
     gap: spacing.sm,
   },
 });

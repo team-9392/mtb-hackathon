@@ -1,15 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
 import type { ConsentId } from "@/store/types";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { Card } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 const TEXT: Record<ConsentId, { title: string; desc: string }> = {
   legal: { title: "p3.c1t", desc: "p3.c1d" },
@@ -19,6 +22,10 @@ const TEXT: Record<ConsentId, { title: string; desc: string }> = {
 };
 
 export default function ConsentsScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const { state, toggleConsent, signAllConsents, showToast } = useStore();
   const router = useRouter();
@@ -64,7 +71,7 @@ export default function ConsentsScreen() {
             </View>
             <View style={styles.text}>
               <Text style={styles.title}>{t(text.title as "p3.c1t")}</Text>
-              <Text style={styles.desc}>{t(text.desc as "p3.c1d")}</Text>
+              <Text secondary style={styles.desc}>{t(text.desc as "p3.c1d")}</Text>
             </View>
           </Pressable>
         );
@@ -93,7 +100,9 @@ export default function ConsentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   row: {
     flexDirection: "row",
     gap: spacing.md,
@@ -119,4 +128,5 @@ const styles = StyleSheet.create({
   optionalRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   optionalText: { flex: 1, fontSize: font.small, color: palette.muted },
   note: { fontSize: font.tiny, color: palette.muted2, textAlign: "center", marginTop: spacing.sm },
-});
+  });
+};

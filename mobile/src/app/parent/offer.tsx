@@ -1,14 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useI18n } from "@/i18n";
-import { font, palette, spacing } from "@/theme/tokens";
+import { font, spacing } from "@/theme/tokens";
 import { HeroCard } from "@/ui/Hero";
 import { Badge, Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 const BENEFITS = [
   { icon: "card-outline", title: "p1.b1t", desc: "p1.b1d" },
@@ -25,6 +28,10 @@ const LOYALTY = [
 ] as const;
 
 export default function OfferScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t } = useI18n();
   const router = useRouter();
 
@@ -45,7 +52,7 @@ export default function OfferScreen() {
       }
     >
       <HeroCard gradient="parent">
-        <Badge label={t("p1.badge")} tone="primary" style={styles.badge} />
+        <Badge label={t("p1.badge")} tone="primary" style={styles.badge} onDark />
         <Text style={styles.heroTitle}>{t("p1.title")}</Text>
         <Text style={styles.heroSubtitle}>{t("p1.subtitle")}</Text>
       </HeroCard>
@@ -91,7 +98,9 @@ export default function OfferScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   badge: { backgroundColor: "rgba(255,255,255,0.22)", marginBottom: spacing.md },
   heroTitle: { color: palette.white, fontSize: font.h2, fontWeight: "800" },
   heroSubtitle: { color: "rgba(255,255,255,0.9)", fontSize: font.small, lineHeight: 19, marginTop: spacing.sm },
@@ -117,4 +126,5 @@ const styles = StyleSheet.create({
   loyaltyText: { flex: 1, fontSize: font.small, color: palette.ink2, fontWeight: "600" },
   loyaltyNote: { fontSize: font.tiny, color: palette.muted, marginTop: spacing.md },
   terms: { textAlign: "center", fontSize: font.tiny, color: palette.muted2 },
-});
+  });
+};

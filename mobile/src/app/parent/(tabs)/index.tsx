@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n, useL } from "@/i18n";
@@ -9,7 +9,7 @@ import { formatPan } from "@/lib/card";
 import { formatDate, formatMoney } from "@/lib/format";
 import { bracketLabel, spentThisMonth } from "@/store/permissions";
 import { useStore } from "@/store/StoreProvider";
-import { font, palette, radius, spacing } from "@/theme/tokens";
+import { font, radius, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { HeroCard } from "@/ui/Hero";
 import { ParentTopUpSheet } from "@/ui/ParentTopUpSheet";
@@ -17,11 +17,18 @@ import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Badge, Card, EmptyState, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import type { Palette } from "@/theme/palette";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { Text } from "@/ui/Text";
 
 let cardOfferShown = false;
 
 /** Главный экран родителя: счёт ребёнка, три главных действия, ниже — запросы и операции. */
 export default function ParentOverviewScreen() {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   const { t, lang } = useI18n();
   const L = useL();
   const { state, toggleCardBlock, resolveRequest, showToast } = useStore();
@@ -79,6 +86,7 @@ export default function ParentOverviewScreen() {
               }
               tone={!cardIssued || blocked ? "warn" : "mint"}
               style={styles.heroBadge}
+              onDark
             />
           </Row>
         </Row>
@@ -287,6 +295,10 @@ function ActionTile({
   onPress: () => void;
   primary?: boolean;
 }) {
+  const { colors } = useTheme();
+  const palette = colors;
+  const styles = useThemedStyles(makeStyles);
+
   return (
     <Pressable
       onPress={onPress}
@@ -307,7 +319,9 @@ function ActionTile({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  const palette = colors;
+  return StyleSheet.create({
   settings: {
     width: 38,
     height: 38,
@@ -431,4 +445,5 @@ const styles = StyleSheet.create({
   txnAmount: { fontSize: font.small, fontWeight: "800", color: palette.ink },
   notif: { gap: spacing.md, paddingVertical: spacing.sm + 2 },
   notifTitle: { fontSize: font.small, fontWeight: "700", color: palette.ink },
-});
+  });
+};

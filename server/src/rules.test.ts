@@ -6,6 +6,7 @@ import {
   decidePayment,
   defaultOperationAllowed,
   isHardBlocked,
+  isPackageComplete,
   limitLeft,
   productsFor,
   requiresWrittenConsent,
@@ -92,4 +93,11 @@ test("траты считаются за текущий месяц и без о�
   ]);
   assert.equal(spent, 10);
   assert.equal(limitLeft(100, spent), 90);
+});
+test("пакет оформлен только при тарифе family, ребёнке и idNumber", () => {
+  assert.equal(isPackageComplete("family", 1, "1234567890123"), true);
+  assert.equal(isPackageComplete("family", 1, null), false);
+  assert.equal(isPackageComplete("family", 1, "   "), false);
+  assert.equal(isPackageComplete("family", 0, "1234567890123"), false);
+  assert.equal(isPackageComplete("trial", 1, "1234567890123"), false);
 });

@@ -51,6 +51,15 @@ export function defaultOperationAllowed(bracket: Bracket, operation: OperationId
   return false;
 }
 
+/** Пакет «Фэмили» оформлен полностью: тариф family + ребёнок + idNumber. */
+export function isPackageComplete(
+  tariff: string | null | undefined,
+  childCount: number,
+  idNumber: string | null | undefined,
+): boolean {
+  return tariff === "family" && childCount > 0 && Boolean(idNumber && idNumber.trim().length > 0);
+}
+
 export function isHardBlocked(category: string): boolean {
   return HARD_BLOCKED_CATEGORIES.includes(category);
 }
