@@ -146,7 +146,6 @@ export function CardPeek({
           </View>
 
           <Animated.View style={[styles.center, { opacity: detailsOpacity }]}>
-            {typeof balance === number ? null : null}
             {typeof balance === "number" ? <Text style={styles.cardBalance}>{Math.round(balance).toLocaleString("ru-RU")} BYN</Text> : null}
             <Text style={styles.pan}>{formatPan(card.number)}</Text>
             <Animated.View style={[styles.metaRow, { transform: [{ translateY: metaShift }] }]}>
