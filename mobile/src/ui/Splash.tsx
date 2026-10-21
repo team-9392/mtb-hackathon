@@ -39,6 +39,8 @@ export function Splash({ onDone }: { onDone: () => void }) {
   const logoScale = useRef(new Animated.Value(0.86)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
   const waves = useRef(Array.from({ length: BANDS }, () => new Animated.Value(0))).current;
+  const bob = useRef(Array.from({ length: BANDS }, () => new Animated.Value(0))).current;
+  const tilt = useRef(Array.from({ length: BANDS }, () => new Animated.Value(0))).current;
   const glow = useRef(new Animated.Value(0)).current;
 
   const grain = useMemo(
@@ -53,18 +55,31 @@ export function Splash({ onDone }: { onDone: () => void }) {
   );
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(glow, { toValue: 1, duration: 500, useNativeDriver: true }),
-      ...waves.map((value, index) =>
-        Animated.timing(value, {
-          toValue: 1,
-          duration: WAVE_DURATION,
-          delay: index * 110,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ),
-    ]).start();
+    Animated.timing(glow, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+    const loops = waves.map((value, index) => {
+      const loopX = Animated.loop(
+        Animated.sequence([
+          Animated.timing(value, { toValue: 1, duration: 2900 + index * 260, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(value, { toValue: 0, duration: 2900 + index * 260, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      );
+      const loopY = Animated.loop(
+        Animated.sequence([
+          Animated.timing(bob[index] as Animated.Value, { toValue: 1, duration: 900 + index * 140, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+          Animated.timing(bob[index] as Animated.Value, { toValue: 0, duration: 900 + index * 140, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        ]),
+      );
+      const loopR = Animated.loop(
+        Animated.sequence([
+          Animated.timing(tilt[index] as Animated.Value, { toValue: 1, duration: 1200 + index * 160, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(tilt[index] as Animated.Value, { toValue: 0, duration: 1200 + index * 160, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      );
+      loopX.start();
+      loopY.start();
+      loopR.start();
+      return [loopX, loopY, loopR];
+    });
 
     Animated.sequence([
       Animated.delay(820),
@@ -75,7 +90,10 @@ export function Splash({ onDone }: { onDone: () => void }) {
       Animated.timing(textOpacity, { toValue: 1, duration: 360, useNativeDriver: true }),
       Animated.delay(900),
     ]).start(() => onDone());
-  }, [glow, logoOpacity, logoScale, textOpacity, waves, onDone]);
+    return () => {
+      loops.forEach((group) => group.forEach((item) => item.stop()));
+    };
+  }, [glow, logoOpacity, logoScale, textOpacity, waves, bob, tilt, onDone]);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
@@ -84,15 +102,16 @@ export function Splash({ onDone }: { onDone: () => void }) {
         {waves.map((value, index) => {
           const translateX = value.interpolate({
             inputRange: [0, 1],
-            outputRange: [-width * 1.2 + index * 30, width * 1.2],
+            outputRange: [-bandWidth * 0.7 + index * 24, width * 1.02],
           });
-          const opacity = value.interpolate({ inputRange: [0, 0.15, 0.85, 1], outputRange: [0, 0.9, 0.9, 0] });
+          const translateY = bob[index].interpolate({ inputRange: [0, 1], outputRange: [-26, 26] });
+          const rotate = tilt[index].interpolate({ inputRange: [0, 1], outputRange: ["-16deg", "-3deg"] });
           return (
             <Animated.View
               key={index}
               style={[
                 styles.band,
-                { top: height * (0.05 + index * 0.24), opacity, transform: [{ rotate: "-9deg" }, { translateX }] },
+                { top: height * (0.02 + index * 0.23), opacity: 0.9, transform: [{ rotate }, { translateY }, { translateX }] },
               ]}
             >
               <Svg width={bandWidth} height={bandHeight}>
