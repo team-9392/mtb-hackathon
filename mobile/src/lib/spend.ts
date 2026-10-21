@@ -17,13 +17,13 @@ export const SPEND_CATEGORY_KEY: Record<CategoryId, TKey> = {
 export function spendCategoryColor(colors: Palette, id: CategoryId): string {
   switch (id) {
     case "kids":
-      return colors.cyan;
+      return colors.green;
     case "fun":
       return colors.purple;
     case "pharmacy":
-      return colors.green;
-    case "groceries":
       return colors.amber;
+    case "groceries":
+      return colors.cyan;
     case "gambling":
       return colors.danger;
     case "adult":

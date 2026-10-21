@@ -13,6 +13,7 @@ import { useStore } from "@/store/StoreProvider";
 import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { GlassCard } from "@/ui/GlassCard";
+import { HeroGlow } from "@/ui/Glow";
 import { ListRow, SectionTitle, Segmented } from "@/ui/primitives";
 import { SpendCard } from "@/ui/SpendCard";
 import { Text } from "@/ui/Text";
@@ -35,7 +36,7 @@ export default function ChildProfileScreen() {
 
   const bracket = bracketLabel(state.child.bracket);
   const name = state.child.name || t("common.child");
-  const initials = initialsOf(state.child.name || t("common.child"));
+  const initials = initialsOf(name);
 
   const groups = groupSpending(state.txns, lang);
   const categories = groups.map((group) => ({
@@ -61,6 +62,11 @@ export default function ChildProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
+      {isDark ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.glow]}>
+          <HeroGlow />
+        </View>
+      ) : null}
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.headerTexts}>
@@ -72,13 +78,21 @@ export default function ChildProfileScreen() {
           <View style={styles.headerActions}>
             <Pressable
               onPress={() => showToast(t("ov.notifications"))}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.iconButton,
+                { backgroundColor: isDark ? colors.glass : colors.surface },
+                pressed && styles.pressed,
+              ]}
             >
               <Ionicons name="notifications-outline" size={20} color={colors.ink} />
             </Pressable>
             <Pressable
               onPress={() => showToast(t("ov.settings"))}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.iconButton,
+                { backgroundColor: isDark ? colors.glass : colors.surface },
+                pressed && styles.pressed,
+              ]}
             >
               <Ionicons name="settings-outline" size={20} color={colors.ink} />
             </Pressable>
@@ -150,7 +164,12 @@ export default function ChildProfileScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.limitBody}>
+          <View
+            style={[
+              styles.limitBody,
+              { backgroundColor: isDark ? colors.glass : colors.surfaceAlt },
+            ]}
+          >
             <View style={styles.limitRow}>
               <Text secondary style={styles.limitLabel}>
                 {t("sp.monthLimit")}
@@ -256,6 +275,7 @@ export default function ChildProfileScreen() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.bg },
+    glow: { opacity: 0.55 },
     content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 120, gap: 16 },
     header: {
       flexDirection: "row",

@@ -16,6 +16,7 @@ import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { Button } from "@/ui/Button";
 import { GlassCard } from "@/ui/GlassCard";
+import { HeroGlow } from "@/ui/Glow";
 import { SectionTitle, Segmented } from "@/ui/primitives";
 import { SpendCard } from "@/ui/SpendCard";
 import { Text } from "@/ui/Text";
@@ -37,7 +38,7 @@ export default function ParentSettingsScreen() {
   const { colors, mode, setMode, isDark } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
-  const fullName = user?.full_name?.trim() || t("auth.roleParent");
+  const fullName = user?.full_name?.trim() || t("common.parent");
   const phone = user?.phone ?? "";
   const initials = initialsOf(fullName);
 
@@ -92,11 +93,20 @@ export default function ParentSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
+      {isDark ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.glow]}>
+          <HeroGlow />
+        </View>
+      ) : null}
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable
             onPress={() => (router.canGoBack() ? router.back() : router.replace("/parent"))}
-            style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.iconButton,
+              { backgroundColor: isDark ? colors.glass : colors.surface },
+              pressed && styles.pressed,
+            ]}
           >
             <Ionicons name="chevron-back" size={22} color={colors.ink} />
           </Pressable>
@@ -109,13 +119,21 @@ export default function ParentSettingsScreen() {
           <View style={styles.headerActions}>
             <Pressable
               onPress={() => showToast(t("ov.notifications"))}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.iconButton,
+                { backgroundColor: isDark ? colors.glass : colors.surface },
+                pressed && styles.pressed,
+              ]}
             >
               <Ionicons name="notifications-outline" size={20} color={colors.ink} />
             </Pressable>
             <Pressable
               onPress={() => showToast(t("ov.settings"))}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.iconButton,
+                { backgroundColor: isDark ? colors.glass : colors.surface },
+                pressed && styles.pressed,
+              ]}
             >
               <Ionicons name="settings-outline" size={20} color={colors.ink} />
             </Pressable>
@@ -288,6 +306,7 @@ export default function ParentSettingsScreen() {
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.bg },
+    glow: { opacity: 0.55 },
     content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 40, gap: 16 },
     header: { flexDirection: "row", alignItems: "center", gap: 12, paddingBottom: 2 },
     headerTexts: { flex: 1, gap: 2 },

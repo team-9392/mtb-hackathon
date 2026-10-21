@@ -1,15 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useI18n, type TKey } from "@/i18n";
+import { formatDate, formatMoney } from "@/lib/format";
 import { useStore } from "@/store/StoreProvider";
 import type { AccountKind } from "@/store/types";
-import { font, radius, spacing } from "@/theme/tokens";
-import { SlideToConfirm } from "@/ui/SlideToConfirm";
 import type { Palette } from "@/theme/palette";
+import { radius, spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { GlassCard } from "@/ui/GlassCard";
+import { HeroGlow } from "@/ui/Glow";
+import { ProgressRing, type RingGradient } from "@/ui/ProgressRing";
+import { SoftGlow } from "@/ui/SoftGlow";
+import { SlideToConfirm } from "@/ui/SlideToConfirm";
 import { Text } from "@/ui/Text";
 import { TextInput } from "@/ui/TextInput";
 
@@ -32,13 +38,19 @@ const ICON: Record<Pot, keyof typeof Ionicons.glyphMap> = {
   goal: "flag-outline",
 };
 
-/** Счета ребёнка и переводы между ними. Наружу деньги не уходят ни на шаг. */
+const GRADIENT: Record<Pot, RingGradient> = {
+  pocket: ["#38bdf8", "#3b82f6", "#6366f1"],
+  savings: ["#6366f1", "#8b5cf6", "#d946ef"],
+  deposit: ["#10b981", "#14b8a6", "#22c55e"],
+  goal: ["#9333ea", "#ec4899", "#f43f5e"],
+};
+
+/** Счета ребёнка и переводы между ними. Деньги не покидают семью. */
 export default function ChildAccountsScreen() {
-  const { colors } = useTheme();
-  const palette = colors;
+  const { colors, isDark } = useTheme();
   const styles = useThemedStyles(makeStyles);
 
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { state, showToast, moveMoney, openAccount } = useStore();
   const [from, setFrom] = useState<Pot>("pocket");
   const [to, setTo] = useState<Pot>("goal");
@@ -54,8 +66,14 @@ export default function ChildAccountsScreen() {
     return map;
   }, [state.accounts, state.savedOnGoal]);
 
+  const total = useMemo(
+    () => [...balances.values()].reduce((sum, value) => sum + value, 0),
+    [balances],
+  );
+
   const opened = (kind: AccountKind) => (state.accounts ?? []).some((account) => account.kind === kind);
   const allowedByAge = (kind: AccountKind) => state.permissions.some((p) => p.id === kind);
+  const shareOf = (value: number) => (total > 0 ? Math.max(0, Math.min(1, value / total)) : 0);
 
   const submit = async () => {
     if (busy) {
@@ -96,108 +114,216 @@ export default function ChildAccountsScreen() {
     }
   };
 
+  const cardSurface = {
+    backgroundColor: isDark ? colors.glass : colors.surface,
+    borderColor: isDark ? colors.glassBorder : colors.line,
+  };
+  const trackColor = isDark ? "rgba(255,255,255,0.08)" : colors.line;
+  const barTrack = isDark ? "rgba(255,255,255,0.1)" : colors.surfaceAlt;
+
+  const renderPot = (kind: Pot) => {
+    const balance = balances.get(kind) ?? 0;
+    const has = kind === "goal" ? true : opened(kind);
+    const confirming = confirmKind === kind;
+    const share = shareOf(balance);
+    const percent = Math.round(share * 100);
+    return (
+      <View key={kind} style={[styles.potCard, cardSurface]}>
+        <View style={styles.potRow}>
+          <ProgressRing
+            value={share}
+            gradient={GRADIENT[kind]}
+            id={"pot-" + kind}
+            trackColor={trackColor}
+          >
+            <View style={styles.ringCenter}>
+              <Ionicons name={ICON[kind]} size={18} color={colors.ink} />
+              <Text style={styles.ringPercent}>{percent}%</Text>
+            </View>
+          </ProgressRing>
+
+          <View style={styles.potTexts}>
+            <View style={styles.potHead}>
+              <Text style={styles.potName} numberOfLines={1}>
+                {kind === "goal" ? (lang === "be" ? state.goal.title.be : state.goal.title.ru) : t(LABEL[kind])}
+              </Text>
+              {has || kind === "goal" ? (
+                <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+              ) : (
+                <Pressable
+                  style={[
+                    styles.smallButton,
+                    {
+                      backgroundColor: confirming ? colors.primary : colors.primarySoft,
+                    },
+                  ]}
+                  onPress={() => setConfirmKind(confirming ? null : kind)}
+                >
+                  <Text
+                    secondary
+                    style={[
+                      styles.smallButtonText,
+                      { color: confirming ? colors.white : colors.primary },
+                    ]}
+                  >
+                    {allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
+            <Text style={styles.potValue} numberOfLines={1}>
+              {has ? formatMoney(balance, 0) : "—"}
+            </Text>
+
+            <View style={[styles.potTrack, { backgroundColor: barTrack }]}>
+              <LinearGradient
+                colors={GRADIENT[kind]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.potFill, { width: percent + "%" }]}
+              />
+            </View>
+
+            <Text secondary style={styles.potHint}>
+              {has ? t("acc.balance") : t("acc.notOpen")}
+            </Text>
+          </View>
+        </View>
+
+        {has || !confirming ? null : (
+          <View style={styles.openConfirm}>
+            <SlideToConfirm
+              label={allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
+              onConfirm={() => void request(kind)}
+              disabled={opening !== null}
+              doneLabel={allowedByAge(kind) ? t("acc.opened") : t("acc.asked")}
+            />
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
+      {isDark ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.glow]}>
+          <HeroGlow />
+        </View>
+      ) : null}
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>{t("acc.title")}</Text>
-        <Text style={styles.subtitle}>{t("acc.subtitle")}</Text>
-
-        <View style={styles.card}>
-          {OPENABLE.map((kind) => {
-            const balance = balances.get(kind) ?? 0;
-            const has = opened(kind);
-            const confirming = confirmKind === kind;
-            return (
-              <View key={kind}>
-                <View style={styles.row}>
-                  <View style={styles.icon}>
-                    <Ionicons name={ICON[kind]} size={20} color={palette.child as string} />
-                  </View>
-                  <View style={styles.rowTexts}>
-                    <Text style={styles.rowTitle}>{t(LABEL[kind])}</Text>
-                    <Text style={styles.rowHint}>
-                      {has ? t("acc.balance") + " " + balance.toFixed(2) + " BYN" : t("acc.notOpen")}
-                    </Text>
-                  </View>
-                  {has ? null : (
-                    <Pressable
-                      style={[styles.smallButton, confirming && styles.smallButtonActive]}
-                      onPress={() => setConfirmKind(confirming ? null : kind)}
-                    >
-                      <Text style={[styles.smallButtonText, confirming && styles.smallButtonTextActive]}>
-                        {allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-                {has || !confirming ? null : (
-                  <View style={styles.openConfirm}>
-                    <SlideToConfirm
-                      label={allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
-                      onConfirm={() => void request(kind)}
-                      disabled={opening !== null}
-                      doneLabel={allowedByAge(kind) ? t("acc.opened") : t("acc.asked")}
-                    />
-                  </View>
-                )}
-              </View>
-            );
-          })}
-          <View style={[styles.row, styles.rowLast]}>
-            <View style={styles.icon}>
-              <Ionicons name={ICON.goal} size={20} color={palette.child as string} />
-            </View>
-            <View style={styles.rowTexts}>
-              <Text style={styles.rowTitle}>{state.goal.title.ru}</Text>
-              <Text style={styles.rowHint}>
-                {t("acc.balance")} {(balances.get("goal") ?? 0).toFixed(2)} BYN
+        <View style={styles.headerTop}>
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.headerTitle}>{t("acc.title")}</Text>
+            <View style={styles.brandPill}>
+              <Text secondary style={styles.brandText}>
+                MobyFamily
               </Text>
             </View>
           </View>
         </View>
+        <Text secondary style={styles.subtitle}>
+          {t("acc.subtitle")}
+        </Text>
 
-        <Text style={styles.sectionTitle}>{t("acc.transfer")}</Text>
-        <View style={styles.card}>
-          <Text style={styles.pickLabel}>{t("acc.from")}</Text>
+        <GlassCard style={styles.totalCard} padded={false}>
+          <SoftGlow
+            id="accounts-total-glow"
+            size={180}
+            color={colors.primary}
+            opacity={isDark ? 0.4 : 0.22}
+            style={styles.totalGlow}
+          />
+          <Text secondary style={styles.totalLabel}>
+            {t("sp.totalOnAccounts")}
+          </Text>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalValue}>{formatMoney(total, 0).replace(" BYN", "")}</Text>
+            <Text secondary style={styles.totalUnit}>
+              BYN
+            </Text>
+          </View>
+        </GlassCard>
+
+        <View style={styles.pots}>{OPENABLE.map(renderPot)}</View>
+        <View style={styles.pots}>{renderPot("goal")}</View>
+
+        <GlassCard style={styles.transferCard}>
+          <Text style={styles.cardTitle}>{t("acc.transfer")}</Text>
+
+          <Text secondary style={styles.pickLabel}>
+            {t("acc.from")}
+          </Text>
           <View style={styles.chips}>
-            {POTS.map((pot) => (
-              <Pressable
-                key={"from-" + pot}
-                onPress={() => setFrom(pot)}
-                style={[styles.chip, from === pot ? styles.chipActive : null]}
-              >
-                <Text style={[styles.chipText, from === pot ? styles.chipTextActive : null]}>
-                  {t(LABEL[pot])}
-                </Text>
-              </Pressable>
-            ))}
+            {POTS.map((pot) => {
+              const active = from === pot;
+              return (
+                <Pressable
+                  key={"from-" + pot}
+                  onPress={() => setFrom(pot)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: active ? colors.primarySoft : "transparent",
+                      borderColor: active ? colors.primary : colors.line,
+                    },
+                  ]}
+                >
+                  <Text secondary style={[styles.chipText, { color: active ? colors.primary : colors.muted }]}>
+                    {t(LABEL[pot])}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-          <Text style={styles.pickLabel}>{t("acc.to")}</Text>
+          <Text secondary style={styles.pickLabel}>
+            {t("acc.to")}
+          </Text>
           <View style={styles.chips}>
-            {POTS.filter((pot) => pot !== "deposit").map((pot) => (
-              <Pressable
-                key={"to-" + pot}
-                onPress={() => setTo(pot)}
-                style={[styles.chip, to === pot ? styles.chipActive : null]}
-              >
-                <Text style={[styles.chipText, to === pot ? styles.chipTextActive : null]}>
-                  {t(LABEL[pot])}
-                </Text>
-              </Pressable>
-            ))}
+            {POTS.filter((pot) => pot !== "deposit").map((pot) => {
+              const active = to === pot;
+              return (
+                <Pressable
+                  key={"to-" + pot}
+                  onPress={() => setTo(pot)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: active ? colors.primarySoft : "transparent",
+                      borderColor: active ? colors.primary : colors.line,
+                    },
+                  ]}
+                >
+                  <Text secondary style={[styles.chipText, { color: active ? colors.primary : colors.muted }]}>
+                    {t(LABEL[pot])}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-          <View style={styles.amountField}>
+          <View
+            style={[
+              styles.amountField,
+              {
+                backgroundColor: isDark ? "rgba(17,24,35,0.5)" : colors.surfaceAlt,
+                borderColor: colors.line,
+              },
+            ]}
+          >
             <TextInput
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
               placeholder="0,00"
-              placeholderTextColor={palette.muted2}
+              placeholderTextColor={colors.muted2}
               style={styles.amountInput}
             />
-            <Text style={styles.currency}>BYN</Text>
+            <Text secondary style={styles.currency}>
+              BYN
+            </Text>
           </View>
           <SlideToConfirm
             label={t("common.swipeTransfer")}
@@ -205,21 +331,39 @@ export default function ChildAccountsScreen() {
             disabled={busy}
             doneLabel={t("acc.done")}
           />
-        </View>
+        </GlassCard>
 
-        <Text style={styles.muted}>{t("acc.hint")}</Text>
+        <Text secondary style={styles.muted}>
+          {t("acc.hint")}
+        </Text>
 
         {(state.transfers ?? []).length > 0 ? (
           <View style={styles.history}>
-            <Text style={styles.sectionTitle}>{t("acc.history")}</Text>
-            {(state.transfers ?? []).slice(0, 5).map((transfer) => (
-              <View key={transfer.id} style={styles.historyRow}>
-                <Text style={styles.historyText}>
-                  {t(LABEL[transfer.from])} → {t(LABEL[transfer.to])}
-                </Text>
-                <Text style={styles.historyAmount}>{transfer.amount.toFixed(2)} BYN</Text>
-              </View>
-            ))}
+            <Text style={styles.recentTitle}>{t("acc.history")}</Text>
+            <GlassCard style={styles.historyCard} padded={false}>
+              {(state.transfers ?? []).slice(0, 5).map((transfer, index) => (
+                <View
+                  key={transfer.id}
+                  style={[
+                    styles.historyRow,
+                    index > 0 && [styles.historyBorder, { borderTopColor: colors.line }],
+                  ]}
+                >
+                  <View style={[styles.historyIcon, { backgroundColor: colors.primarySoft }]}>
+                    <Ionicons name="swap-horizontal" size={18} color={colors.primary} />
+                  </View>
+                  <View style={styles.historyTexts}>
+                    <Text style={styles.historyText} numberOfLines={1}>
+                      {t(LABEL[transfer.from])} → {t(LABEL[transfer.to])}
+                    </Text>
+                    <Text secondary style={styles.historyDate}>
+                      {formatDate(transfer.at, lang)}
+                    </Text>
+                  </View>
+                  <Text style={styles.historyAmount}>{formatMoney(transfer.amount, 0)}</Text>
+                </View>
+              ))}
+            </GlassCard>
           </View>
         ) : null}
       </ScrollView>
@@ -227,85 +371,85 @@ export default function ChildAccountsScreen() {
   );
 }
 
-const makeStyles = (colors: Palette) => {
-  const palette = colors;
-  return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: palette.bg },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  title: { fontSize: font.h2, fontWeight: "800", color: palette.ink },
-  subtitle: { fontSize: font.small, color: palette.muted, marginTop: 4, marginBottom: spacing.lg },
-  card: {
-    backgroundColor: palette.surface,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.line,
-  },
-  rowLast: { borderBottomWidth: 0 },
-  icon: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.md,
-    backgroundColor: palette.childSoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rowTexts: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: font.body, fontWeight: "700", color: palette.ink },
-  rowHint: { fontSize: font.small, color: palette.muted },
-  smallButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: palette.childSoft,
-  },
-  smallButtonText: { color: palette.childDark, fontWeight: "700", fontSize: font.small },
-  smallButtonActive: { backgroundColor: palette.child },
-  smallButtonTextActive: { color: palette.white },
-  openConfirm: { paddingBottom: spacing.md },
-  sectionTitle: { fontSize: font.title, fontWeight: "800", color: palette.ink, marginBottom: spacing.sm },
-  pickLabel: { fontSize: font.small, color: palette.muted, marginTop: spacing.md, marginBottom: 6 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: palette.line,
-    backgroundColor: palette.surface,
-  },
-  chipActive: { backgroundColor: palette.child, borderColor: palette.child },
-  chipText: { fontSize: font.small, fontWeight: "600", color: palette.ink2 },
-  chipTextActive: { color: palette.white },
-  amountField: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.lg,
-    borderRadius: radius.lg,
-    backgroundColor: palette.surfaceAlt,
-    paddingHorizontal: spacing.lg,
-  },
-  amountInput: { flex: 1, paddingVertical: spacing.md, fontSize: font.h3, fontWeight: "700", color: palette.ink },
-  currency: { fontSize: font.body, color: palette.muted, fontWeight: "600" },
-  muted: { fontSize: font.small, color: palette.muted2, lineHeight: 18 },
-  history: { marginTop: spacing.xl },
-  historyRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: palette.line,
-  },
-  historyText: { fontSize: font.small, color: palette.ink2 },
-  historyAmount: { fontSize: font.small, fontWeight: "700", color: palette.ink },
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    glow: { opacity: 0.55 },
+    content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 120, gap: 14 },
+    headerTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    headerTitleWrap: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+    headerTitle: { fontSize: 20, fontWeight: "700", letterSpacing: -0.4, color: colors.ink },
+    brandPill: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 999,
+      backgroundColor: colors.primarySoft,
+      borderWidth: 1,
+      borderColor: colors.primarySoftStrong,
+    },
+    brandText: { fontSize: 11, fontWeight: "500", color: colors.primary },
+    subtitle: { fontSize: 13, color: colors.muted, paddingLeft: 2, marginTop: -6 },
+    totalCard: { padding: 16, overflow: "hidden", borderRadius: 16, marginTop: 2 },
+    totalGlow: { right: -50, bottom: -60 },
+    totalLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      color: colors.muted,
+      marginBottom: 2,
+    },
+    totalRow: { flexDirection: "row", alignItems: "baseline", gap: 6 },
+    totalValue: { fontSize: 24, fontWeight: "800", letterSpacing: -0.5, color: colors.ink },
+    totalUnit: { fontSize: 14, fontWeight: "700", color: colors.muted },
+    pots: { gap: 14 },
+    potCard: { borderRadius: 24, borderWidth: 1, padding: 16, gap: 12 },
+    potRow: { flexDirection: "row", alignItems: "center", gap: 16 },
+    ringCenter: { flex: 1, alignItems: "center", justifyContent: "center" },
+    ringPercent: { fontSize: 11, fontWeight: "700", color: colors.ink, marginTop: 2 },
+    potTexts: { flex: 1, minWidth: 0 },
+    potHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+    potName: { fontSize: 16, fontWeight: "700", color: colors.ink, flex: 1 },
+    potValue: { fontSize: 13, fontWeight: "600", color: colors.ink2, marginTop: 2 },
+    smallButton: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+    smallButtonText: { fontSize: 11, fontWeight: "700" },
+    potTrack: { height: 8, borderRadius: 4, overflow: "hidden", marginTop: 10, width: "100%" },
+    potFill: { height: "100%", borderRadius: 4 },
+    potHint: { fontSize: 11, fontWeight: "500", color: colors.muted, marginTop: 8 },
+    openConfirm: { marginTop: 2 },
+    transferCard: { padding: 20, gap: 8, marginTop: 4 },
+    cardTitle: { fontSize: 16, fontWeight: "700", color: colors.ink, marginBottom: 2 },
+    pickLabel: { fontSize: 12, color: colors.muted, marginTop: 6 },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
+    chipText: { fontSize: 12.5, fontWeight: "600" },
+    amountField: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 14,
+      marginBottom: 14,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      paddingHorizontal: 16,
+    },
+    amountInput: {
+      flex: 1,
+      paddingVertical: spacing.md,
+      fontSize: 19,
+      fontWeight: "700",
+      color: colors.ink,
+    },
+    currency: { fontSize: 15.5, fontWeight: "600", color: colors.muted },
+    muted: { fontSize: 13, color: colors.muted2, lineHeight: 18 },
+    history: { marginTop: 4, gap: 10 },
+    recentTitle: { fontSize: 16, fontWeight: "700", color: colors.ink, paddingHorizontal: 4 },
+    historyCard: { padding: 8, borderRadius: 24 },
+    historyRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10 },
+    historyBorder: { borderTopWidth: StyleSheet.hairlineWidth },
+    historyIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+    historyTexts: { flex: 1, gap: 2, minWidth: 0 },
+    historyText: { fontSize: 13, fontWeight: "600", color: colors.ink },
+    historyDate: { fontSize: 11, color: colors.muted },
+    historyAmount: { fontSize: 12, fontWeight: "700", color: colors.ink },
   });
-};
