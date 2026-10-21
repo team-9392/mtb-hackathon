@@ -496,9 +496,9 @@ const makeStyles = (_colors: Palette) =>
         },
         grabberWrap: {
             alignItems: "center",
-            paddingVertical: 10,
-            marginTop: -14,
-            marginBottom: 4,
+            paddingVertical: 4,
+            marginTop: -24,
+            marginBottom: 0,
         },
         grabber: {
             width: 42,
@@ -507,7 +507,7 @@ const makeStyles = (_colors: Palette) =>
             backgroundColor: "rgba(255,255,255,0.16)",
         },
         panel: {
-            marginTop: -102,
+            marginTop: -130,
             paddingHorizontal: 20,
             paddingTop: 26,
             paddingBottom: 32,
