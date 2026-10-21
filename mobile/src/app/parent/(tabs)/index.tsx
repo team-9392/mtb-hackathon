@@ -15,6 +15,7 @@ import type { Palette } from "@/theme/palette";
 import { radius, spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
+import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
 import { HeroGlow } from "@/ui/Glow";
 import { ParentTopUpSheet } from "@/ui/ParentTopUpSheet";
 import { Text } from "@/ui/Text";
@@ -31,6 +32,7 @@ export default function ParentHomeScreen() {
   const [myCards, setMyCards] = useState<CardInfo[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [parentBalance, setParentBalance] = useState(0);
+  const [pendingCard, setPendingCard] = useState<CardInfo | null>(null);
   const [myCardBusy, setMyCardBusy] = useState(false);
 
   const loadMyCards = useCallback(async () => {
@@ -169,12 +171,7 @@ export default function ParentHomeScreen() {
                                   scrollY={pull}
                                   onIssue={() => void issueMyCard()}
                                   onIndexChange={setActiveIndex}
-            onDetails={(card) => {
-                                    if (!card.id) return;
-                                    void requestMyCardDetailsApi(card.id)
-                                      .then(() => showToast(t("card.detailsSent")))
-                                      .catch((error) => showToast(error instanceof Error ? error.message : t("auth.connectFailed")));
-                                  }}
+            onDetails={(card) => setPendingCard(card)}
                                 />
                     </View>
           </View>
@@ -280,6 +277,16 @@ export default function ParentHomeScreen() {
         </Animated.View>
       </Animated.ScrollView>
       <ParentTopUpSheet visible={topup} onClose={() => setTopup(false)} />
+      <ConfirmCodeModal
+        visible={Boolean(pendingCard)}
+        title={t("cf.title")}
+        onClose={() => setPendingCard(null)}
+        onConfirmed={async () => {
+          if (!pendingCard?.id) return;
+          await requestMyCardDetailsApi(pendingCard.id);
+          showToast(t("card.detailsSent"));
+        }}
+      />
     </SafeAreaView>
   );
 }

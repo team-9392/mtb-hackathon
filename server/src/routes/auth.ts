@@ -150,6 +150,37 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
     }
   });
 
+
+  /** Подтверждение чувствительного действия кодом из Telegram — без новой сессии. */
+  app.post("/me/confirm/request", async (request, reply) => {
+    try {
+      const claims = requireAuth(request, env);
+      const { data: user } = await db.from("users").select("phone").eq("id", claims.sub).maybeSingle();
+      const phone = (user?.phone as string | null) ?? null;
+      if (!phone) {
+        return reply.code(400).send({ error: "no_phone", message: "Нет номера телефона" });
+      }
+      const challenge = await createChallenge(db, env, normalizePhone(phone));
+      return reply.send({ challengeId: challenge.challengeId, ttlSeconds: challenge.ttlSeconds, channel: challenge.channel });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
+  app.post("/me/confirm/verify", async (request, reply) => {
+    try {
+      const claims = requireAuth(request, env);
+      const body = z.object({ challengeId: z.string().uuid(), code: z.string().min(4).max(8) }).parse(request.body ?? {});
+      const result = await verifyChallenge(db, body.challengeId, body.code);
+      if (!result.ok) {
+        const message = result.reason === "expired" ? "Код истёк — запросите новый" : result.reason === "too_many_attempts" ? "Слишком много попыток" : "Неверный код";
+        return reply.code(400).send({ error: "wrong_code", message });
+      }
+      return reply.send({ ok: true, sub: claims.sub });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
   app.post("/auth/refresh", async (request, reply) => {
     try {
       const body = z.object({ refreshToken: z.string().min(10) }).parse(request.body);

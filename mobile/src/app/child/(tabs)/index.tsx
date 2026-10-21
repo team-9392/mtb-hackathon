@@ -14,6 +14,7 @@ import type { Palette } from "@/theme/palette";
 import { spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
+import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
 import { HeroGlow } from "@/ui/Glow";
 import { Text } from "@/ui/Text";
 import { TopUpSheet } from "@/ui/TopUpSheet";
@@ -27,6 +28,7 @@ export default function ChildHomeScreen() {
   const styles = useThemedStyles(makeStyles);
   const [topup, setTopup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingCard, setPendingCard] = useState<CardInfo | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const pull = useRef(new Animated.Value(0)).current;
   const pullRef = useRef(0);
@@ -131,7 +133,7 @@ export default function ChildHomeScreen() {
                                   limitLeft={left}
                                   scrollY={pull}
                                   onIssue={() => router.push("/child/accounts")}
-                                  onDetails={(card) => void requestDetails(card)}
+                                  onDetails={(card) => setPendingCard(card)}
                                 />
                     </View>
           </View>
@@ -214,6 +216,15 @@ export default function ChildHomeScreen() {
         </Animated.View>
       </Animated.ScrollView>
       <TopUpSheet visible={topup} onClose={() => setTopup(false)} />
+      <ConfirmCodeModal
+        visible={Boolean(pendingCard)}
+        title={t("cf.title")}
+        onClose={() => setPendingCard(null)}
+        onConfirmed={async () => {
+          if (!pendingCard) return;
+          await requestDetails(pendingCard);
+        }}
+      />
     </SafeAreaView>
   );
 }
