@@ -5,6 +5,7 @@ import { ActivityIndicator, Animated, PanResponder, Pressable, StyleSheet, View 
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { requestCardDetailsApi } from "@/api/actions";
+import { api } from "@/api/client";
 import { useI18n } from "@/i18n";
 import { formatDate, formatMoney } from "@/lib/format";
 import { spentThisMonth } from "@/store/permissions";
@@ -16,6 +17,7 @@ import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
 import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
 import { HeroGlow } from "@/ui/Glow";
+import { DailyBonus } from "@/ui/DailyBonus";
 import { Text } from "@/ui/Text";
 import { TopUpSheet } from "@/ui/TopUpSheet";
 
@@ -23,6 +25,7 @@ import { TopUpSheet } from "@/ui/TopUpSheet";
 export default function ChildHomeScreen() {
     const { t, lang } = useI18n();
     const { state, showToast, refresh } = useStore();
+    const [skin, setSkin] = useState("classic");
     const router = useRouter();
     const { colors } = useTheme();
     const styles = useThemedStyles(makeStyles);
@@ -219,6 +222,7 @@ export default function ChildHomeScreen() {
                             balance={state.balance}
                             onIssue={() => router.push("/child/accounts")}
                             refreshing={refreshing}
+                            skin={skin}
                             onDetails={(card) => setPendingCard(card)}
                             onRefresh={() => {
                                 setRefreshing(true);
@@ -332,6 +336,7 @@ export default function ChildHomeScreen() {
                     </View>
                 </Animated.View>
             </Animated.ScrollView>
+            <DailyBonus />
             <TopUpSheet visible={topup} onClose={() => setTopup(false)} />
             <ConfirmCodeModal
                 visible={Boolean(pendingCard)}

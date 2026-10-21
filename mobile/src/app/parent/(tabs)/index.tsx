@@ -6,6 +6,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { issueMyCardApi, myCardsApi, requestMyCardDetailsApi } from "@/api/actions";
 import { useAuth } from "@/auth/AuthProvider";
+import { api } from "@/api/client";
 import { useI18n } from "@/i18n";
 import { formatDate, formatMoney } from "@/lib/format";
 import { spentThisMonth } from "@/store/permissions";
@@ -19,6 +20,7 @@ import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
 import { HeroGlow } from "@/ui/Glow";
 import { ParentTopUpSheet } from "@/ui/ParentTopUpSheet";
 import { SecurityAlerts } from "@/ui/SecurityAlerts";
+import { DailyBonus } from "@/ui/DailyBonus";
 import { Text } from "@/ui/Text";
 
 /** Главная родителя — тот же стиль, что у ребёнка, но действия банка для семьи. */
@@ -31,6 +33,7 @@ export default function ParentHomeScreen() {
     const styles = useThemedStyles(makeStyles);
     const insets = useSafeAreaInsets();
     const [topup, setTopup] = useState(false);
+    const [skin, setSkin] = useState("classic");
     const [myCards, setMyCards] = useState<CardInfo[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
     const [parentBalance, setParentBalance] = useState(0);
@@ -60,6 +63,12 @@ export default function ParentHomeScreen() {
 
     useEffect(() => {
         void loadMyCards();
+        void api<{ skins?: Array<{ code: string; active: boolean }> }>("/gamification/state")
+            .then((answer) => {
+                const active = (answer.skins ?? []).find((item) => item.active);
+                if (active) setSkin(active.code);
+            })
+            .catch(() => undefined);
     }, [loadMyCards]);
 
     const issueMyCard = useCallback(async () => {
@@ -254,6 +263,7 @@ export default function ParentHomeScreen() {
                             onIssue={() => void issueMyCard()}
                             activeIndex={activeIndex}
                             refreshing={refreshing}
+                            skin={skin}
                             onIndexChange={setActiveIndex}
                             onDetails={(card) => setPendingCard(card)}
                             onRefresh={() => {
@@ -411,6 +421,7 @@ export default function ParentHomeScreen() {
                     </View>
                 </Animated.View>
             </Animated.ScrollView>
+            <DailyBonus />
             <ParentTopUpSheet visible={topup} onClose={() => setTopup(false)} />
             <ConfirmCodeModal
                 visible={Boolean(pendingCard)}

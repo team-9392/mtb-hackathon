@@ -27,6 +27,7 @@ export function CardPeek({
   onDetails,
   onRefresh,
   refreshing,
+  skin,
 }: {
   cards: CardInfo[];
   holder: string;
@@ -38,6 +39,7 @@ export function CardPeek({
   onDetails?: (card: CardInfo) => void;
   onRefresh?: () => void;
   refreshing?: boolean;
+  skin?: string;
   limitLeft?: number;
 }) {
   const { width } = useWindowDimensions();
@@ -120,7 +122,7 @@ export function CardPeek({
   return (
     <View style={styles.wrap}>
       <Animated.View style={[styles.glow, { transform: [{ translateY: lift }] }]}>
-        <Animated.View style={[styles.card, { transform: [{ translateX: shift }, { rotate: "-3deg" }, { translateY: lift }] }]} {...swipe.panHandlers}>
+        <Animated.View style={[styles.card, skinStyle(skin), { transform: [{ translateX: shift }, { rotate: "-3deg" }, { translateY: lift }] }]} {...swipe.panHandlers}>
           <Image
             source={require("../../assets/brand/card-face-v2.png")}
             style={styles.face}
@@ -169,6 +171,14 @@ export function CardPeek({
       ) : null}
     </View>
   );
+}
+
+function skinStyle(skin?: string) {
+  if (skin === "neon") return { borderColor: "#60a5fa", borderWidth: 2, shadowColor: "#60a5fa", shadowOpacity: 0.45, shadowRadius: 14 };
+  if (skin === "gold") return { borderColor: "#fbbf24", borderWidth: 2.5, shadowColor: "#fbbf24", shadowOpacity: 0.4, shadowRadius: 14 };
+  if (skin === "aurora") return { borderColor: "#a78bfa", borderWidth: 2, shadowColor: "#a78bfa", shadowOpacity: 0.5, shadowRadius: 16 };
+  if (skin === "carbon") return { borderColor: "#94a3b8", borderWidth: 2, shadowColor: "#64748b", shadowOpacity: 0.35, shadowRadius: 12 };
+  return {};
 }
 
 const styles = StyleSheet.create({

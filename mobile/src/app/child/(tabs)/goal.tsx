@@ -12,6 +12,7 @@ import { useStore } from "@/store/StoreProvider";
 import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { GlassCard } from "@/ui/GlassCard";
+import { PetCard } from "@/ui/PetCard";
 import { HeroGlow } from "@/ui/Glow";
 import { ProgressRing } from "@/ui/ProgressRing";
 import { SoftGlow } from "@/ui/SoftGlow";
@@ -88,6 +89,8 @@ export default function ChildGoalScreen() {
         <Text secondary style={styles.subtitle}>
           {t("sp.kopilkaSubtitle")}
         </Text>
+
+        <PetCard />
 
         <GlassCard style={styles.totalCard} padded={false}>
           <SoftGlow

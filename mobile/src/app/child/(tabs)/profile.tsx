@@ -13,6 +13,7 @@ import { useStore } from "@/store/StoreProvider";
 import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { AiInsights } from "@/ui/AiInsights";
+import { GameCenterLink } from "@/ui/GameCenterLink";
 import { GlassCard } from "@/ui/GlassCard";
 import { HeroGlow } from "@/ui/Glow";
 import { ListRow, SectionTitle, Segmented } from "@/ui/primitives";
@@ -141,6 +142,8 @@ export default function ChildProfileScreen() {
             </Text>
           </View>
         </GlassCard>
+
+        <GameCenterLink />
 
         <AiInsights />
 
