@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Animated, PanResponder, Pressable, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { requestCardDetailsApi } from "@/api/actions";
 import { useI18n } from "@/i18n";
@@ -26,6 +26,7 @@ export default function ChildHomeScreen() {
     const router = useRouter();
     const { colors } = useTheme();
     const styles = useThemedStyles(makeStyles);
+    const insets = useSafeAreaInsets();
     const [topup, setTopup] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [pendingCard, setPendingCard] = useState<CardInfo | null>(null);
@@ -37,22 +38,32 @@ export default function ChildHomeScreen() {
         pullRef.current = value;
         setPulled(value > 30);
     });
-    const settle = (to: number) =>
-        Animated.spring(pull, { toValue: to, useNativeDriver: false, bounciness: 0 }).start();
+    const base = useRef(0);
+    const pullValue = useRef(0);
+    const settle = (to: number) => {
+        pullValue.current = to;
+        Animated.spring(pull, { toValue: to, useNativeDriver: false, bounciness: 0, speed: 18 }).start();
+    };
     const pullGesture = useRef(
         PanResponder.create({
-            onMoveShouldSetPanResponderCapture: (_e, g) =>
-                Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.2,
-            onMoveShouldSetPanResponder: (_e, g) => g.dy > 8 && g.dy > Math.abs(g.dx),
-            onPanResponderMove: (_e, g) => pull.setValue(Math.max(0, Math.min(190, g.dy))),
+            // любое касание ручки сразу становится жестом, ScrollView не перехватывает
+            onStartShouldSetPanResponderCapture: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderGrant: () => {
+                base.current = pullValue.current;
+            },
+            onPanResponderMove: (_e, g) => {
+                pull.setValue(Math.max(0, Math.min(190, base.current + g.dy)));
+            },
             onPanResponderRelease: (_e, g) => {
-                if (g.dy > 230) {
+                const value = Math.max(0, Math.min(190, base.current + g.dy));
+                if (value > 175 && g.vy > 0.4) {
                     void refresh().finally(() => settle(0));
                     return;
                 }
-                settle(g.dy > 70 ? 150 : 0);
+                settle(value > 70 ? 150 : 0);
             },
-            onPanResponderTerminate: () => settle(0),
+            onPanResponderTerminate: () => settle(pullValue.current),
         }),
     ).current;
     const busyPull = useRef(false);
@@ -137,7 +148,7 @@ export default function ChildHomeScreen() {
     });
 
     return (
-        <SafeAreaView style={styles.root} edges={["top"]}>
+        <SafeAreaView style={styles.root} edges={[]}>
             <Animated.ScrollView
                 contentContainerStyle={styles.scroll}
                 showsVerticalScrollIndicator={false}
@@ -149,7 +160,7 @@ export default function ChildHomeScreen() {
                 }}
             >
                 {/* Верхний блок с градиентным свечением, балансом и картой */}
-                <View style={styles.hero}>
+                <View style={[styles.hero, { paddingTop: insets.top + 10 }]}>
                     <HeroGlow />
 
                     {refreshing ? (
@@ -409,8 +420,8 @@ const makeStyles = (_colors: Palette) =>
         },
         grabberWrap: {
             alignItems: "center",
-            paddingVertical: 4,
-            marginTop: -24,
+            paddingVertical: 12,
+            marginTop: -22,
             marginBottom: 0,
         },
         grabber: {
