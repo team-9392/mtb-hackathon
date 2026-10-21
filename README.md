@@ -36,7 +36,7 @@ npm test && npm run typecheck && npm run lint
 npx expo export --platform android
 
 # веб-версия без телефона и APK — http://localhost:8081
-cd mobile && npx expo start --web
+npx expo start --web
 
 # сервер: типы и проверки правил
 cd ../server
