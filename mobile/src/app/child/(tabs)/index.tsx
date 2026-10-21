@@ -145,6 +145,12 @@ export default function ChildHomeScreen() {
             label: t("game.title"),
             onPress: () => router.push("/game-budget"),
         },
+        {
+            id: "ai",
+            icon: "sparkles-outline" as const,
+            label: "ИИ",
+            onPress: () => router.push("/ai-assistant"),
+        },
     ];
 
     // Плавный сдвиг нижней шторки при раскрытии карты

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -20,7 +20,6 @@ const SAMPLES = [
 export default function AiAssistantScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
   const [turns, setTurns] = useState<Turn[]>([
     { role: "assistant", text: "Привет! Я Моби. Спроси про траты, лимиты или как накопить на цель. Я вижу только суммы и категории — без имён и реквизитов." },
   ]);
@@ -47,7 +46,6 @@ export default function AiAssistantScreen() {
         ]);
       } finally {
         setBusy(false);
-        requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
       }
     },
     [busy, turns],
@@ -69,7 +67,7 @@ export default function AiAssistantScreen() {
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView ref={scrollRef} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {turns.map((turn, index) => (
             <View key={index} style={[styles.bubble, turn.role === "user" ? styles.userBubble : styles.botBubble]}>
               <Text style={turn.role === "user" ? styles.userText : styles.botText}>{turn.text}</Text>
