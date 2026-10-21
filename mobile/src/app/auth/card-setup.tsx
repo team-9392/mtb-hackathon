@@ -10,7 +10,7 @@ import { useStore } from "@/store/StoreProvider";
 import type { CardSystem, CardType } from "@/store/types";
 import type { Palette } from "@/theme/palette";
 import { radius, spacing } from "@/theme/tokens";
-import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { useThemedStyles } from "@/theme/ThemeProvider";
 import { Button } from "@/ui/Button";
 import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Text } from "@/ui/Text";
@@ -27,7 +27,6 @@ const SYSTEM_LABEL: Record<CardSystem, string> = {
 export default function CardSetupScreen() {
   const { t } = useI18n();
   const router = useRouter();
-  const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const { showToast, refresh } = useStore();
   const params = useLocalSearchParams<{
@@ -67,6 +66,7 @@ export default function CardSetupScreen() {
     setBusy(true);
     try {
       await api("/children/" + childId + "/cards", { method: "POST", body: { type, system } });
+      setIssued(true);
       await refresh();
       showToast(t("card.issuedSent"));
       router.replace("/parent");
@@ -118,7 +118,7 @@ export default function CardSetupScreen() {
           <Button label="Продолжить" onPress={goNext} />
         ) : (
           <>
-            <Button label={busy ? "Выпускаем…" : "Выпустить карту"} onPress={() => void issue()} loading={busy} />
+            <Button label={busy ? "Выпускаем…" : "Выпустить карту"} onPress={() => void (issued ? goNext() : issue())} loading={busy} />
             <Pressable style={styles.skip} onPress={goNext}>
               <Text style={styles.skipText}>Позже</Text>
             </Pressable>

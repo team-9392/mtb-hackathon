@@ -4,7 +4,6 @@ import { StyleSheet, View } from "react-native";
 
 import { api } from "@/api/client";
 import type { Palette } from "@/theme/palette";
-import { spacing } from "@/theme/tokens";
 import { useThemedStyles } from "@/theme/ThemeProvider";
 import { GlassCard } from "@/ui/GlassCard";
 import { Text } from "@/ui/Text";

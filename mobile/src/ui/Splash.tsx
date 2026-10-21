@@ -7,7 +7,6 @@ import { font, radius, spacing } from "@/theme/tokens";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Text } from "@/ui/Text";
 
-const WAVE_DURATION = 1500;
 const BANDS = 4;
 
 /**

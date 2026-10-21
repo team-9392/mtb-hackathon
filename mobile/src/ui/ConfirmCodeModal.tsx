@@ -5,7 +5,7 @@ import { Animated, Modal, Pressable, StyleSheet, View } from "react-native";
 import { api } from "@/api/client";
 import { useI18n } from "@/i18n";
 import type { Palette } from "@/theme/palette";
-import { radius, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CodeInput } from "@/ui/CodeInput";
 import { Text } from "@/ui/Text";
@@ -23,7 +23,6 @@ export function ConfirmCodeModal({
   onConfirmed: () => Promise<void>;
 }) {
   const { t } = useI18n();
-  const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const [code, setCode] = useState("");
   const [challengeId, setChallengeId] = useState("");
