@@ -85,7 +85,7 @@ export function CardPeek({
 
   const expandedHeight = Math.max(232, Math.round((width || 340) / 1.55));
   const height = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [COLLAPSED, expandedHeight], extrapolate: "clamp" });
-  const rotate = scrollY.interpolate({ inputRange: [0, PULL], outputRange: ["-4deg", "0deg"], extrapolate: "clamp" });
+  const rotate = scrollY.interpolate({ inputRange: [0, PULL], outputRange: ["-2.5deg", "0deg"], extrapolate: "clamp" });
   const detailsOpacity = scrollY.interpolate({ inputRange: [50, PULL], outputRange: [0, 1], extrapolate: "clamp" });
   const edge = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0, 0], extrapolate: "clamp" });
   const watermarkOpacity = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.9, 0.55], extrapolate: "clamp" });
@@ -142,7 +142,7 @@ export function CardPeek({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: spacing.sm },
+  wrap: { marginTop: spacing.md, width: "100%", alignSelf: "stretch" },
   sheet: { zIndex: 2 },
   card: {
     flex: 1,

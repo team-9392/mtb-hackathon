@@ -266,7 +266,7 @@ const makeStyles = (colors: Palette) =>
       borderTopWidth: 1,
       borderTopColor: colors.line,
     },
-    cardWrap: { marginBottom: spacing.md },
+    cardWrap: { marginBottom: spacing.md, marginTop: spacing.xs, paddingHorizontal: 0 },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm },
     actionCircle: {

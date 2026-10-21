@@ -305,7 +305,7 @@ const makeStyles = (colors: Palette) =>
     brand: { color: colors.text, fontSize: 22, fontWeight: "800", letterSpacing: -0.3 },
     caption: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2 },
     headerIcon: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-    balanceRow: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm },
+    balanceRow: { flexDirection: "row", alignItems: "baseline", gap: spacing.sm, marginBottom: spacing.sm },
     balance: { color: colors.text, fontSize: 56, fontWeight: "800", letterSpacing: -1.5 },
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     greeting: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2, marginBottom: spacing.sm },
@@ -323,7 +323,7 @@ const makeStyles = (colors: Palette) =>
       borderTopWidth: 1,
       borderTopColor: colors.line,
     },
-    cardWrap: { marginBottom: spacing.md },
+    cardWrap: { marginBottom: spacing.md, marginTop: spacing.xs, paddingHorizontal: 0 },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm, width: 64 },
     actionCircle: {
