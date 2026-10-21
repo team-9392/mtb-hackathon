@@ -185,3 +185,11 @@ export function registerPushTokenApi(token: string, platform: string): Promise<u
 export function loadTransfersApi(childId: string): Promise<{ transfers: TransferRow[] }> {
   return api(`${child(childId)}/transfers`);
 }
+
+/** Отправить CVV и PIN карты в Telegram (в приложении не показываются). */
+export function requestCardDetailsApi(
+  childId: string,
+  cardId: string,
+): Promise<{ ok: boolean; sentTo?: string[]; message?: string }> {
+  return api(`/children/${childId}/cards/${cardId}/details`, { method: "POST", body: {} });
+}

@@ -31,6 +31,8 @@ export type CardSystem = "visa" | "mastercard" | "belkart" | "unionpay";
 export type CardType = "virtual" | "plastic";
 
 export interface CardInfo {
+  /** UUID карты в базе (для запроса реквизитов). */
+  id?: string;
   status: "issued" | "active" | "blocked";
   physical: "ordered" | "delivered";
   last4: string;
@@ -129,6 +131,8 @@ export interface FamilyState {
   childId?: string;
   /** Код доступа, который родитель даёт ребёнку для входа. */
   accessCode?: string;
+  /** Все карты ребёнка (для листания на главной). */
+  cards?: CardInfo[];
   /** UUID цели из базы — только в режиме API. */
   goalId?: string;
   /** Счета ребёнка из базы. */

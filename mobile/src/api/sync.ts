@@ -38,6 +38,7 @@ export interface ApiLimits {
   confirm_each: boolean;
 }
 export interface ApiCard {
+  id?: string;
   last4: string;
   status: string;
   number?: string | null;
@@ -160,6 +161,16 @@ export function mapChildBlock(block: ApiChildBlock): Partial<FamilyState> {
       bracket,
     },
     points: block.child.points,
+    cards: (block.cards ?? []).map((item) => ({
+      id: item.id,
+      status: item.status === "blocked" ? ("blocked" as const) : item.status === "active" ? ("active" as const) : ("issued" as const),
+      physical: item.type === "plastic" ? ("delivered" as const) : ("ordered" as const),
+      last4: item.last4,
+      number: item.number ?? "",
+      system: (item.system as CardSystem | null) ?? "visa",
+      type: (item.type as CardType | null) ?? "virtual",
+      expiry: item.expiry ?? "",
+    })),
     accessGranted: block.child.accessGranted,
     card: block.card
       ? {
