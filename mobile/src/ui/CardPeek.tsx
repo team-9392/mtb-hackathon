@@ -116,7 +116,7 @@ export function CardPeek({
   return (
     <View style={styles.wrap}>
       <Animated.View style={[styles.glow, { transform: [{ translateY: lift }] }]}>
-        <Animated.View style={[styles.card, { transform: [{ translateX: shift }, { translateY: lift }] }]} {...swipe.panHandlers}>
+        <Animated.View style={[styles.card, { transform: [{ translateX: shift }, { rotate: "-3deg" }, { translateY: lift }] }]} {...swipe.panHandlers}>
           <Image
             source={require("../../assets/brand/card-face.png")}
             style={styles.face}
@@ -162,22 +162,13 @@ export function CardPeek({
 
 const styles = StyleSheet.create({
   wrap: { width: "94%", alignSelf: "center", height: CARD_HEIGHT + 26, justifyContent: "center" },
-  glow: {
-    width: "100%",
-    borderRadius: 26,
-    shadowColor: "#60a5fa",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
-  },
+  glow: { width: "100%" },
   card: {
     width: "100%",
     height: CARD_HEIGHT,
     borderRadius: 24,
     overflow: "hidden",
-    borderWidth: 1.5,
-    borderColor: "rgba(147,197,253,0.22)",
+
     backgroundColor: "#000",
   },
   face: { width: "100%", height: "100%" },
