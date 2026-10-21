@@ -260,10 +260,22 @@ export default function ParentHomeScreen() {
 
                     {/* Баланс отдельно над картой */}
                     <View style={[styles.balanceRow, pulled && styles.hidden]}>
+                    <View style={styles.balanceValue}>
                         <Text style={styles.balance}>
                             {refreshing ? "•••" : formatMoney(activeBalance, 0).replace(" BYN", "")}
                         </Text>
                         <Text style={styles.currency}>BYN</Text>
+                    </View>
+                    <Pressable
+                        onPress={() => {
+                            setRefreshing(true);
+                            void Promise.all([refresh(), loadMyCards()]).finally(() => setRefreshing(false));
+                        }}
+                        hitSlop={10}
+                        style={styles.refreshButton}
+                    >
+                        <Ionicons name="refresh-outline" size={24} color="#93c5fd" />
+                    </Pressable>
                     </View>
 
                     {/* Блок банковской карты под балансом */}
@@ -280,12 +292,6 @@ export default function ParentHomeScreen() {
                             skin={skin}
                             onIndexChange={setActiveIndex}
                             onDetails={(card) => setPendingCard(card)}
-                            onRefresh={() => {
-                                setRefreshing(true);
-                                void Promise.all([refresh(), loadMyCards()]).finally(() =>
-                                    setRefreshing(false),
-                                );
-                            }}
                         />
                         <Pressable onPress={() => router.push("/parent/issue")} style={styles.addCard}>
                             <Ionicons name="add-circle-outline" size={14} color="#93c5fd" />
@@ -518,10 +524,22 @@ const makeStyles = (_colors: Palette) =>
         },
         balanceRow: {
             flexDirection: "row",
-            alignItems: "baseline",
+            justifyContent: "space-between",
+            alignItems: "center",
             gap: 8,
             marginBottom: 22,
             zIndex: 10,
+        },
+        balanceValue: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+        refreshButton: {
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: "rgba(147,197,253,0.14)",
+            borderWidth: 1,
+            borderColor: "rgba(147,197,253,0.28)",
+            alignItems: "center",
+            justifyContent: "center",
         },
         balance: {
             color: "#ffffff",

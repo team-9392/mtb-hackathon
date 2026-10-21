@@ -25,7 +25,6 @@ export function CardPeek({
   onIndexChange,
   onIssue,
   onDetails,
-  onRefresh,
   refreshing,
   skin,
 }: {
@@ -37,7 +36,6 @@ export function CardPeek({
   onIndexChange?: (index: number) => void;
   onIssue?: () => void;
   onDetails?: (card: CardInfo) => void;
-  onRefresh?: () => void;
   refreshing?: boolean;
   skin?: string;
   limitLeft?: number;
@@ -129,11 +127,6 @@ export function CardPeek({
             resizeMode="cover"
           />
 
-          {onRefresh ? (
-            <Pressable onPress={onRefresh} hitSlop={12} style={styles.refresh}>
-              <Ionicons name="refresh-outline" size={18} color="rgba(255,255,255,0.7)" />
-            </Pressable>
-          ) : null}
 
           <Text style={styles.holder} numberOfLines={1}>
             {translit((card.holder ?? holder) || "").toUpperCase()}
@@ -193,7 +186,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
   face: { width: "100%", height: "100%", transform: [{ scale: 1.06 }] },
-  refresh: { position: "absolute", top: 44, right: 18, width: 26, height: 26, alignItems: "center", justifyContent: "center" },
   holder: { position: "absolute", left: 12, top: 64, color: "#fff", fontSize: 17, fontWeight: "700", letterSpacing: 1.6, maxWidth: "56%", backgroundColor: "#000", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6 },
   brand: { position: "absolute", right: 52, top: 84, transform: [{ scale: 1.5 }] },
   details: {

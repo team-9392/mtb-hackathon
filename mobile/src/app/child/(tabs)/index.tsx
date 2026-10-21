@@ -212,10 +212,22 @@ export default function ChildHomeScreen() {
 
                     {/* Баланс (отдельно над картой!) */}
                     <View style={[styles.balanceRow, pulled && styles.hidden]}>
+                    <View style={styles.balanceValue}>
                         <Text style={styles.balance}>
                             {refreshing ? "•••" : formatMoney(state.balance, 0).replace(" BYN", "")}
                         </Text>
                         <Text style={styles.currency}>BYN</Text>
+                    </View>
+                    <Pressable
+                        onPress={() => {
+                            setRefreshing(true);
+                            void refresh().finally(() => setRefreshing(false));
+                        }}
+                        hitSlop={10}
+                        style={styles.refreshButton}
+                    >
+                        <Ionicons name="refresh-outline" size={24} color="#93c5fd" />
+                    </Pressable>
                     </View>
 
                     {/* Блок банковской карты на всю ширину под балансом */}
@@ -230,10 +242,6 @@ export default function ChildHomeScreen() {
                             refreshing={refreshing}
                             skin={skin}
                             onDetails={(card) => setPendingCard(card)}
-                            onRefresh={() => {
-                                setRefreshing(true);
-                                void refresh().finally(() => setRefreshing(false));
-                            }}
                         />
                     </View>
                 </View>
@@ -424,10 +432,22 @@ const makeStyles = (_colors: Palette) =>
         },
         balanceRow: {
             flexDirection: "row",
-            alignItems: "baseline",
+            justifyContent: "space-between",
+            alignItems: "center",
             gap: 8,
             marginBottom: 22,
             zIndex: 10,
+        },
+        balanceValue: { flexDirection: "row", alignItems: "baseline", gap: 8 },
+        refreshButton: {
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: "rgba(147,197,253,0.14)",
+            borderWidth: 1,
+            borderColor: "rgba(147,197,253,0.28)",
+            alignItems: "center",
+            justifyContent: "center",
         },
         balance: {
             color: "#ffffff",
