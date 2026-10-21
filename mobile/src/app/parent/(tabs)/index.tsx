@@ -85,6 +85,7 @@ export default function ParentHomeScreen() {
         setPulled(value > 30);
     });
     const base = useRef(0);
+    const grantAt = useRef(0);
     const pullValue = useRef(0);
     const settle = (to: number) => {
         pullValue.current = to;
@@ -97,11 +98,17 @@ export default function ParentHomeScreen() {
             onMoveShouldSetPanResponder: () => true,
             onPanResponderGrant: () => {
                 base.current = pullValue.current;
+                grantAt.current = Date.now();
             },
             onPanResponderMove: (_e, g) => {
                 pull.setValue(Math.max(0, Math.min(190, base.current + g.dy)));
             },
             onPanResponderRelease: (_e, g) => {
+                const tapped = Math.abs(g.dy) < 8 && Math.abs(g.dx) < 8 && Date.now() - grantAt.current < 350;
+                if (tapped) {
+                    settle(pullValue.current > 75 ? 0 : 150);
+                    return;
+                }
                 const value = Math.max(0, Math.min(190, base.current + g.dy));
                 if (value > 175 && g.vy > 0.4) {
                     void refresh().finally(() => settle(0));
