@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "react-native";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -66,8 +67,8 @@ export function SignupLayout({
             <View style={styles.backPlaceholder} />
           )}
           <View style={styles.brand}>
-            <View style={[styles.brandMark, { backgroundColor: colors.primary }]}>
-              <Ionicons name="wallet-outline" size={14} color={colors.white} />
+            <View style={[styles.brandMark, { backgroundColor: "#0b0f14" }]}>
+              <Image source={require("../../../assets/brand/logo.png")} style={styles.brandLogo} resizeMode="contain" />
             </View>
             <Text style={[styles.brandText, { color: colors.ink2 }]}>Moby Family</Text>
           </View>
@@ -418,7 +419,8 @@ export function makeStyles(_colors: Palette) {
     },
     backPlaceholder: { width: 40, height: 40 },
     brand: { flexDirection: "row", alignItems: "center", gap: 8 },
-    brandMark: {
+    brandLogo: { width: 22, height: 22 },
+  brandMark: {
       width: 24,
       height: 24,
       borderRadius: 8,
