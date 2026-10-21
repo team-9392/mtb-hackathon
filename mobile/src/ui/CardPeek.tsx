@@ -52,11 +52,11 @@ export function CardPeek({
 
   const cardHeight = Math.max(210, Math.round((width || 340) / 1.6));
   const expanded = scrollY.interpolate({ inputRange: [0, LIFT], outputRange: [0, 1], extrapolate: "clamp" });
-  const rotate = scrollY.interpolate({ inputRange: [0, LIFT], outputRange: ["-2.5deg", "0deg"], extrapolate: "clamp" });
+
 
   return (
     <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      <Animated.View style={[styles.sheet, { height: cardHeight, transform: [{ rotate }] }]}>
+      <View style={[styles.sheet, { height: cardHeight }]}>
         <ScrollView
           horizontal
           pagingEnabled
@@ -70,7 +70,7 @@ export function CardPeek({
           style={styles.pager}
         >
           {cards.map((item, i) => (
-            <View key={item.id ?? item.last4 + i} style={{ width: Math.max(1, width), height: cardHeight }}>
+            <View key={item.id ?? item.last4 + i} style={[styles.page, { width: Math.max(1, width), height: cardHeight }]}>
               <View style={styles.card}>
                 <Text style={styles.watermark}>MT</Text>
                 <View style={styles.topRow}>
@@ -95,7 +95,7 @@ export function CardPeek({
             </View>
           ))}
         </ScrollView>
-      </Animated.View>
+      </View>
 
       {count > 1 ? (
         <View style={styles.nav}>
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
   wrap: { width: "100%" },
   sheet: { width: "100%", overflow: "hidden" },
   pager: { width: "100%" },
+  page: { overflow: "hidden" },
   card: { flex: 1, backgroundColor: "#000", overflow: "hidden", padding: spacing.lg },
   watermark: { position: "absolute", alignSelf: "center", top: 10, fontSize: 120, fontWeight: "900", color: "#1b2bff", letterSpacing: -4 },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
