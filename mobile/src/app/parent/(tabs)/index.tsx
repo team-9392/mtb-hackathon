@@ -18,6 +18,7 @@ import { CardPeek } from "@/ui/CardPeek";
 import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
 import { HeroGlow } from "@/ui/Glow";
 import { ParentTopUpSheet } from "@/ui/ParentTopUpSheet";
+import { SecurityAlerts } from "@/ui/SecurityAlerts";
 import { Text } from "@/ui/Text";
 
 /** Главная родителя — тот же стиль, что у ребёнка, но действия банка для семьи. */
@@ -357,6 +358,8 @@ export default function ParentHomeScreen() {
                     )}
 
                     {/* Последние операции */}
+                    <SecurityAlerts />
+
                     <View style={styles.glassCard}>
                         <View style={styles.opsHeader}>
                             <Text style={styles.cardTitle}>{t("ch.lastOps")}</Text>
