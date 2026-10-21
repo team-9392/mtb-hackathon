@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import React, { useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Switch, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useI18n, useL } from "@/i18n";
@@ -200,7 +200,14 @@ export default function ChildGoalScreen() {
         <GlassCard style={styles.addCard}>
           <Text style={styles.addTitle}>{t("sp.addTitle")}</Text>
           <View style={styles.addRow}>
-            {[5, 10, 20].map((preset) => {
+            <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}>Сумма, BYN</Text>
+          <TextInput
+            value={String(amount)}
+            onChangeText={(value: string) => setAmount(Math.min(100000, Number(value.replace(/[^0-9]/g, "")) || 0))}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, color: colors.text, fontSize: 20, fontWeight: "700", marginBottom: 12 }}
+          />
+          {[5, 10, 20].map((preset) => {
               const active = amount === preset;
               return (
                 <Pressable

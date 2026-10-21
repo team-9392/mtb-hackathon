@@ -84,6 +84,13 @@ export default function ParentKopilkaScreen() {
 
         <View style={styles.card}>
           <Text style={styles.label}>{t("gl.topUp")}</Text>
+          <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}>Сумма, BYN</Text>
+          <TextInput
+            value={String(amount)}
+            onChangeText={(value: string) => setAmount(Math.min(100000, Number(value.replace(/[^0-9]/g, "")) || 0))}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, color: colors.text, fontSize: 20, fontWeight: "700", marginBottom: 12 }}
+          />
           <View style={styles.presets}>
             {PRESETS.map((value) => (
               <Pressable key={value} onPress={() => setAmount(value)} style={[styles.preset, amount === value && styles.presetActive]}>

@@ -105,6 +105,16 @@ export default function ChildHomeScreen() {
           <View style={styles.balanceRow}>
             <Text style={styles.balance}>{formatMoney(state.balance, 0).replace(" BYN", "")}</Text>
             <Text style={styles.currency}>BYN</Text>
+          <View style={styles.cardWrap}>
+                      <CardPeek
+                                  cards={cards}
+                                  holder={state.child.name}
+                                  limitLeft={left}
+                                  scrollY={scrollY}
+                                  onIssue={() => router.push("/child/accounts")}
+                                  onDetails={(card) => void requestDetails(card)}
+                                />
+                    </View>
           </View>
 
         </View>
@@ -121,16 +131,7 @@ export default function ChildHomeScreen() {
             ))}
           </View>
 
-<View style={styles.cardWrap}>
-            <CardPeek
-                        cards={cards}
-                        holder={state.child.name}
-                        limitLeft={left}
-                        scrollY={scrollY}
-                        onIssue={() => router.push("/child/accounts")}
-                        onDetails={(card) => void requestDetails(card)}
-                      />
-          </View>
+
 
           <Pressable style={styles.goalCard} onPress={() => router.push("/child/goal")}>
             <View style={styles.goalHead}>
@@ -204,7 +205,7 @@ const makeStyles = (colors: Palette) =>
     balance: { color: colors.text, fontSize: 56, fontWeight: "800", letterSpacing: -1.5 },
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     panel: {
-      marginTop: -spacing.xl,
+      marginTop: -64,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
       paddingBottom: spacing.xl,

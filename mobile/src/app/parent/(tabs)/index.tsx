@@ -139,6 +139,21 @@ export default function ParentHomeScreen() {
           <View style={styles.balanceRow}>
             <Text style={styles.balance}>{formatMoney(state.balance, 0).replace(" BYN", "")}</Text>
             <Text style={styles.currency}>BYN</Text>
+          <View style={styles.cardWrap}>
+                      <CardPeek
+                                  cards={cards}
+                                  holder={user?.full_name ?? "Моя карта"}
+                                  limitLeft={left}
+                                  scrollY={scrollY}
+                                  onIssue={() => void issueMyCard()}
+                                  onDetails={(card) => {
+                                    if (!card.id) return;
+                                    void requestMyCardDetailsApi(card.id)
+                                      .then(() => showToast(t("card.detailsSent")))
+                                      .catch((error) => showToast(error instanceof Error ? error.message : t("auth.connectFailed")));
+                                  }}
+                                />
+                    </View>
           </View>
           <Text style={styles.greeting}>{firstName} · {state.child.name}</Text>
 
@@ -156,21 +171,7 @@ export default function ParentHomeScreen() {
             ))}
           </View>
 
-<View style={styles.cardWrap}>
-            <CardPeek
-                        cards={cards}
-                        holder={user?.full_name ?? "Моя карта"}
-                        limitLeft={left}
-                        scrollY={scrollY}
-                        onIssue={() => void issueMyCard()}
-                        onDetails={(card) => {
-                          if (!card.id) return;
-                          void requestMyCardDetailsApi(card.id)
-                            .then(() => showToast(t("card.detailsSent")))
-                            .catch((error) => showToast(error instanceof Error ? error.message : t("auth.connectFailed")));
-                        }}
-                      />
-          </View>
+
 
           {pending.length > 0 ? (
             <View style={styles.card}>
@@ -262,7 +263,7 @@ const makeStyles = (colors: Palette) =>
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     greeting: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2, marginBottom: spacing.sm },
     panel: {
-      marginTop: -spacing.xl,
+      marginTop: -64,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
       paddingBottom: spacing.xl,

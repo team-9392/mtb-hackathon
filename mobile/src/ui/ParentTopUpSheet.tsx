@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View, TextInput } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
@@ -7,7 +7,7 @@ import { useStore } from "@/store/StoreProvider";
 import { font, radius, spacing } from "@/theme/tokens";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
 import type { Palette } from "@/theme/palette";
-import { useThemedStyles } from "@/theme/ThemeProvider";
+import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { Text } from "@/ui/Text";
 
 const PRESETS = [10, 20, 50, 100];
@@ -16,6 +16,7 @@ const EXTRA = [200, 500];
 /** Главное действие родителя: перевести деньги ребёнку на карман. Одно движение — и готово. */
 export function ParentTopUpSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const styles = useThemedStyles(makeStyles);
+  const { colors } = useTheme();
 
   const { t } = useI18n();
   const { state, topUpChild, showToast } = useStore();
@@ -49,6 +50,13 @@ export function ParentTopUpSheet({ visible, onClose }: { visible: boolean; onClo
         </Text>
 
         <View style={styles.row}>
+          <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "700", marginBottom: 8 }}>Сумма, BYN</Text>
+          <TextInput
+            value={String(amount)}
+            onChangeText={(value: string) => setAmount(Math.min(100000, Number(value.replace(/[^0-9]/g, "")) || 0))}
+            keyboardType="numeric"
+            style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, color: colors.text, fontSize: 20, fontWeight: "700", marginBottom: 12 }}
+          />
           {PRESETS.map((preset) => (
             <Pressable
               key={preset}

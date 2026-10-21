@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
@@ -41,7 +41,18 @@ function Stepper({
         >
           <Ionicons name="remove" size={18} color={palette.ink} />
         </Pressable>
-        <Text style={styles.stepperValue}>{formatMoney(value, 0)}</Text>
+        <TextInput
+          value={value === 0 ? "" : String(value)}
+          onChangeText={(raw: string) => {
+            const digits = raw.replace(/[^0-9]/g, "");
+            const next = digits.length === 0 ? 0 : Math.min(max, Number(digits));
+            onChange(next);
+          }}
+          keyboardType="numeric"
+          placeholder="0"
+          placeholderTextColor={palette.muted}
+          style={[styles.stepperValue, { minWidth: 84, textAlign: "center" }]}
+        />
         <Pressable
           onPress={() => onChange(Math.min(max, value + step))}
           style={styles.stepperButton}
