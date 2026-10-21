@@ -8,7 +8,7 @@ export default function ParentBonusesScreen() {
   const { t } = useI18n();
   return (
     <Screen title={t("bc.title")} subtitle={t("bc.subtitle")}>
-      <BonusesView />
+      <BonusesView audience="parent" />
     </Screen>
   );
 }

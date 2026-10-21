@@ -8,7 +8,7 @@ export default function ChildQuestsScreen() {
   const { t } = useI18n();
   return (
     <Screen title={t("qs.title")} subtitle={t("qs.subtitle")}>
-      <BonusesView />
+      <BonusesView audience="child" />
     </Screen>
   );
 }
