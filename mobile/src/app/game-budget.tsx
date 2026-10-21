@@ -88,12 +88,12 @@ export default function BudgetGameScreen() {
   const decide = async (decision: "spend" | "skip") => {
     setBusy(true);
     try {
-      const answer = await api<{ balance: number; result: string; reaction?: string; history: Event[]; stats: Stats }>("/game/budget/decide", { method: "POST", body: { decision } });
+      const answer = await api<{ balance: number; result: string; reaction?: string; coinsAwarded?: number; history: Event[]; stats: Stats }>("/game/budget/decide", { method: "POST", body: { decision } });
       setBalance(answer.balance);
       setHistory(answer.history ?? []);
       setStats(answer.stats ?? EMPTY_STATS);
       setScenario(null);
-      setReaction(answer.reaction ?? answer.result);
+      setReaction((answer.reaction ?? answer.result) + (answer.coinsAwarded ? " · +" + answer.coinsAwarded + " монет" : ""));
     } catch (error) {
       showToast(error instanceof Error ? error.message : t("auth.connectFailed"));
     } finally {

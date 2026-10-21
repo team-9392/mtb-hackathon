@@ -191,8 +191,19 @@ export async function registerBudgetGameRoutes(app: FastifyInstance, db: Supabas
       await db.from("budget_events").insert({ user_id: claims.sub, title: scenario.title, amount, decision: body.decision });
       const events = await loadEvents(claims.sub);
       const stats = computeStats(balance, events);
+      // Монеты за правильное решение: отказался от траты — сразу начисляем.
+      const coinsAwarded = body.decision === "skip" ? 25 : 0;
+      let coins = 0;
+      if (coinsAwarded > 0) {
+        const { data: userRow } = await db.from("users").select("coins").eq("id", claims.sub).maybeSingle();
+        coins = Number(userRow?.coins ?? 0) + coinsAwarded;
+        await db.from("users").update({ coins }).eq("id", claims.sub);
+        await db.from("coin_ledger").insert({ user_id: claims.sub, amount: coinsAwarded, reason: "game" });
+      }
       const reaction = await aiReaction(env, scenario, body.decision, balance, stats.streak);
       return reply.send({
+        coinsAwarded,
+        coins,
         balance,
         stats,
         reaction,

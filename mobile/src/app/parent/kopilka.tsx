@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { createGoalApi, editGoalApi } from "@/api/actions";
+import { createGoalApi, depositGoalApi, editGoalApi } from "@/api/actions";
 import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
 import { useStore } from "@/store/StoreProvider";

@@ -93,26 +93,12 @@ export default function ChildGoalScreen() {
 
         <PetCard />
 
-        <GlassCard style={styles.totalCard} padded={false}>
-          <SoftGlow
-            id="goal-total-glow"
-            size={180}
-            color={colors.primary}
-            opacity={isDark ? 0.4 : 0.22}
-            style={styles.totalGlow}
-          />
-          <Text secondary style={styles.totalLabel}>
-            {t("sp.totalInPots")}
-          </Text>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalValue}>
-              {formatMoney(state.savedOnGoal, 0).replace(" BYN", "")}
-            </Text>
-            <Text secondary style={styles.totalUnit}>
-              BYN
-            </Text>
-          </View>
-        </GlassCard>
+        {!state.goalId && state.goal.target === 0 ? (
+          <Pressable style={styles.createGoal} onPress={() => router.push("/kopilka")}>
+            <Ionicons name="add" size={18} color="#0b0f14" />
+            <Text style={styles.createGoalText}>Создать копилку</Text>
+          </Pressable>
+        ) : null}
 
         <View
           style={[
@@ -320,7 +306,9 @@ const makeStyles = (colors: Palette) =>
   brandLogo: { width: 18, height: 18 },
   brandName: { color: "#8b94a3", fontSize: 12, fontWeight: "700" },
   subtitle: { fontSize: 13, color: colors.muted, paddingLeft: 4, marginTop: -6 },
-    totalCard: { padding: 16, overflow: "hidden", borderRadius: 16, marginTop: 2 },
+    createGoal: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#93c5fd", borderRadius: 999, paddingVertical: 14, marginBottom: 12 },
+  createGoalText: { color: "#0b0f14", fontSize: 15, fontWeight: "800" },
+  totalCard: { padding: 16, overflow: "hidden", borderRadius: 16, marginTop: 2 },
     totalGlow: { right: -50, bottom: -60 },
     totalLabel: {
       fontSize: 12,

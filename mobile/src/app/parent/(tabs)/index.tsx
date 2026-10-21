@@ -170,7 +170,7 @@ export default function ParentHomeScreen() {
             id: "limit",
             icon: "speedometer-outline" as const,
             label: t("ov.limitAction"),
-            onPress: () => router.push("/parent/limits"),
+            onPress: () => router.push("/limits"),
         },
         {
             id: "tasks",

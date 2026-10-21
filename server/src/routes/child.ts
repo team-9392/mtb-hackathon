@@ -374,6 +374,8 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
         throw conflict("Цель не найдена");
       }
 
+      // Родитель пополняет копилку со своей карты: карман ребёнка не трогаем.
+      const isParentFunding = claims.role === "parent";
       const { data: pocket } = await db
         .from("accounts")
         .select("id, balance")
@@ -381,16 +383,46 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
         .eq("kind", "pocket")
         .maybeSingle();
       const balance = Number(pocket?.balance ?? 0);
-      if (!pocket || balance < body.amount) {
-        throw conflict("На карте недостаточно средств");
+      if (!isParentFunding) {
+        if (!pocket || balance < body.amount) {
+          throw conflict("На карте недостаточно средств");
+        }
       }
 
       const saved = Number(goal.saved) + body.amount;
-      await db.from("accounts").update({ balance: balance - body.amount }).eq("id", pocket.id);
+      if (!isParentFunding && pocket) {
+        await db.from("accounts").update({ balance: balance - body.amount }).eq("id", pocket.id);
+      }
       await db
         .from("goals")
         .update({ saved, status: saved >= Number(goal.target) ? "achieved" : "active" })
         .eq("id", goal.id);
+
+      if (isParentFunding) {
+        await db.from("transactions").insert({
+          child_id: child.id,
+          amount: body.amount,
+          category: "goal_topup",
+          merchant: null,
+          title_ru: "Пополнение копилки от родителя",
+          title_be: "Папаўненне скарбонкі ад бацькі",
+          status: "approved",
+          by_child: false,
+        });
+        if (child.user_id) {
+          const parentId = await parentUserIdOfFamily(db, child.family_id);
+          void parentId;
+          await db.from("notifications").insert({
+            user_id: child.user_id,
+            family_id: child.family_id,
+            kind: "reward",
+            title_ru: "Копилка пополнена",
+            title_be: "Скарбонка папоўнена",
+            body_ru: "+" + body.amount + " BYN в копилку «" + (goal.title_ru ?? "Цель") + "»",
+            body_be: "+" + body.amount + " BYN у скарбонку",
+          });
+        }
+      }
 
       await hub.publish(db, child.family_id, "txn.created", {
         childId: child.id,
