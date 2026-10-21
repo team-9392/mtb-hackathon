@@ -68,25 +68,25 @@ export function CardPeek({
           onIndexChange?.(next);
         };
         if (g.dx < -55 && current < countRef.current - 1) {
-          Animated.timing(shift, { toValue: -width, duration: 170, useNativeDriver: true }).start(() => {
+          Animated.timing(shift, { toValue: -width, duration: 170, useNativeDriver: false }).start(() => {
             goTo(current + 1);
             shift.setValue(width);
-            Animated.spring(shift, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+            Animated.spring(shift, { toValue: 0, useNativeDriver: false, bounciness: 0 }).start();
           });
           return;
         }
         if (g.dx > 55 && current > 0) {
-          Animated.timing(shift, { toValue: width, duration: 170, useNativeDriver: true }).start(() => {
+          Animated.timing(shift, { toValue: width, duration: 170, useNativeDriver: false }).start(() => {
             goTo(current - 1);
             shift.setValue(-width);
-            Animated.spring(shift, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+            Animated.spring(shift, { toValue: 0, useNativeDriver: false, bounciness: 0 }).start();
           });
           return;
         }
-        Animated.spring(shift, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+        Animated.spring(shift, { toValue: 0, useNativeDriver: false, bounciness: 0 }).start();
       },
       onPanResponderTerminate: () => {
-        Animated.spring(shift, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+        Animated.spring(shift, { toValue: 0, useNativeDriver: false, bounciness: 0 }).start();
       },
     }),
   ).current;

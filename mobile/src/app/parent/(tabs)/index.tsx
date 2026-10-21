@@ -87,6 +87,8 @@ export default function ParentHomeScreen() {
         Animated.spring(pull, { toValue: to, useNativeDriver: false, bounciness: 0 }).start();
     const pullGesture = useRef(
         PanResponder.create({
+            onMoveShouldSetPanResponderCapture: (_e, g) =>
+                Math.abs(g.dy) > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.2,
             onMoveShouldSetPanResponder: (_e, g) => g.dy > 8 && g.dy > Math.abs(g.dx),
             onPanResponderMove: (_e, g) => pull.setValue(Math.max(0, Math.min(190, g.dy))),
             onPanResponderRelease: (_e, g) => {
