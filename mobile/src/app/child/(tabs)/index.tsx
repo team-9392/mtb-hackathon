@@ -331,7 +331,7 @@ const makeStyles = (_colors: Palette) =>
         },
         refreshText: { color: "#8b94a3", fontSize: 12, fontWeight: "700" },
         hero: {
-            overflow: "hidden",
+            overflow: "visible",
             paddingHorizontal: 24,
             paddingTop: 16,
             paddingBottom: 24,
