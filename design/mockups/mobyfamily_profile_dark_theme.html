@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Профиль - MobyFamily Dark Theme</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            moby: {
+              bg: '#0f1723',
+              card: '#1b2432',
+              cardHover: '#222f42',
+              cardBorder: 'rgba(255, 255, 255, 0.08)',
+              nav: '#161e2a',
+              blue: '#3b82f6',
+              cyan: '#38bdf8',
+              muted: '#8e9eaf',
+              darkMuted: '#58687a',
+              green: '#10b981',
+              amber: '#f59e0b',
+              purple: '#a855f7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f17;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Рассеянный градиент в духе MobyFamily */
+    .ambient-glow {
+      background: 
+        radial-gradient(circle at 20% -20%, rgba(220, 38, 38, 0.15) 0%, transparent 40%), 
+        radial-gradient(circle at 80% -20%, rgba(37, 99, 235, 0.15) 0%, transparent 40%), 
+        linear-gradient(to bottom, #202630 0%, #171A1D 56%, #131617 100%);
+    }
+
+    /* Класс для эффекта матового стекла */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Анимация выдвижения шторки */
+    .sheet-enter {
+      transform: translateY(0%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sheet-leave {
+      transform: translateY(100%);
+      transition: transform 0.25s ease-in;
+    }
+
+    /* SVG Donut Chart Animations */
+    .donut-slice {
+      transition: stroke-dasharray 0.6s ease-out, stroke-dashoffset 0.6s ease-out, stroke-width 0.2s ease;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      cursor: pointer;
+    }
+    .donut-slice:hover {
+      stroke-width: 14;
+    }
+
+    /* Анимация аккордеона */
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+      opacity: 0;
+    }
+    .accordion-content.open {
+      max-height: 300px;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center p-0 md:p-6 bg-[#0b0f17]">
+
+  <!-- Контейнер мобильного интерфейса -->
+  <div class="relative w-full max-w-[420px] h-[100dvh] md:h-[890px] md:rounded-[48px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.9)] flex flex-col border border-white/5 ambient-glow">
+    
+    <!-- iOS Status Bar -->
+    <div class="pt-3.5 px-7 flex justify-between items-center text-xs font-semibold text-white/90 z-20 shrink-0">
+      <span class="tracking-tight font-medium">9:41</span>
+      <div class="w-24 h-4 bg-black rounded-full mx-auto hidden sm:block opacity-80"></div>
+      <div class="flex items-center space-x-2">
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <div class="w-5 h-2.5 border border-white/80 rounded-[3px] p-[1px] flex items-center">
+          <div class="h-full w-full bg-white rounded-[1px]"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Заголовок -->
+    <header class="px-5 pt-3 pb-2 z-20 shrink-0 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white leading-none">Профиль</h1>
+        <p class="text-[12px] text-moby-muted mt-1 font-normal">Личный кабинет и аналитика</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="showToast('Уведомления')" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10 text-white">
+          <i data-lucide="bell" class="w-5 h-5"></i>
+        </button>
+        <button onclick="showToast('Настройки')" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10 text-white">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Скроллируемая область -->
+    <main class="flex-1 overflow-y-auto px-5 pt-2 pb-24 no-scrollbar space-y-4 z-10">
+      
+      <!-- Минималистичная карточка пользователя -->
+      <div class="glass-card rounded-[32px] p-6 flex flex-col items-center text-center">
+        <div class="relative mb-3">
+          <div class="w-20 h-20 rounded-[24px] bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 p-[2px] shadow-lg shadow-blue-500/20">
+            <div class="w-full h-full bg-[#111927] rounded-[22px] flex items-center justify-center">
+              <span class="text-2xl font-bold text-white tracking-wider">AI</span>
+            </div>
+          </div>
+          <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-[#111927] flex items-center justify-center text-[12px] text-white font-bold">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          </div>
+        </div>
+        <h2 class="text-xl font-bold text-white leading-none">Alex Ivanov</h2>
+      </div>
+
+      <!-- Блок аналитики трат -->
+      <div class="glass-card rounded-[32px] p-5 space-y-5 relative overflow-hidden">
+        <!-- Блик на фоне -->
+        <div class="absolute -left-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white">Категории трат</h3>
+          <button onclick="openPeriodModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-semibold text-moby-muted hover:text-white transition active:scale-95">
+            <span id="currentPeriodLabel">Этот месяц</span>
+            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+          </button>
+        </div>
+
+        <!-- Круговая диаграмма -->
+        <div class="flex items-center justify-center py-2">
+          <div class="relative w-40 h-40">
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-xl">
+              <!-- Фоновое кольцо -->
+              <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12"></circle>
+              
+              <!-- Сегменты генерируются через JS -->
+              <g id="donutChartGroup"></g>
+            </svg>
+            
+            <!-- Центр диаграммы (Всего трат) -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span class="text-[10px] text-moby-muted uppercase tracking-wider font-bold">Всего</span>
+              <span class="text-xl font-extrabold text-white leading-none mt-0.5" id="totalSpentText">500</span>
+              <span class="text-[10px] font-semibold text-moby-muted mt-0.5">BYN</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Аккордеон категорий -->
+        <div id="categoriesList" class="space-y-2 mt-2">
+          <!-- Генерируется через JS -->
+        </div>
+      </div>
+
+      <!-- Лимиты от родителей (Glass Card) -->
+      <div class="glass-card rounded-[32px] p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Лимиты от родителей</span>
+          </h3>
+          <span class="text-[11px] px-2.5 py-1 rounded-full bg-blue-500/15 text-blue-400 font-semibold cursor-pointer active:scale-95 transition" onclick="showToast('Запрос отправлен')">Запросить</span>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-moby-muted font-medium">Дневной лимит</span>
+            <span class="font-bold text-white">40 <span class="text-moby-darkMuted font-normal">из 50 BYN</span></span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-black/40 overflow-hidden flex">
+            <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style="width: 80%"></div>
+          </div>
+          <div class="flex justify-between items-center text-[10px] text-moby-muted">
+            <span>Осталось: 10 BYN</span>
+            <span class="text-amber-400 font-semibold">80% израсходовано</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Нижняя навигационная панель -->
+    <nav class="absolute bottom-0 inset-x-0 bg-[#161e2a]/95 backdrop-blur-md border-t border-white/10 px-4 py-2.5 z-30 flex items-center justify-around">
+      <button onclick="showToast('Главная')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Главная</span>
+      </button>
+      <button onclick="showToast('Копилка')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="heart" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Копилка</span>
+      </button>
+      <button onclick="showToast('Задания')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="check-square" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Задания</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-1 text-blue-400 transition relative">
+        <div class="relative">
+          <i data-lucide="user" class="w-5 h-5 stroke-[2.4]"></i>
+          <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-blue-400"></span>
+        </div>
+        <span class="text-[11px] font-bold text-blue-400">Профиль</span>
+      </button>
+    </nav>
+
+    <!-- Модальное окно выбора периода (Bottom Sheet) -->
+    <div id="periodModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex-col justify-end transition-opacity">
+      <div onclick="closePeriodModal()" class="flex-1"></div>
+      <div id="periodModalContent" class="bg-white/10 backdrop-blur-xl border-t border-x border-white/15 w-full rounded-t-[34px] p-6 shadow-2xl relative sheet-leave flex flex-col">
+        <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-5 shrink-0"></div>
+        
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-white">Выбрать период</h3>
+          <button onclick="closePeriodModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="space-y-2 pb-4">
+          <button onclick="selectPeriod('Текущий месяц')" class="w-full flex items-center justify-between p-4 rounded-2xl glass-card hover:bg-white/10 transition active:scale-[0.98]">
+            <span class="text-sm font-semibold text-white">Текущий месяц</span>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-moby-muted"></i>
+          </button>
+          <button onclick="selectPeriod('Прошлый месяц')" class="w-full flex items-center justify-between p-4 rounded-2xl glass-card hover:bg-white/10 transition active:scale-[0.98]">
+            <span class="text-sm font-semibold text-white">Прошлый месяц</span>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-moby-muted"></i>
+          </button>
+          <button onclick="selectPeriod('Текущий год')" class="w-full flex items-center justify-between p-4 rounded-2xl glass-card hover:bg-white/10 transition active:scale-[0.98]">
+            <span class="text-sm font-semibold text-white">Текущий год</span>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-moby-muted"></i>
+          </button>
+          <button onclick="selectPeriod('Выбрать свой период')" class="w-full flex items-center justify-between p-4 rounded-2xl glass-card hover:bg-white/10 transition active:scale-[0.98]">
+            <span class="text-sm font-semibold text-white">Выбрать свой период</span>
+            <i data-lucide="calendar" class="w-4 h-4 text-moby-muted"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Всплывающий тост (Уведомление) -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-[#1b2636]/95 text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-2xl border border-blue-500/30 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+      <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+      <span id="toastMsg">Готово!</span>
+    </div>
+
+  </div>
+
+  <script>
+    // Данные для круговой диаграммы и аккордеона
+    const expensesData = [
+      { 
+        id: 'fastfood',
+        name: 'Фастфуд и кафе', 
+        icon: '🍔', 
+        percent: 42, 
+        amount: 210,
+        color: '#38bdf8', // moby.cyan
+        shops: [
+          { name: 'KFC', amount: 100 },
+          { name: 'Burger King', amount: 70 },
+          { name: 'Додо Пицца', amount: 40 }
+        ]
+      },
+      { 
+        id: 'games',
+        name: 'Игры и софт', 
+        icon: '🎮', 
+        percent: 26, 
+        amount: 130,
+        color: '#a855f7', // moby.purple
+        shops: [
+          { name: 'Steam', amount: 90 },
+          { name: 'Roblox', amount: 30 },
+          { name: 'Discord', amount: 10 }
+        ]
+      },
+      { 
+        id: 'transport',
+        name: 'Транспорт', 
+        icon: '🛴', 
+        percent: 18, 
+        amount: 90,
+        color: '#10b981', // moby.green
+        shops: [
+          { name: 'Whoosh', amount: 50 },
+          { name: 'Метро', amount: 30 },
+          { name: 'Автобус', amount: 10 }
+        ]
+      },
+      { 
+        id: 'hobby',
+        name: 'Хобби и книги', 
+        icon: '📚', 
+        percent: 14, 
+        amount: 70,
+        color: '#f59e0b', // moby.amber
+        shops: [
+          { name: 'OZ.by', amount: 45 },
+          { name: 'Кинотеатр', amount: 25 }
+        ]
+      }
+    ];
+
+    let currentOpenAccordion = null;
+
+    function renderDonutChart() {
+      const group = document.getElementById('donutChartGroup');
+      group.innerHTML = '';
+      
+      const r = 40; // Радиус
+      const circumference = 2 * Math.PI * r; // ~251.327
+      let currentOffset = 0; // Сдвиг для каждого куска
+      
+      const totalAmount = expensesData.reduce((sum, item) => sum + item.amount, 0);
+      document.getElementById('totalSpentText').innerText = totalAmount;
+
+      expensesData.forEach((item) => {
+        // Вычисляем длину куска диаграммы
+        const dash = (item.percent / 100) * circumference;
+        // Зазор между кусками
+        const gap = 2.5;
+        // Фактическая длина линии
+        const strokeDasharray = `${Math.max(0, dash - gap)} ${circumference}`;
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "50");
+        circle.setAttribute("cy", "50");
+        circle.setAttribute("r", r);
+        circle.setAttribute("fill", "none");
+        circle.setAttribute("stroke", item.color);
+        circle.setAttribute("stroke-width", "12");
+        circle.setAttribute("stroke-dasharray", strokeDasharray);
+        circle.setAttribute("stroke-dashoffset", -currentOffset);
+        circle.setAttribute("class", "donut-slice");
+        circle.setAttribute("stroke-linecap", "round");
+        
+        // Обработка клика по сегменту диаграммы
+        circle.onclick = () => toggleAccordion(item.id);
+
+        group.appendChild(circle);
+        
+        // Обновляем смещение для следующего куска (сдвигаем на весь процент)
+        currentOffset += dash;
+      });
+    }
+
+    function renderAccordion() {
+      const container = document.getElementById('categoriesList');
+      container.innerHTML = '';
+
+      expensesData.forEach((item) => {
+        // Сортировка магазинов от большего к меньшему (по заданию)
+        const sortedShops = [...item.shops].sort((a, b) => b.amount - a.amount);
+        
+        let shopsHtml = '';
+        sortedShops.forEach((shop, index) => {
+          shopsHtml += `
+            <div class="flex justify-between items-center py-2 ${index !== sortedShops.length - 1 ? 'border-b border-white/5' : ''}">
+              <span class="text-xs text-white/90">${shop.name}</span>
+              <span class="text-xs font-semibold text-white/70">${shop.amount} BYN</span>
+            </div>
+          `;
+        });
+
+        const categoryEl = document.createElement('div');
+        categoryEl.className = 'rounded-2xl glass-card overflow-hidden';
+        
+        categoryEl.innerHTML = `
+          <!-- Шапка аккордеона -->
+          <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/5 transition" onclick="toggleAccordion('${item.id}')">
+            <div class="flex items-center gap-3">
+              <div class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${item.color}; box-shadow: 0 0 10px ${item.color}80;"></div>
+              <div>
+                <p class="text-sm font-bold text-white leading-tight">${item.name}</p>
+                <p class="text-[10px] text-moby-muted mt-0.5">${item.percent}% от всех трат</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-white">${item.amount} <span class="text-[10px] text-moby-darkMuted font-medium">BYN</span></span>
+              <i data-lucide="chevron-down" id="chevron-${item.id}" class="w-4 h-4 text-moby-muted transition-transform duration-300"></i>
+            </div>
+          </div>
+          <!-- Скрытый контент (Магазины) -->
+          <div id="content-${item.id}" class="accordion-content bg-[#101723]/60 px-4">
+            <div class="py-1">
+              ${shopsHtml}
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(categoryEl);
+      });
+      lucide.createIcons();
+    }
+
+    function toggleAccordion(id) {
+      const content = document.getElementById(`content-${id}`);
+      const chevron = document.getElementById(`chevron-${id}`);
+
+      // Если кликнули на уже открытый - закрываем
+      if (currentOpenAccordion === id) {
+        content.classList.remove('open');
+        chevron.style.transform = "rotate(0deg)";
+        currentOpenAccordion = null;
+        return;
+      }
+
+      // Закрываем предыдущий открытый
+      if (currentOpenAccordion) {
+        const prevContent = document.getElementById(`content-${currentOpenAccordion}`);
+        const prevChevron = document.getElementById(`chevron-${currentOpenAccordion}`);
+        if(prevContent) prevContent.classList.remove('open');
+        if(prevChevron) prevChevron.style.transform = "rotate(0deg)";
+      }
+
+      // Открываем новый
+      content.classList.add('open');
+      chevron.style.transform = "rotate(180deg)";
+      currentOpenAccordion = id;
+    }
+
+    // Логика шторки (Модалки) периодов
+    function openPeriodModal() {
+      const modal = document.getElementById('periodModal');
+      const content = document.getElementById('periodModalContent');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => {
+        content.classList.remove('sheet-leave');
+        content.classList.add('sheet-enter');
+      }, 10);
+    }
+
+    function closePeriodModal() {
+      const modal = document.getElementById('periodModal');
+      const content = document.getElementById('periodModalContent');
+      content.classList.remove('sheet-enter');
+      content.classList.add('sheet-leave');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }, 250);
+    }
+
+    function selectPeriod(periodName) {
+      document.getElementById('currentPeriodLabel').innerText = periodName;
+      closePeriodModal();
+      showToast(`Выбран период: ${periodName}`);
+      // Здесь можно было бы обновлять данные expensesData и перерисовывать график
+    }
+
+    // Уведомления
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.innerText = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('opacity-100');
+      }, 2000);
+    }
+
+    // Инициализация при загрузке
+    window.onload = () => {
+      renderDonutChart();
+      renderAccordion();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

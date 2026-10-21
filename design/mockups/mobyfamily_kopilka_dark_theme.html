@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Копилка - MobyFamily Dark Theme</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            moby: {
+              bg: '#101723',
+              card: '#1b2432',
+              cardHover: '#232e3f',
+              cardBorder: 'rgba(255, 255, 255, 0.08)',
+              nav: '#161e2a',
+              accentBlue: '#3b82f6',
+              accentCyan: '#38bdf8',
+              muted: '#8e9eaf',
+              lightMuted: '#64748b',
+              green: '#22c55e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f17;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Мягкий рассеянный градиент на фоне в стиле MobyFamily + основной градиент */
+    .ambient-glow {
+      background: 
+        radial-gradient(circle at 20% -20%, rgba(220, 38, 38, 0.15) 0%, transparent 40%), 
+        radial-gradient(circle at 80% -20%, rgba(37, 99, 235, 0.15) 0%, transparent 40%), 
+        linear-gradient(to bottom, #202630 0%, #171A1D 56%, #131617 100%);
+    }
+
+    /* Скрытие полосы прокрутки при сохранении функционала скролла */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Анимация кругового прогресса SVG */
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    /* Тонкие блики стекла */
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center p-0 md:p-6 bg-[#090d14]">
+
+  <!-- Мобильный контейнер (iPhone-фрейм на десктопе, на мобилке на весь экран) -->
+  <div class="relative w-full max-w-[420px] h-[100dvh] md:h-[890px] md:rounded-[48px] overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.85)] flex flex-col border border-white/5 ambient-glow">
+    
+    <!-- Верхняя статусная панель iOS -->
+    <div class="pt-3 px-7 flex justify-between items-center text-xs font-semibold text-white/90 z-20 shrink-0">
+      <span>9:41</span>
+      <!-- Динамический островок / вырез -->
+      <div class="w-24 h-4 bg-black rounded-full mx-auto hidden sm:block opacity-70"></div>
+      <div class="flex items-center space-x-2">
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <div class="w-5 h-2.5 border border-white/80 rounded-sm p-[1px] flex items-center">
+          <div class="h-full w-full bg-white rounded-xs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Верхний бар с навигацией страницы "Копилка" -->
+    <header class="px-5 pt-4 pb-2 z-20 shrink-0">
+      <div class="flex items-center justify-between mb-3">
+        <!-- Кнопка назад -->
+        <button onclick="simulateBack()" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10 text-white">
+          <i data-lucide="chevron-left" class="w-6 h-6 stroke-[2.2]"></i>
+        </button>
+
+        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <span>Копилки</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium border border-blue-500/30">MobyFamily</span>
+        </h1>
+
+        <!-- Заглушка вместо плюсика для выравнивания (поскольку flex-between) -->
+        <div class="w-10 h-10"></div>
+      </div>
+
+      <!-- Подзаголовок -->
+      <p class="text-[13px] text-moby-muted font-normal pl-1">
+        Копи на свои цели вместе с родителями
+      </p>
+
+      <!-- Суммарная карточка накоплений -->
+      <div class="mt-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-between shadow-lg relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div>
+          <span class="text-xs uppercase tracking-wider text-moby-muted font-semibold block mb-0.5">Всего в копилках</span>
+          <div class="flex items-baseline gap-1.5">
+            <span id="totalAccumulated" class="text-2xl font-extrabold text-white tracking-tight">11 800</span>
+            <span class="text-sm font-bold text-moby-muted">BYN</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Основной прокручиваемый контент (Список целей) -->
+    <main class="flex-1 overflow-y-auto px-5 pt-3 pb-24 no-scrollbar space-y-3.5 z-10">
+
+      <!-- Цель 1: Велосипед (Оформление Glassmorphism) -->
+      <div onclick="openDepositModal(0)" class="group cursor-pointer rounded-3xl bg-white/5 backdrop-blur-md p-4 border border-white/10 hover:border-blue-500/40 active:scale-[0.99] transition-all duration-200 shadow-md hover:shadow-blue-500/5 relative overflow-hidden">
+        <div class="flex items-center gap-4">
+          
+          <!-- Круговой прогресс бар (SVG Circular) со значком 🚲 и процентом 56% -->
+          <div class="relative w-[78px] h-[78px] shrink-0 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 80 80">
+              <!-- Фоновая окружность -->
+              <circle cx="40" cy="40" r="33" stroke="rgba(255, 255, 255, 0.08)" stroke-width="6.5" fill="none"/>
+              <!-- Заполненный градиентный круг 56% -->
+              <defs>
+                <linearGradient id="gradBike" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#9333ea" />
+                  <stop offset="50%" stop-color="#ec4899" />
+                  <stop offset="100%" stop-color="#f43f5e" />
+                </linearGradient>
+              </defs>
+              <circle cx="40" cy="40" r="33" 
+                stroke="url(#gradBike)" 
+                stroke-width="6.5" 
+                stroke-linecap="round" 
+                fill="none" 
+                stroke-dasharray="207.3" 
+                stroke-dashoffset="91.2" 
+                class="progress-ring__circle"
+              />
+            </svg>
+            <!-- Контент внутри кольца: иконка + процент -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span class="text-base leading-none mb-0.5">🚲</span>
+              <span class="text-[11px] font-bold text-white/90">56%</span>
+            </div>
+          </div>
+
+          <!-- Текстовая информация -->
+          <div class="flex-1 min-w-0 pr-1">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-white truncate group-hover:text-blue-400 transition-colors">Велосипед</h2>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-moby-muted group-hover:translate-x-0.5 transition-transform"></i>
+            </div>
+            
+            <p class="text-[13px] font-semibold text-white/80 mt-0.5">
+              <span class="text-white">8 400</span> из 15 000 BYN
+            </p>
+
+            <!-- Линейный горизонтальный индикатор в стиле скриншота 2 -->
+            <div class="w-full h-2 rounded-full bg-white/10 mt-2.5 overflow-hidden flex">
+              <div class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 rounded-full" style="width: 56%"></div>
+            </div>
+
+            <p class="text-[11px] font-medium text-moby-muted mt-2">
+              Осталось <span class="text-white/80 font-semibold">6 600 BYN</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Цель 2: На наушники (Оформление Glassmorphism) -->
+      <div onclick="openDepositModal(1)" class="group cursor-pointer rounded-3xl bg-white/5 backdrop-blur-md p-4 border border-white/10 hover:border-purple-500/40 active:scale-[0.99] transition-all duration-200 shadow-md hover:shadow-purple-500/5 relative overflow-hidden">
+        <div class="flex items-center gap-4">
+          
+          <!-- Круговой прогресс бар со значком 🎧 и процентом 34% -->
+          <div class="relative w-[78px] h-[78px] shrink-0 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="33" stroke="rgba(255, 255, 255, 0.08)" stroke-width="6.5" fill="none"/>
+              <defs>
+                <linearGradient id="gradHeadphones" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#6366f1" />
+                  <stop offset="60%" stop-color="#8b5cf6" />
+                  <stop offset="100%" stop-color="#d946ef" />
+                </linearGradient>
+              </defs>
+              <circle cx="40" cy="40" r="33" 
+                stroke="url(#gradHeadphones)" 
+                stroke-width="6.5" 
+                stroke-linecap="round" 
+                fill="none" 
+                stroke-dasharray="207.3" 
+                stroke-dashoffset="136.8" 
+                class="progress-ring__circle"
+              />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span class="text-base leading-none mb-0.5">🎧</span>
+              <span class="text-[11px] font-bold text-white/90">34%</span>
+            </div>
+          </div>
+
+          <!-- Текстовая информация -->
+          <div class="flex-1 min-w-0 pr-1">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-bold text-white truncate group-hover:text-purple-400 transition-colors">На наушники</h2>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-moby-muted group-hover:translate-x-0.5 transition-transform"></i>
+            </div>
+            
+            <p class="text-[13px] font-semibold text-white/80 mt-0.5">
+              <span class="text-white">3 400</span> из 10 000 BYN
+            </p>
+
+            <div class="w-full h-2 rounded-full bg-white/10 mt-2.5 overflow-hidden flex">
+              <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 rounded-full" style="width: 34%"></div>
+            </div>
+
+            <p class="text-[11px] font-medium text-moby-muted mt-2">
+              Осталось <span class="text-white/80 font-semibold">6 600 BYN</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Блок: «Как быстрее накопить?» -->
+      <div class="p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-blue-500/20 flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div class="text-xs">
+          <span class="font-bold text-white block mb-0.5">Автопополнение от родителей</span>
+          <p class="text-moby-muted leading-relaxed">
+            Родители могут переводить награду за выполненные задания прямо в эти копилки.
+          </p>
+        </div>
+      </div>
+
+      <!-- Кнопка добавления новой цели в списке -->
+      <button onclick="openModal('newGoalModal')" class="w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-white/15 hover:border-blue-400/50 hover:bg-white/[0.02] active:scale-[0.99] transition flex items-center justify-center gap-2 text-sm font-semibold text-moby-muted hover:text-white">
+        <i data-lucide="plus-circle" class="w-4 h-4 text-blue-400"></i>
+        <span>Открыть новую копилку</span>
+      </button>
+
+      <!-- Последние зачисления в копилки -->
+      <div class="pt-2">
+        <h3 class="text-base font-bold text-white mb-2.5 px-1">Последние поступления</h3>
+        <div class="bg-white/5 backdrop-blur-md rounded-3xl p-2 border border-white/10 space-y-1">
+          
+          <!-- Зачисление 1 -->
+          <div class="flex items-center justify-between p-2.5 rounded-2xl hover:bg-white/5 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-blue-600/25 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                <i data-lucide="download" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-[13px] font-semibold text-white leading-tight">В «Велосипед» от мамы</p>
+                <p class="text-[11px] text-moby-muted mt-0.5">Сегодня, 14:20 • Бонус за уборку</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-emerald-400 tracking-tight">+50 BYN</span>
+          </div>
+
+          <!-- Зачисление 2 -->
+          <div class="flex items-center justify-between p-2.5 rounded-2xl hover:bg-white/5 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-blue-600/25 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                <i data-lucide="download" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p class="text-[13px] font-semibold text-white leading-tight">В «На наушники»</p>
+                <p class="text-[11px] text-moby-muted mt-0.5">Вчера, 19:05 • Сдача с покупок</p>
+              </div>
+            </div>
+            <span class="text-xs font-bold text-emerald-400 tracking-tight">+25 BYN</span>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Нижняя навигационная панель -->
+    <nav class="absolute bottom-0 inset-x-0 bg-[#161e2a]/95 backdrop-blur-md border-t border-white/10 px-4 py-2.5 z-30 flex items-center justify-around">
+      <button onclick="setActiveNav(this, 'Главная')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Главная</span>
+      </button>
+      <button onclick="setActiveNav(this, 'Копилка')" class="nav-item flex flex-col items-center gap-1 text-blue-400 transition relative">
+        <div class="relative">
+          <i data-lucide="heart" class="w-5 h-5 fill-blue-500/20 stroke-[2.2]"></i>
+          <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-blue-400"></span>
+        </div>
+        <span class="text-[11px] font-bold text-blue-400">Копилка</span>
+      </button>
+      <button onclick="setActiveNav(this, 'Задания')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="check-square" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Задания</span>
+      </button>
+      <button onclick="setActiveNav(this, 'Профиль')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="user" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Профиль</span>
+      </button>
+    </nav>
+
+    <!-- Модальное окно действий с выбранной копилкой -->
+    <div id="depositModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+      <div class="bg-white/10 backdrop-blur-xl border border-white/15 w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl transform transition-transform">
+        <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4 sm:hidden"></div>
+        
+        <!-- Верхняя шапка модалки -->
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2.5">
+            <button id="modalBackButton" onclick="showModalView('actions')" class="hidden w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/70 hover:text-white transition mr-1">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <span id="modalIcon" class="text-2xl">🚲</span>
+            <h3 id="modalTitle" class="text-lg font-bold text-white">Действия</h3>
+          </div>
+          <button onclick="closeModal('depositModal')" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- VIEW 1: Выбор действия (Пополнение или Перевод) -->
+        <div id="modal-view-actions" class="space-y-3 block">
+          <button onclick="showModalView('deposit')" class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition active:scale-95 text-left">
+            <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="block text-sm font-bold text-white">Пополнение</span>
+              <span class="block text-xs text-moby-muted mt-0.5">Пополнить копилку с карты</span>
+            </div>
+          </button>
+          
+          <button onclick="showModalView('transfer')" class="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition active:scale-95 text-left">
+            <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+              <i data-lucide="arrow-right-left" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <span class="block text-sm font-bold text-white">Перевод</span>
+              <span class="block text-xs text-moby-muted mt-0.5">Перевести средства из копилки</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- VIEW 2: Пополнение (Оригинальный интерфейс) -->
+        <div id="modal-view-deposit" class="hidden">
+          <p class="text-xs text-moby-muted mb-4">
+            Сумма будет списана с карты <span class="text-white font-medium">#9392</span> (Доступно: 1 250 BYN)
+          </p>
+
+          <!-- Быстрые суммы -->
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <button onclick="setDepositAmount(20)" class="py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white hover:bg-blue-600/20 hover:border-blue-500/40 transition active:scale-95">+20 BYN</button>
+            <button onclick="setDepositAmount(50)" class="py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white hover:bg-blue-600/20 hover:border-blue-500/40 transition active:scale-95">+50 BYN</button>
+            <button onclick="setDepositAmount(100)" class="py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-white hover:bg-blue-600/20 hover:border-blue-500/40 transition active:scale-95">+100 BYN</button>
+          </div>
+
+          <!-- Поле ввода суммы -->
+          <div class="relative mb-5">
+            <input id="depositInput" type="number" placeholder="Введите сумму" value="50" class="w-full bg-[#111823]/50 border border-white/10 rounded-2xl py-3 px-4 text-white text-lg font-bold placeholder-white/30 focus:outline-none focus:border-blue-500" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-moby-muted">BYN</span>
+          </div>
+
+          <button onclick="confirmDeposit()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition text-white font-semibold rounded-2xl shadow-lg shadow-blue-600/30 text-sm flex items-center justify-center gap-2">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Внести в копилку</span>
+          </button>
+        </div>
+
+        <!-- VIEW 3: Перевод -->
+        <div id="modal-view-transfer" class="hidden space-y-3">
+          <button onclick="confirmAction('С копилки на карту')" class="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition active:scale-95">
+            <div class="flex items-center gap-3">
+              <i data-lucide="credit-card" class="w-5 h-5 text-moby-muted"></i>
+              <span class="text-sm font-bold text-white">С копилки на карту</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-white/40"></i>
+          </button>
+          
+          <button onclick="confirmAction('С копилки на другую копилку')" class="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition active:scale-95">
+            <div class="flex items-center gap-3">
+              <i data-lucide="heart" class="w-5 h-5 text-moby-muted"></i>
+              <span class="text-sm font-bold text-white">На другую копилку</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-white/40"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Модальное окно создания новой копилки -->
+    <div id="newGoalModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+      <div class="bg-white/10 backdrop-blur-xl border border-white/15 w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl">
+        <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4 sm:hidden"></div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-white">Новая цель</h3>
+          <button onclick="closeModal('newGoalModal')" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3.5 mb-5">
+          <div>
+            <label class="text-xs text-moby-muted font-medium mb-1 block">Название цели</label>
+            <input id="newGoalName" type="text" placeholder="Например: Кроссовки или PlayStation" class="w-full bg-[#111823]/50 border border-white/10 rounded-2xl py-2.5 px-3.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+
+          <div>
+            <label class="text-xs text-moby-muted font-medium mb-1 block">Необходимая сумма (BYN)</label>
+            <input id="newGoalTarget" type="number" placeholder="1000" class="w-full bg-[#111823]/50 border border-white/10 rounded-2xl py-2.5 px-3.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+
+          <div>
+            <label class="text-xs text-moby-muted font-medium mb-1 block">Выберите значок</label>
+            <div class="flex gap-2">
+              <button onclick="selectEmoji(this, '👟')" class="emoji-btn p-2 bg-white/5 border border-white/10 rounded-xl text-lg hover:border-blue-400">👟</button>
+              <button onclick="selectEmoji(this, '🎮')" class="emoji-btn p-2 bg-white/5 border border-white/10 rounded-xl text-lg hover:border-blue-400">🎮</button>
+              <button onclick="selectEmoji(this, '💻')" class="emoji-btn p-2 bg-white/5 border border-white/10 rounded-xl text-lg hover:border-blue-400">💻</button>
+              <button onclick="selectEmoji(this, '🎸')" class="emoji-btn p-2 bg-white/5 border border-white/10 rounded-xl text-lg hover:border-blue-400">🎸</button>
+              <button onclick="selectEmoji(this, '✈️')" class="emoji-btn p-2 bg-white/5 border border-white/10 rounded-xl text-lg hover:border-blue-400">✈️</button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="createNewGoal()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition text-white font-semibold rounded-2xl shadow-lg shadow-blue-600/30 text-sm">
+          Создать цель
+        </button>
+      </div>
+    </div>
+
+    <!-- Уведомление о действии (Toast notification) -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-blue-600/95 text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-xl border border-blue-400/40 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-300"></i>
+      <span id="toastMsg">Успешно!</span>
+    </div>
+
+  </div>
+
+  <script>
+    // Инициализация иконок Lucide
+    lucide.createIcons();
+
+    let selectedGoalIdx = 0;
+    let selectedEmojiChar = '👟';
+
+    const goalsData = [
+      { title: 'Велосипед', current: 8400, total: 15000, icon: '🚲' },
+      { title: 'На наушники', current: 3400, total: 10000, icon: '🎧' }
+    ];
+
+    function openModal(modalId) {
+      const el = document.getElementById(modalId);
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    }
+
+    function closeModal(modalId) {
+      const el = document.getElementById(modalId);
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    }
+
+    // Логика управления видами внутри модалки
+    function showModalView(view) {
+      document.getElementById('modal-view-actions').classList.add('hidden');
+      document.getElementById('modal-view-deposit').classList.add('hidden');
+      document.getElementById('modal-view-transfer').classList.add('hidden');
+      document.getElementById('modalBackButton').classList.remove('hidden');
+
+      const titleEl = document.getElementById('modalTitle');
+      const g = goalsData[selectedGoalIdx];
+
+      if (view === 'actions') {
+        document.getElementById('modal-view-actions').classList.remove('hidden');
+        document.getElementById('modal-view-actions').classList.add('block');
+        document.getElementById('modalBackButton').classList.add('hidden');
+        titleEl.innerText = g.title;
+      } else if (view === 'deposit') {
+        document.getElementById('modal-view-deposit').classList.remove('hidden');
+        document.getElementById('modal-view-deposit').classList.add('block');
+        titleEl.innerText = 'Пополнить: ' + g.title;
+      } else if (view === 'transfer') {
+        document.getElementById('modal-view-transfer').classList.remove('hidden');
+        document.getElementById('modal-view-transfer').classList.add('block');
+        titleEl.innerText = 'Перевод из: ' + g.title;
+      }
+    }
+
+    function openDepositModal(idx) {
+      selectedGoalIdx = idx;
+      const g = goalsData[idx];
+      document.getElementById('modalIcon').innerText = g.icon;
+      
+      // При открытии всегда показываем меню действий
+      showModalView('actions');
+      openModal('depositModal');
+    }
+
+    function setDepositAmount(val) {
+      document.getElementById('depositInput').value = val;
+    }
+
+    function confirmDeposit() {
+      const val = parseInt(document.getElementById('depositInput').value, 10);
+      if (isNaN(val) || val <= 0) {
+        showToast('Введите корректную сумму');
+        return;
+      }
+      
+      closeModal('depositModal');
+      showToast(`+${val} BYN зачислено в копилку!`);
+      
+      // Обновляем общую сумму визуально
+      const totalEl = document.getElementById('totalAccumulated');
+      const currentVal = parseInt(totalEl.innerText.replace(/\s/g, ''), 10) || 11800;
+      totalEl.innerText = (currentVal + val).toLocaleString('ru-RU');
+    }
+
+    // Имитация действия перевода
+    function confirmAction(actionName) {
+      closeModal('depositModal');
+      showToast(`Выбрано: ${actionName}`);
+    }
+
+    function selectEmoji(btn, emoji) {
+      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('border-blue-400', 'bg-blue-500/20'));
+      btn.classList.add('border-blue-400', 'bg-blue-500/20');
+      selectedEmojiChar = emoji;
+    }
+
+    function createNewGoal() {
+      const name = document.getElementById('newGoalName').value.trim();
+      const target = document.getElementById('newGoalTarget').value.trim();
+      if (!name || !target) {
+        showToast('Заполните название и сумму цели');
+        return;
+      }
+      closeModal('newGoalModal');
+      showToast(`Цель «${name}» успешно добавлена!`);
+      document.getElementById('newGoalName').value = '';
+      document.getElementById('newGoalTarget').value = '';
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.innerText = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('opacity-100');
+      }, 2600);
+    }
+
+    function setActiveNav(btn, name) {
+      document.querySelectorAll('.nav-item').forEach(b => {
+        b.classList.remove('text-blue-400');
+        b.classList.add('text-moby-muted');
+        const span = b.querySelector('span');
+        if (span) span.className = 'text-[11px] font-medium';
+        const heart = b.querySelector('[data-lucide="heart"]');
+        if (heart) heart.classList.remove('fill-blue-500/20');
+      });
+
+      btn.classList.remove('text-moby-muted');
+      btn.classList.add('text-blue-400');
+      const span = btn.querySelector('span');
+      if (span) span.className = 'text-[11px] font-bold text-blue-400';
+
+      if (name !== 'Копилка') {
+        showToast(`Переход в раздел «${name}»`);
+      }
+    }
+
+    function simulateBack() {
+      showToast('Возврат на Главный экран');
+    }
+  </script>
+</body>
+</html>

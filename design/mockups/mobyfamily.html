@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Главная - MobyFamily</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            moby: {
+              bgDark: '#181b21',
+              panelDark: '#22272e',
+              cardDark: '#2c3545',
+              textMuted: '#8b94a3',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f14;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* Радиальные градиенты для фона (красный слева, синий справа) */
+    .hero-gradient {
+      background: 
+        radial-gradient(circle at 0% 0%, rgba(140, 40, 60, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 100% 0%, rgba(40, 80, 160, 0.3) 0%, transparent 50%),
+        #181b21;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center p-0 md:p-6">
+
+  <!-- Контейнер мобильного интерфейса -->
+  <div class="relative w-full max-w-[410px] h-[100dvh] md:h-[860px] bg-moby-bgDark md:rounded-[42px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.8)] flex flex-col">
+    
+    <!-- Скроллируемая область -->
+    <main class="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24 relative bg-moby-panelDark">
+      
+      <!-- Верхний блок с градиентом, балансом и картой -->
+      <div class="hero-gradient px-6 pt-12 pb-6 relative z-0">
+        
+        <!-- Шапка -->
+        <div class="flex items-start justify-between mb-5 relative z-10">
+          <div>
+            <h1 class="text-[22px] font-bold tracking-tight text-white mb-0.5">MobyFamily</h1>
+            <p class="text-[13px] text-moby-textMuted font-medium">МТБанк • #9392</p>
+          </div>
+          <button onclick="showToast('Сообщения')" class="w-10 h-10 flex items-center justify-center -mr-2 text-white hover:text-gray-300 transition">
+            <i data-lucide="mail" class="w-6 h-6 stroke-[1.5]"></i>
+          </button>
+        </div>
+
+        <!-- Баланс -->
+        <div class="flex items-baseline gap-2 mb-8 relative z-10">
+          <span class="text-[3.5rem] font-bold text-white tracking-tight leading-none drop-shadow-md">1 250</span>
+          <span class="text-2xl font-bold text-gray-400 tracking-wide">BYN</span>
+        </div>
+
+        <!-- Блок банковской карты (Выделяем высоту контейнера, чтобы шторка могла его перекрыть) -->
+        <div class="relative z-0 h-[200px] w-[104%] -left-[2%]">
+          <!-- Яркое бело-голубое свечение ЗА картой -->
+          <div class="absolute top-[30%] left-1/2 -translate-x-1/2 w-[90%] h-[160px] bg-blue-300/40 blur-3xl transform -rotate-[4deg] pointer-events-none"></div>
+
+          <!-- Сама карта (повернута, черный фон с MT) -->
+          <div class="absolute inset-0 rounded-[24px] bg-black border border-white/[0.08] shadow-2xl transform -rotate-[4deg] transition-transform active:scale-[0.98] overflow-hidden">
+            
+            <!-- Фоновая надпись MT (светящийся синий) -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
+              <span class="text-[160px] font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#0000ff] via-[#1a1aff] to-[#00008b] drop-shadow-[0_0_20px_rgba(0,0,255,0.7)] opacity-95 ml-4 mt-2" style="font-family: Arial, sans-serif; -webkit-text-stroke: 1px rgba(255,255,255,0.1);">MT</span>
+            </div>
+
+            <!-- Верхний левый угол: BYN -->
+            <div class="absolute top-5 left-6 text-white font-medium text-[15px] tracking-widest z-10">
+              BYN
+            </div>
+
+            <!-- Верхний правый угол: Логотип МТБанк -->
+            <div class="absolute top-5 right-6 flex items-center gap-1.5 z-10">
+              <!-- Стилизованная иконка для МТБанк -->
+              <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-.5 17.8c-3.11-.42-5.6-2.61-6.42-5.63l12.42-2.1c-.26 3.82-3 7-6 7.73zm6.65-9.1L5.64 12.9c.14-1.5 1.05-2.8 2.36-3.6l9.64 1.7c-.1.35-.2.7-.49 1.03z"/>
+              </svg>
+              <span class="text-white font-bold text-[15px] tracking-wide">МТБанк</span>
+            </div>
+
+            <!-- Чип (EMV) -->
+            <div class="absolute top-[50px] left-6 w-[42px] h-[30px] rounded-[4px] bg-gradient-to-br from-[#c8c8c8] to-[#999999] overflow-hidden border border-[#7a7a7a] shadow-sm opacity-90 z-10">
+              <div class="w-full h-full border border-[#888]/40 rounded-[4px] grid grid-cols-3 grid-rows-3 gap-[1px] p-[1px]">
+                <div class="border border-[#777]/50 rounded-tl-[2px]"></div>
+                <div class="border-b border-[#777]/50"></div>
+                <div class="border border-[#777]/50 rounded-tr-[2px]"></div>
+                <div class="border-r border-[#777]/50"></div>
+                <div class="border border-[#777]/60 rounded-[2px]"></div>
+                <div class="border-l border-[#777]/50"></div>
+                <div class="border border-[#777]/50 rounded-bl-[2px]"></div>
+                <div class="border-t border-[#777]/50"></div>
+                <div class="border border-[#777]/50 rounded-br-[2px]"></div>
+              </div>
+            </div>
+
+            <!-- Текст и логотип абсолютно спозиционированы ВЕРХУ, чтобы не скрыться под перекрывающей шторкой -->
+            <span class="absolute top-[85px] left-6 text-[17px] font-bold tracking-widest text-white uppercase drop-shadow-md z-10">
+              ALEX IVANOV
+            </span>
+            
+            <!-- Логотип Mastercard -->
+            <div class="absolute top-[75px] right-6 flex -space-x-3.5 opacity-95 z-10">
+              <div class="w-9 h-9 rounded-full bg-[#ea001b]"></div>
+              <div class="w-9 h-9 rounded-full bg-[#f79e1b] mix-blend-screen opacity-90"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ВАЖНОЕ ПЕРЕКРЫТИЕ: Нижний блок (Контент) перекрывает карту на 100px -->
+      <div class="relative z-10 bg-moby-panelDark rounded-t-[32px] -mt-[100px] px-5 pt-8 pb-8 space-y-4 border-t border-white/[0.04] shadow-[0_-15px_30px_rgba(0,0,0,0.4)]">
+        
+        <!-- Быстрые действия (4 круглые кнопки) -->
+        <div class="flex items-start justify-between px-1 mb-6">
+          <button onclick="showToast('Пополнить')" class="flex flex-col items-center gap-2 group">
+            <div class="w-[60px] h-[60px] rounded-full bg-[#2a2f38] border border-white/[0.05] flex items-center justify-center text-blue-400 group-hover:bg-[#323843] transition shadow-inner">
+              <i data-lucide="plus" class="w-7 h-7 stroke-[1.5]"></i>
+            </div>
+            <span class="text-[11px] text-moby-textMuted font-medium">Пополнить</span>
+          </button>
+
+          <button onclick="showToast('Перевести')" class="flex flex-col items-center gap-2 group">
+            <div class="w-[60px] h-[60px] rounded-full bg-[#2a2f38] border border-white/[0.05] flex items-center justify-center text-blue-400 group-hover:bg-[#323843] transition shadow-inner">
+              <i data-lucide="arrow-right-left" class="w-7 h-7 stroke-[1.5]"></i>
+            </div>
+            <span class="text-[11px] text-moby-textMuted font-medium">Перевести</span>
+          </button>
+
+          <button onclick="showToast('Копилка')" class="flex flex-col items-center gap-2 group">
+            <div class="w-[60px] h-[60px] rounded-full bg-[#2a2f38] border border-white/[0.05] flex items-center justify-center text-blue-400 group-hover:bg-[#323843] transition shadow-inner">
+              <i data-lucide="heart" class="w-7 h-7 stroke-[1.5]"></i>
+            </div>
+            <span class="text-[11px] text-moby-textMuted font-medium">Копилка</span>
+          </button>
+
+          <button onclick="showToast('Задания')" class="flex flex-col items-center gap-2 group">
+            <div class="w-[60px] h-[60px] rounded-full bg-[#2a2f38] border border-white/[0.05] flex items-center justify-center text-blue-400 group-hover:bg-[#323843] transition shadow-inner">
+              <i data-lucide="check-square" class="w-7 h-7 stroke-[1.5]"></i>
+            </div>
+            <span class="text-[11px] text-moby-textMuted font-medium">Задания</span>
+          </button>
+        </div>
+
+        <!-- Виджет "Копилка" -->
+        <div class="bg-moby-cardDark rounded-[24px] p-5 border border-white/10 shadow-md">
+          <div class="flex items-center gap-2 mb-2 text-moby-textMuted">
+            <i data-lucide="heart" class="w-4 h-4"></i>
+            <span class="text-xs font-medium">Копилка</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-1.5">Велосипед</h2>
+          <p class="text-[13px] text-moby-textMuted mb-4">8 400 из 15 000 BYN</p>
+          
+          <div class="flex items-center gap-3.5">
+            <div class="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+              <div class="h-full bg-blue-500 rounded-full" style="width: 56%"></div>
+            </div>
+            <span class="text-xs text-moby-textMuted font-medium">56%</span>
+          </div>
+        </div>
+
+        <!-- Последние операции -->
+        <div class="bg-moby-cardDark rounded-[24px] p-5 border border-white/10 shadow-md">
+          <h3 class="text-[15px] font-bold text-white mb-5">Последние операции</h3>
+          
+          <div class="space-y-4">
+            <!-- Операция 1 -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-full bg-blue-600/20 flex items-center justify-center shrink-0 text-blue-500">
+                <i data-lucide="download" class="w-5 h-5 stroke-[2.5]"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-semibold text-white truncate">Пополнение от родителей</p>
+                <p class="text-sm font-bold text-[#10b981] leading-tight">+500 BYN</p>
+                <p class="text-[11px] text-moby-textMuted mt-0.5">Сегодня, 08:24</p>
+              </div>
+            </div>
+            
+            <div class="w-full h-px bg-white/5"></div>
+
+            <!-- Операция 2 -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-full bg-blue-600/20 flex items-center justify-center shrink-0 text-blue-500">
+                <i data-lucide="download" class="w-5 h-5 stroke-[2.5]"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-semibold text-white truncate">Пополнение от родителей</p>
+                <p class="text-sm font-bold text-[#10b981] leading-tight">+570 BYN</p>
+                <p class="text-[11px] text-moby-textMuted mt-0.5">Вчера, 12:29</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Нижняя навигация -->
+    <nav class="absolute bottom-0 inset-x-0 bg-moby-panelDark/95 backdrop-blur-md border-t border-white/5 px-4 py-3 z-30 flex items-center justify-around md:rounded-b-[42px]">
+      
+      <button class="flex flex-col items-center gap-1 text-blue-500 transition relative">
+        <i data-lucide="home" class="w-6 h-6 stroke-[1.5]"></i>
+        <span class="text-[11px] font-medium">Главная</span>
+      </button>
+
+      <button class="flex flex-col items-center gap-1 text-moby-textMuted hover:text-white transition">
+        <i data-lucide="heart" class="w-6 h-6 stroke-[1.5]"></i>
+        <span class="text-[11px] font-medium">Копилка</span>
+      </button>
+
+      <button class="flex flex-col items-center gap-1 text-moby-textMuted hover:text-white transition">
+        <i data-lucide="check-square" class="w-6 h-6 stroke-[1.5]"></i>
+        <span class="text-[11px] font-medium">Задания</span>
+      </button>
+
+      <button class="flex flex-col items-center gap-1 text-moby-textMuted hover:text-white transition">
+        <i data-lucide="user" class="w-6 h-6 stroke-[1.5]"></i>
+        <span class="text-[11px] font-medium">Профиль</span>
+      </button>
+      
+    </nav>
+
+    <!-- Всплывающий тост (Уведомление) -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-[#2a2f38]/95 text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-2xl border border-white/10 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+      <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+      <span id="toastMsg">Готово!</span>
+    </div>
+
+  </div>
+
+  <script>
+    // Инициализация иконок
+    lucide.createIcons();
+
+    // Уведомления
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.innerText = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('opacity-100');
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

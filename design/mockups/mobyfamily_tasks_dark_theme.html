@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Задания - MobyFamily Dark Theme</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            moby: {
+              bg: '#0f1723',
+              card: '#1b2432',
+              cardHover: '#222f42',
+              cardBorder: 'rgba(255, 255, 255, 0.08)',
+              nav: '#161e2a',
+              blue: '#3b82f6',
+              blueHover: '#2563eb',
+              cyan: '#38bdf8',
+              muted: '#8e9eaf',
+              darkMuted: '#58687a',
+              green: '#10b981',
+              greenLight: '#34d399',
+              amber: '#f59e0b',
+              purple: '#a855f7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f17;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Рассеянный градиент в духе MobyFamily */
+    .ambient-glow {
+      background: 
+        radial-gradient(circle at 20% -20%, rgba(220, 38, 38, 0.15) 0%, transparent 40%), 
+        radial-gradient(circle at 80% -20%, rgba(37, 99, 235, 0.15) 0%, transparent 40%), 
+        linear-gradient(to bottom, #202630 0%, #171A1D 56%, #131617 100%);
+    }
+
+    /* Класс для эффекта матового стекла */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Анимация выдвижения шторки */
+    .sheet-enter {
+      transform: translateY(0%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sheet-leave {
+      transform: translateY(100%);
+      transition: transform 0.25s ease-in;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center p-0 md:p-6 bg-[#0b0f17]">
+
+  <!-- Контейнер мобильного интерфейса -->
+  <div class="relative w-full max-w-[420px] h-[100dvh] md:h-[890px] md:rounded-[48px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.9)] flex flex-col border border-white/5 ambient-glow">
+    
+    <!-- iOS Status Bar -->
+    <div class="pt-3.5 px-7 flex justify-between items-center text-xs font-semibold text-white/90 z-20 shrink-0">
+      <span class="tracking-tight font-medium">9:41</span>
+      <div class="w-24 h-4 bg-black rounded-full mx-auto hidden sm:block opacity-80"></div>
+      <div class="flex items-center space-x-2">
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <div class="w-5 h-2.5 border border-white/80 rounded-[3px] p-[1px] flex items-center">
+          <div class="h-full w-full bg-white rounded-[1px]"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Заголовок и верхняя панель управления -->
+    <header class="px-5 pt-3 pb-2 z-20 shrink-0">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <button onclick="showToast('Возврат на главную')" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10 text-white">
+            <i data-lucide="chevron-left" class="w-6 h-6 stroke-[2.2]"></i>
+          </button>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-white leading-none">Задания</h1>
+            <p class="text-[12px] text-moby-muted mt-1 font-normal">Зарабатывай и копи на мечты</p>
+          </div>
+        </div>
+
+        <!-- Заглушка вместо плюсика для выравнивания (поскольку flex-between) -->
+        <div class="w-10 h-10"></div>
+      </div>
+
+      <!-- Главный виджет заработка (Hero summary card) -->
+      <div class="mt-2 p-4 rounded-3xl glass-card relative overflow-hidden shadow-lg">
+        <div class="absolute -right-8 -top-8 w-28 h-28 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="flex items-start justify-between">
+          <div>
+            <span class="text-[11px] uppercase tracking-wider text-moby-muted font-bold block mb-1">Доступно к заработку</span>
+            <div class="flex items-baseline gap-1.5">
+              <span id="heroEarnings" class="text-3xl font-extrabold text-white tracking-tight">+85</span>
+              <span class="text-base font-bold text-moby-muted">BYN</span>
+            </div>
+          </div>
+
+          <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-400/25 flex items-center justify-center text-emerald-400">
+            <i data-lucide="coins" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <!-- Прогресс выполнения недели -->
+        <div class="mt-4 pt-3 border-t border-white/[0.06]">
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <span class="text-moby-muted">На этой неделе: <strong class="text-white font-semibold" id="weeklyStats">3 из 5 выполнены</strong></span>
+            <span class="text-emerald-400 font-bold" id="earnedThisWeek">+35 BYN получено</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-black/40 overflow-hidden flex">
+            <div id="weeklyProgressBar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-700" style="width: 60%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Фильтры категорий / Табы -->
+      <div class="flex items-center gap-2 mt-3.5 overflow-x-auto no-scrollbar py-0.5">
+        <button onclick="setFilter('all', this)" class="filter-tab active-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-blue-600 text-white shadow-md shadow-blue-600/30 transition">
+          Все (<span id="count-all">5</span>)
+        </button>
+        <button onclick="setFilter('active', this)" class="filter-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white/5 backdrop-blur-md text-moby-muted hover:text-white border border-white/5 transition">
+          Активные (<span id="count-active">3</span>)
+        </button>
+        <button onclick="setFilter('review', this)" class="filter-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white/5 backdrop-blur-md text-moby-muted hover:text-white border border-white/5 transition">
+          На проверке (<span id="count-review">1</span>)
+        </button>
+        <button onclick="setFilter('done', this)" class="filter-tab px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap bg-white/5 backdrop-blur-md text-moby-muted hover:text-white border border-white/5 transition">
+          Выполнены (<span id="count-done">1</span>)
+        </button>
+      </div>
+    </header>
+
+    <!-- Скроллируемый список задач -->
+    <main class="flex-1 overflow-y-auto px-5 pt-2 pb-24 no-scrollbar space-y-3 z-10" id="tasksList">
+      <!-- Список карточек генерируется через JavaScript для реактивности -->
+    </main>
+
+    <!-- Нижняя панель навигации (Strictly MobyFamily, с активным табом «Задания») -->
+    <nav class="absolute bottom-0 inset-x-0 bg-[#161e2a]/95 backdrop-blur-md border-t border-white/10 px-4 py-2.5 z-30 flex items-center justify-around">
+      <button onclick="showToast('Переход на Главную')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Главная</span>
+      </button>
+      <button onclick="showToast('Переход в Копилку')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="heart" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Копилка</span>
+      </button>
+      <button class="nav-item flex flex-col items-center gap-1 text-blue-400 transition relative">
+        <div class="relative">
+          <i data-lucide="check-square" class="w-5 h-5 stroke-[2.4]"></i>
+          <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-blue-400"></span>
+        </div>
+        <span class="text-[11px] font-bold text-blue-400">Задания</span>
+      </button>
+      <button onclick="showToast('Переход в Профиль')" class="nav-item flex flex-col items-center gap-1 text-moby-muted hover:text-white transition">
+        <i data-lucide="user" class="w-5 h-5"></i>
+        <span class="text-[11px] font-medium">Профиль</span>
+      </button>
+    </nav>
+
+    <!-- Детальный Bottom Sheet просмотра и сдачи задания -->
+    <div id="taskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex-col justify-end transition-opacity">
+      <div onclick="closeTaskModal()" class="flex-1"></div>
+      
+      <div id="taskModalContent" class="bg-white/10 backdrop-blur-xl border-t border-x border-white/15 w-full rounded-t-[34px] p-6 shadow-2xl relative sheet-leave flex flex-col max-h-[85vh]">
+        <!-- Индикатор свайпа -->
+        <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4 shrink-0"></div>
+
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span id="modalCategoryBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-400/30">
+              Учеба
+            </span>
+            <span id="modalTargetBadge" class="text-[11px] font-medium px-2.5 py-1 rounded-full bg-purple-500/15 text-purple-300 border border-purple-400/20 flex items-center gap-1">
+              <i data-lucide="heart" class="w-3 h-3"></i> <span id="modalTargetText">В копилку: Велосипед</span>
+            </span>
+          </div>
+          <button onclick="closeTaskModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <h2 id="modalTitle" class="text-xl font-bold text-white mb-2 leading-snug">Закончить четверть без троек</h2>
+        
+        <p id="modalDesc" class="text-sm text-moby-muted leading-relaxed mb-4">
+          Показать дневник родителям с итоговыми оценками за четверть. Все предметы должны быть сданы не ниже 7 баллов.
+        </p>
+
+        <!-- Назначивший родитель и дедлайн -->
+        <div class="p-3.5 rounded-2xl glass-card mb-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div id="modalAuthorAvatar" class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow">
+              Р
+            </div>
+            <div>
+              <p class="text-xs text-moby-muted">Назначил(а)</p>
+              <p id="modalAuthorName" class="text-xs font-semibold text-white">Родитель</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-moby-muted">Срок выполнения</p>
+            <p id="modalDeadline" class="text-xs font-semibold text-white">до 28 мая</p>
+          </div>
+        </div>
+
+        <!-- Награда -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-[#152427] border border-emerald-500/30 mb-5 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] text-emerald-400 uppercase tracking-wider font-bold">Награда за выполнение</span>
+            <p class="text-xs text-moby-muted">Сразу зачислится на счет копилки</p>
+          </div>
+          <div class="text-2xl font-black text-emerald-400">
+            +<span id="modalReward">50</span> BYN
+          </div>
+        </div>
+
+        <!-- Кнопка действия в модалке -->
+        <div id="modalActionContainer" class="mt-auto pt-2">
+          <!-- Динамически рендерится: Отправить на проверку / Прикрепить фото / Уже выполнено -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Модалка предложения своего задания родителям -->
+    <div id="newTaskModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-white/10 backdrop-blur-xl border border-white/15 w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl">
+        <div class="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4 sm:hidden"></div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-white">Предложить задание</h3>
+          <button onclick="closeNewTaskModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-moby-muted mb-4">
+          Предложи родителям полезное дело и укажи желаемую награду.
+        </p>
+
+        <div class="space-y-3.5 mb-5">
+          <div>
+            <label class="text-xs text-moby-muted font-medium mb-1 block">Что нужно сделать?</label>
+            <input id="inputNewTaskTitle" type="text" placeholder="Например: Помыть машину папы" class="w-full bg-[#111823]/50 border border-white/10 rounded-2xl py-2.5 px-3.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+
+          <div>
+            <label class="text-xs text-moby-muted font-medium mb-1 block">Желаемая награда (BYN)</label>
+            <input id="inputNewTaskReward" type="number" placeholder="20" class="w-full bg-[#111823]/50 border border-white/10 rounded-2xl py-2.5 px-3.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+
+          <div>
+            <label class="text-xs text-moby-muted font-medium mb-1 block">В какую копилку направить?</label>
+            <select id="selectNewTaskTarget" class="w-full bg-[#111823]/50 border border-white/10 rounded-2xl py-2.5 px-3.5 text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="Велосипед">Велосипед 🚲</option>
+              <option value="На наушники">На наушники 🎧</option>
+              <option value="Основной баланс">Основная карта #9392 💳</option>
+            </select>
+          </div>
+        </div>
+
+        <button onclick="submitProposedTask()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 active:scale-95 transition text-white font-semibold rounded-2xl shadow-lg shadow-blue-600/30 text-sm flex items-center justify-center gap-2">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Отправить родителям</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Всплывающий тост (Уведомление) -->
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-[#1b2636]/95 text-white px-4 py-2.5 rounded-full text-xs font-semibold shadow-2xl border border-blue-500/30 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+      <span id="toastMsg">Готово!</span>
+    </div>
+
+  </div>
+
+  <script>
+    // Исходные данные заданий строго в контексте MobyFamily
+    let tasks = [
+      {
+        id: 1,
+        title: "Закончить четверть без троек",
+        desc: "Показать электронный дневник с четвертными оценками родителям. Средний балл должен быть не менее 7.5.",
+        reward: 50,
+        status: "active",
+        category: "Учеба",
+        categoryColor: "blue",
+        author: "Родитель",
+        authorAvatar: "Р",
+        authorBg: "from-blue-500 to-indigo-500",
+        deadline: "до 28 мая",
+        target: "Велосипед",
+        icon: "graduation-cap",
+        progress: null
+      },
+      {
+        id: 2,
+        title: "Уборка в своей комнате",
+        desc: "Протереть пыль, пропылесосить ковер, заправить постель и аккуратно сложить одежду в шкаф.",
+        reward: 15,
+        status: "active",
+        category: "Дом",
+        categoryColor: "purple",
+        author: "Родитель",
+        authorAvatar: "Р",
+        authorBg: "from-blue-500 to-indigo-500",
+        deadline: "Сегодня до 20:00",
+        target: "На наушники",
+        icon: "sparkles",
+        progress: null
+      },
+      {
+        id: 3,
+        title: "Погулять с собакой 3 дня подряд",
+        desc: "Качественный вечерний выгул собаки не менее 30 минут каждый день. Не забудь помыть лапы!",
+        reward: 20,
+        status: "active",
+        category: "Питомец",
+        categoryColor: "amber",
+        author: "Родитель",
+        authorAvatar: "Р",
+        authorBg: "from-blue-500 to-indigo-500",
+        deadline: "до воскресенья",
+        target: "Велосипед",
+        icon: "dog",
+        progress: { current: 2, max: 3, unit: "дня" }
+      },
+      {
+        id: 4,
+        title: "Прочитать книгу «Остров сокровищ»",
+        desc: "Прочесть повесть полностью и рассказать маме краткое содержание любимой главы.",
+        reward: 30,
+        status: "review",
+        category: "Саморазвитие",
+        categoryColor: "purple",
+        author: "Родитель",
+        authorAvatar: "Р",
+        authorBg: "from-blue-500 to-indigo-500",
+        deadline: "12 мая",
+        target: "Велосипед",
+        icon: "book-open",
+        progress: null
+      },
+      {
+        id: 5,
+        title: "Помыть посуду после семейного ужина",
+        desc: "Загрузить тарелки в посудомойку или помыть вручную, протереть кухонную раковину и стол.",
+        reward: 10,
+        status: "done",
+        category: "Помощь",
+        categoryColor: "green",
+        author: "Родитель",
+        authorAvatar: "Р",
+        authorBg: "from-blue-500 to-indigo-500",
+        deadline: "Вчера, 20:30",
+        target: "На наушники",
+        icon: "utensils",
+        progress: null
+      }
+    ];
+
+    let currentFilter = 'all';
+    let currentModalTaskId = null;
+
+    // Отрисовка списка заданий
+    function renderTasks() {
+      const listEl = document.getElementById('tasksList');
+      listEl.innerHTML = '';
+
+      const filtered = tasks.filter(t => {
+        if (currentFilter === 'all') return true;
+        return t.status === currentFilter;
+      });
+
+      // Обновление счетчиков
+      document.getElementById('count-all').innerText = tasks.length;
+      document.getElementById('count-active').innerText = tasks.filter(t => t.status === 'active').length;
+      document.getElementById('count-review').innerText = tasks.filter(t => t.status === 'review').length;
+      document.getElementById('count-done').innerText = tasks.filter(t => t.status === 'done').length;
+
+      // Сумма доступных активных заданий
+      const activeTotal = tasks.filter(t => t.status === 'active').reduce((acc, c) => acc + c.reward, 0);
+      document.getElementById('heroEarnings').innerText = `+${activeTotal}`;
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-12 px-4">
+            <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 text-moby-muted">
+              <i data-lucide="inbox" class="w-7 h-7"></i>
+            </div>
+            <p class="text-sm font-semibold text-white">В этой вкладке пусто</p>
+            <p class="text-xs text-moby-muted mt-1">Здесь появятся задачи с выбранным статусом</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(task => {
+        const card = document.createElement('div');
+        // Применяем матовое стекло (glass-card)
+        card.className = "group cursor-pointer rounded-3xl glass-card p-4 hover:border-blue-500/40 active:scale-[0.99] transition-all duration-200 shadow-md relative overflow-hidden";
+        card.onclick = () => openTaskModal(task.id);
+
+        let statusBadge = '';
+        if (task.status === 'active') {
+          statusBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/25">В процессе</span>`;
+        } else if (task.status === 'review') {
+          statusBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25 flex items-center gap-1"><span>⏳</span> На проверке</span>`;
+        } else if (task.status === 'done') {
+          statusBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1"><span>✓</span> Выполнено</span>`;
+        }
+
+        let progressHtml = '';
+        if (task.progress) {
+          const pct = Math.round((task.progress.current / task.progress.max) * 100);
+          progressHtml = `
+            <div class="mt-2.5">
+              <div class="flex justify-between text-[11px] font-medium text-moby-muted mb-1">
+                <span>Прогресс: ${task.progress.current} из ${task.progress.max} ${task.progress.unit}</span>
+                <span class="text-white">${pct}%</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-white mt-0.5 group-hover:bg-blue-600/20 group-hover:border-blue-500/40 transition">
+                <i data-lucide="${task.icon}" class="w-5 h-5 text-blue-400"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  ${statusBadge}
+                  <span class="text-[11px] text-moby-darkMuted font-medium">• ${task.category}</span>
+                </div>
+                <h3 class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors leading-snug">
+                  ${task.title}
+                </h3>
+                <p class="text-[11px] text-moby-muted mt-1 flex items-center gap-1.5">
+                  <span>${task.author}</span>
+                  <span>•</span>
+                  <span>${task.deadline}</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Сумма вознаграждения -->
+            <div class="text-right shrink-0">
+              <span class="text-sm font-extrabold ${task.status === 'done' ? 'text-white/40 line-through' : 'text-emerald-400'} tracking-tight">
+                +${task.reward} BYN
+              </span>
+              <p class="text-[10px] text-moby-darkMuted mt-0.5">В копилку</p>
+            </div>
+          </div>
+
+          ${progressHtml}
+        `;
+
+        listEl.appendChild(card);
+      });
+
+      // Кнопка внизу списка «Предложить еще задание» (весь старый функционал сохранен)
+      const proposeBtn = document.createElement('button');
+      proposeBtn.onclick = openNewTaskRequestModal;
+      proposeBtn.className = "w-full py-3.5 px-4 rounded-2xl border-2 border-dashed border-white/15 hover:border-blue-400/50 hover:bg-white/[0.02] active:scale-[0.99] transition flex items-center justify-center gap-2 text-xs font-semibold text-moby-muted hover:text-white mt-2";
+      proposeBtn.innerHTML = `
+        <i data-lucide="plus-circle" class="w-4 h-4 text-blue-400"></i>
+        <span>Предложить новое задание родителям</span>
+      `;
+      listEl.appendChild(proposeBtn);
+
+      lucide.createIcons();
+    }
+
+    // Переключение табов фильтрации
+    function setFilter(type, btn) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-tab').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/30');
+        b.classList.add('bg-white/5', 'backdrop-blur-md', 'text-moby-muted');
+      });
+      btn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/30');
+      btn.classList.remove('bg-white/5', 'backdrop-blur-md', 'text-moby-muted');
+      renderTasks();
+    }
+
+    // Открытие модалки деталей задачи
+    function openTaskModal(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+      currentModalTaskId = id;
+
+      document.getElementById('modalTitle').innerText = task.title;
+      document.getElementById('modalDesc').innerText = task.desc;
+      document.getElementById('modalCategoryBadge').innerText = task.category;
+      document.getElementById('modalTargetText').innerText = `В копилку: ${task.target}`;
+      document.getElementById('modalAuthorName').innerText = task.author;
+      document.getElementById('modalAuthorAvatar').innerText = task.authorAvatar;
+      document.getElementById('modalAuthorAvatar').className = `w-9 h-9 rounded-full bg-gradient-to-tr ${task.authorBg} flex items-center justify-center text-white font-bold text-xs shadow`;
+      document.getElementById('modalDeadline').innerText = task.deadline;
+      document.getElementById('modalReward').innerText = task.reward;
+
+      const actionsEl = document.getElementById('modalActionContainer');
+      actionsEl.innerHTML = '';
+
+      if (task.status === 'active') {
+        actionsEl.innerHTML = `
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="attachPhotoAndSend()" class="py-3 px-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+              <i data-lucide="camera" class="w-4 h-4 text-blue-400"></i>
+              <span>Фото-отчет</span>
+            </button>
+            <button onclick="submitTaskForReview(${task.id})" class="py-3 px-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-blue-600/30 transition active:scale-95">
+              <i data-lucide="send" class="w-4 h-4"></i>
+              <span>Я сделал!</span>
+            </button>
+          </div>
+        `;
+      } else if (task.status === 'review') {
+        actionsEl.innerHTML = `
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-3">
+            <span class="text-xl">⏳</span>
+            <div>
+              <p class="text-xs font-bold text-amber-400">Ожидает проверки</p>
+              <p class="text-[11px] text-moby-muted mt-0.5">Родители проверят отчет и подтвердят перевод +${task.reward} BYN</p>
+            </div>
+          </div>
+        `;
+      } else if (task.status === 'done') {
+        actionsEl.innerHTML = `
+          <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-3">
+            <div class="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <i data-lucide="check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-emerald-400">Задание выполнено и оплачено</p>
+              <p class="text-[11px] text-moby-muted mt-0.5">Награда +${task.reward} BYN уже поступила в копилку «${task.target}»</p>
+            </div>
+          </div>
+        `;
+      }
+
+      const modal = document.getElementById('taskModal');
+      const content = document.getElementById('taskModalContent');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => {
+        content.classList.remove('sheet-leave');
+        content.classList.add('sheet-enter');
+      }, 10);
+
+      lucide.createIcons();
+    }
+
+    function closeTaskModal() {
+      const modal = document.getElementById('taskModal');
+      const content = document.getElementById('taskModalContent');
+      content.classList.remove('sheet-enter');
+      content.classList.add('sheet-leave');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }, 250);
+    }
+
+    // Отправка задания на проверку родителям
+    function submitTaskForReview(id) {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return;
+
+      task.status = 'review';
+      closeTaskModal();
+      
+      // Праздничный конфетти эффект
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.8 },
+        colors: ['#3b82f6', '#10b981', '#a855f7']
+      });
+
+      showToast(`«${task.title}» отправлено родителям на проверку!`);
+      renderTasks();
+    }
+
+    function attachPhotoAndSend() {
+      showToast('Фото прикреплено к отчету 📸');
+      setTimeout(() => {
+        if (currentModalTaskId) {
+          submitTaskForReview(currentModalTaskId);
+        }
+      }, 700);
+    }
+
+    // Модалка предложения нового задания
+    function openNewTaskRequestModal() {
+      document.getElementById('newTaskModal').classList.remove('hidden');
+      document.getElementById('newTaskModal').classList.add('flex');
+    }
+
+    function closeNewTaskModal() {
+      document.getElementById('newTaskModal').classList.add('hidden');
+      document.getElementById('newTaskModal').classList.remove('flex');
+    }
+
+    function submitProposedTask() {
+      const title = document.getElementById('inputNewTaskTitle').value.trim();
+      const reward = parseInt(document.getElementById('inputNewTaskReward').value, 10);
+      const target = document.getElementById('selectNewTaskTarget').value;
+
+      if (!title || isNaN(reward) || reward <= 0) {
+        showToast('Заполните название и сумму вознаграждения');
+        return;
+      }
+
+      tasks.unshift({
+        id: Date.now(),
+        title: title,
+        desc: "Задание предложено ребенком. Ожидает одобрения родителями.",
+        reward: reward,
+        status: "active",
+        category: "Инициатива",
+        categoryColor: "blue",
+        author: "Я (Предложено)",
+        authorAvatar: "Я",
+        authorBg: "from-blue-500 to-indigo-500",
+        deadline: "Договорная",
+        target: target,
+        icon: "zap",
+        progress: null
+      });
+
+      closeNewTaskModal();
+      showToast('Запрос на задание отправлен родителям!');
+      document.getElementById('inputNewTaskTitle').value = '';
+      document.getElementById('inputNewTaskReward').value = '';
+      renderTasks();
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      msg.innerText = text;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('opacity-100');
+      }, 2600);
+    }
+
+    // Запуск приложения
+    window.onload = function() {
+      renderTasks();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
