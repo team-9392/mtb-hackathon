@@ -186,8 +186,6 @@ export default function ParentHomeScreen() {
                 {/* Верхний блок с градиентным свечением, балансом и картой */}
                 <View style={styles.hero}>
                     <HeroGlow />
-                    <View pointerEvents="none" style={styles.heroRedSpot}><BlurSpot size={280} color="#8c283c" intensity={1.5} /></View>
-                    <View pointerEvents="none" style={styles.heroBlueSpot}><BlurSpot size={280} color="#2f5ba8" intensity={1.5} /></View>
 
                     {refreshing ? (
                         <View style={styles.refresh}>
