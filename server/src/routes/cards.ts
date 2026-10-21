@@ -28,7 +28,7 @@ import {
 } from "../http.js";
 import { checkRate } from "../ratelimit.js";
 import { getChild, parentUserIdOfFamily, type ChildRow } from "../repo.js";
-import { sendTelegram } from "../telegram.js";
+import { sendTelegram, telegramChatForPhone } from "../telegram.js";
 
 const childParams = z.object({ id: z.string().uuid() });
 const cardParams = z.object({ id: z.string().uuid(), cardId: z.string().uuid() });
@@ -127,6 +127,31 @@ async function insertCard(
 
 
 /** После выпуска сразу отправляем CVV и PIN родителю в Telegram (и ребёнку, если привязан). */
+
+/** Чаты пользователей: сначала привязка по номеру (telegram_bindings), потом users.telegram_chat_id. */
+async function resolveChats(db: SupabaseClient, ids: string[]): Promise<string[]> {
+  if (ids.length === 0) {
+    return [];
+  }
+  const { data: users } = await db.from("users").select("id, phone, telegram_chat_id").in("id", ids);
+  const chats = new Set<string>();
+  for (const row of users ?? []) {
+    const direct = row.telegram_chat_id as string | null;
+    if (direct) {
+      chats.add(direct);
+      continue;
+    }
+    const phone = row.phone as string | null;
+    if (phone) {
+      const chatId = await telegramChatForPhone(db, phone);
+      if (chatId) {
+        chats.add(chatId);
+      }
+    }
+  }
+  return Array.from(chats);
+}
+
 async function autoSendCardDetails(
   db: SupabaseClient,
   childId: string,
@@ -148,14 +173,7 @@ async function autoSendCardDetails(
     const ids = Array.from(
       new Set([parentId, childRow.user_id as string | null].filter((value): value is string => Boolean(value))),
     );
-    const { data: users } = await db.from("users").select("telegram_chat_id").in("id", ids);
-    const chats = Array.from(
-      new Set(
-        (users ?? [])
-          .map((row) => row.telegram_chat_id as string | null)
-          .filter((chat): chat is string => Boolean(chat)),
-      ),
-    );
+    const chats = await resolveChats(db, ids);
     const text = cardDetailsMessage({
       type: card.type,
       system: card.system,
@@ -311,16 +329,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
       const userIds = Array.from(
         new Set([parentId, child.user_id].filter((value): value is string => Boolean(value))),
       );
-      const { data: users } = userIds.length
-        ? await db.from("users").select("id, telegram_chat_id").in("id", userIds)
-        : { data: [] as { id: string; telegram_chat_id: string | null }[] };
-      const chats = Array.from(
-        new Set(
-          (users ?? [])
-            .map((row) => row.telegram_chat_id as string | null)
-            .filter((chat): chat is string => Boolean(chat)),
-        ),
-      );
+      const chats = await resolveChats(db, userIds);
       if (chats.length === 0) {
         throw new ApiError(409, "telegram_not_linked", "Сначала привяжите Telegram");
       }
