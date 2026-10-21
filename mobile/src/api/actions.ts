@@ -226,8 +226,8 @@ export interface ParentTaskDto {
 export function childTasksApi(childId: string): Promise<{ tasks: ParentTaskDto[] }> {
   return api("/children/" + childId + "/tasks");
 }
-export function createTaskApi(childId: string, title: string, points: number): Promise<{ task: ParentTaskDto }> {
-  return api("/children/" + childId + "/tasks", { method: "POST", body: { title, points } });
+export function createTaskApi(childId: string, title: string, amount: number): Promise<{ task: ParentTaskDto }> {
+  return api("/children/" + childId + "/tasks", { method: "POST", body: { title, amount } });
 }
 export function updateTaskApi(childId: string, taskId: string, status: "done" | "approved"): Promise<{ task: ParentTaskDto }> {
   return api("/children/" + childId + "/tasks/" + taskId, { method: "PATCH", body: { status } });

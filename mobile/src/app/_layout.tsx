@@ -54,6 +54,7 @@ function AppShell() {
       <Stack
         screenOptions={{
           headerShown: false,
+          gestureEnabled: false,
           contentStyle: { backgroundColor: colors.bg },
         }}
       />

@@ -10,7 +10,7 @@ import { radius, spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { Text } from "@/ui/Text";
 
-type Task = { id: string; title: string; points: number; status: string };
+type Task = { id: string; title: string; points: number; reward_money?: number | string; status: string };
 const PRESETS = [20, 40, 60];
 
 /** Задания от родителя: родитель создаёт, ребёнок отмечает, родитель подтверждает. */
@@ -22,7 +22,7 @@ export function TasksFromParent({ mode }: { mode: "parent" | "child" }) {
   const childId = state.childId;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState("");
-  const [points, setPoints] = useState(20);
+  const [amount, setAmount] = useState(10);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -43,7 +43,7 @@ export function TasksFromParent({ mode }: { mode: "parent" | "child" }) {
     if (!childId || title.trim().length < 2 || busy) return;
     setBusy(true);
     try {
-      await createTaskApi(childId, title.trim(), points);
+      await createTaskApi(childId, title.trim(), amount);
       setTitle("");
       showToast(t("pt.created"));
       await load();
@@ -86,15 +86,15 @@ export function TasksFromParent({ mode }: { mode: "parent" | "child" }) {
             style={styles.input}
           />
           <View style={styles.presets}>
-            {PRESETS.map((value) => (
-              <Pressable key={value} onPress={() => setPoints(value)} style={[styles.preset, points === value && styles.presetActive]}>
-                <Text style={[styles.presetText, points === value && styles.presetTextActive]}>+{value} {t("pt.coinsShort")}</Text>
+            {[5, 10, 20, 50].map((value) => (
+              <Pressable key={value} onPress={() => setAmount(value)} style={[styles.preset, amount === value && styles.presetActive]}>
+                <Text style={[styles.presetText, amount === value && styles.presetTextActive]}>+{value} BYN</Text>
               </Pressable>
             ))}
-            <Pressable style={styles.add} onPress={() => void create()} disabled={busy}>
-              <Text style={styles.addText}>{t("pt.add")}</Text>
-            </Pressable>
           </View>
+          <Pressable style={styles.add} onPress={() => void create()} disabled={busy}>
+            <Text style={styles.addText}>{ t("pt.add") }</Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -104,7 +104,7 @@ export function TasksFromParent({ mode }: { mode: "parent" | "child" }) {
           <View style={styles.flex}>
             <Text style={styles.title}>{task.title}</Text>
             <Text style={styles.meta}>
-              +{task.points} {t("pt.coinsShort")} · {task.status === "new" ? t("pt.statusNew") : task.status === "done" ? t("pt.statusDone") : t("pt.statusApproved")}
+              +{Number(task.reward_money ?? 0) || task.points} BYN · {task.status === "new" ? t("pt.statusNew") : task.status === "done" ? t("pt.statusDone") : t("pt.statusApproved")}
             </Text>
           </View>
           {mode === "child" && task.status === "new" ? (

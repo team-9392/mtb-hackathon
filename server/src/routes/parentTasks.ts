@@ -8,7 +8,8 @@ import { notify, parentUserIdOfFamily } from "../repo.js";
 
 const createSchema = z.object({
   title: z.string().min(2).max(120),
-  points: z.coerce.number().int().min(5).max(500).default(20),
+  amount: z.coerce.number().min(1).max(1000).optional(),
+  points: z.coerce.number().int().min(0).max(500).default(0),
 });
 
 const patchSchema = z.object({ status: z.enum(["done", "approved"]) });
@@ -34,7 +35,7 @@ export async function registerParentTaskRoutes(
       }
       const { data } = await db
         .from("parent_tasks")
-        .select("id, title, points, status, created_at, done_at")
+        .select("id, title, points, reward_money, status, created_at, done_at")
         .eq("child_id", id)
         .order("created_at", { ascending: false });
       return reply.send({ tasks: data ?? [] });
@@ -57,8 +58,8 @@ export async function registerParentTaskRoutes(
       const body = createSchema.parse(request.body ?? {});
       const { data, error } = await db
         .from("parent_tasks")
-        .insert({ child_id: id, created_by: claims.sub, title: body.title.trim(), points: body.points })
-        .select("id, title, points, status, created_at, done_at")
+        .insert({ child_id: id, created_by: claims.sub, title: body.title.trim(), points: body.points ?? 0, reward_money: body.amount ?? 0 })
+        .select("id, title, points, reward_money, status, created_at, done_at")
         .single();
       if (error || !data) {
         return reply.code(500).send({ error: "create_failed", message: "Не удалось создать задание" });
@@ -83,7 +84,7 @@ export async function registerParentTaskRoutes(
       const body = patchSchema.parse(request.body ?? {});
       const { data: task } = await db
         .from("parent_tasks")
-        .select("id, title, points, status, child_id")
+        .select("id, title, points, reward_money, status, child_id")
         .eq("id", taskId)
         .eq("child_id", id)
         .maybeSingle();
@@ -98,7 +99,7 @@ export async function registerParentTaskRoutes(
           .from("parent_tasks")
           .update({ status: "done", done_at: new Date().toISOString() })
           .eq("id", taskId)
-          .select("id, title, points, status, created_at, done_at")
+          .select("id, title, points, reward_money, status, created_at, done_at")
           .single();
         const parentId = await parentUserIdOfFamily(db, child.family_id);
         if (parentId) {
@@ -113,8 +114,27 @@ export async function registerParentTaskRoutes(
         .from("parent_tasks")
         .update({ status: "approved" })
         .eq("id", taskId)
-        .select("id, title, points, status, created_at, done_at")
+        .select("id, title, points, reward_money, status, created_at, done_at")
         .single();
+      const rewardMoney = Number((data as unknown as { reward_money?: number | string } | null)?.reward_money ?? 0);
+      if (rewardMoney > 0) {
+        const { data: pocket } = await db.from("accounts").select("balance").eq("child_id", child.id).eq("kind", "pocket").maybeSingle();
+        const balance = Math.round((Number(pocket?.balance ?? 0) + rewardMoney) * 100) / 100;
+        await db.from("accounts").update({ balance }).eq("child_id", child.id).eq("kind", "pocket");
+        await db.from("transactions").insert({
+          child_id: child.id,
+          amount: rewardMoney,
+          category: "task_reward",
+          merchant: null,
+          title_ru: "Награда за задание",
+          title_be: "Узнагарода за заданне",
+          status: "approved",
+          by_child: false,
+        });
+        if (child.user_id) {
+          await notify(db, child.user_id, child.family_id, "reward", "Деньги за задание", "Грошы за заданне", task.title + " · +" + rewardMoney.toFixed(2) + " BYN", task.title + " · +" + rewardMoney.toFixed(2) + " BYN");
+        }
+      }
       if (child.user_id) {
         const { data: user } = await db.from("users").select("coins").eq("id", child.user_id).maybeSingle();
         const coins = ((user?.coins as number | null) ?? 0) + (task.points as number);

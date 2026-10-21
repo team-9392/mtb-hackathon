@@ -12,7 +12,7 @@ import { useThemedStyles } from "@/theme/ThemeProvider";
 import { Button } from "@/ui/Button";
 import { Text } from "@/ui/Text";
 
-const PRESETS = [20, 40, 60, 100];
+const PRESETS = [5, 10, 20, 50];
 
 /** Отдельный экран: родитель создаёт задание ребёнку с наградой в монетах. */
 export default function NewTaskScreen() {
@@ -21,7 +21,7 @@ export default function NewTaskScreen() {
   const router = useRouter();
   const styles = useThemedStyles(makeStyles);
   const [title, setTitle] = useState("");
-  const [points, setPoints] = useState(20);
+  const [points, setPoints] = useState(10);
   const [custom, setCustom] = useState("");
 
   const changeCustom = (value: string) => {
@@ -65,7 +65,7 @@ export default function NewTaskScreen() {
         <View style={styles.presets}>
           {PRESETS.map((value) => (
             <Pressable key={value} onPress={() => { setPoints(value); setCustom(String(value)); }} style={[styles.preset, points === value && styles.presetActive]}>
-              <Text style={[styles.presetText, points === value && styles.presetTextActive]}>+{value}</Text>
+              <Text style={[styles.presetText, points === value && styles.presetTextActive]}>+{value} BYN</Text>
             </Pressable>
           ))}
         </View>

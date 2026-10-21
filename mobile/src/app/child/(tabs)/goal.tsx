@@ -87,10 +87,6 @@ export default function ChildGoalScreen() {
           </View>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.brandRow}>
-          <Image source={require("../../../../assets/brand/logo.png")} style={styles.brandLogo} resizeMode="contain" />
-          <Text style={styles.brandName}>MobyFamily</Text>
-        </View>
         <Text secondary style={styles.subtitle}>
           {t("sp.kopilkaSubtitle")}
         </Text>

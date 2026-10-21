@@ -55,10 +55,6 @@ export function Screen({
 
   const header = title || showBack ? (
     <View style={styles.header}>
-      <View style={styles.brandRow}>
-        <Image source={require("../../assets/brand/logo.png")} style={styles.brandLogo} resizeMode="contain" />
-        <Text style={styles.brandName}>MobyFamily</Text>
-      </View>
       {showBack ? (
         <Pressable
           onPress={goBack}
