@@ -10,7 +10,7 @@ import type { Env } from "./env.js";
  * на каждом запросе, а не только при refresh.
  *
  * Важно: здесь ничего не блокируется «на всякий случай». Нет заголовка или
- * подпись не сошлась — пропускаем, дальше requireAuth вернёт привычный 401.
+ * подпись не сошлась – пропускаем, дальше requireAuth вернёт привычный 401.
  */
 
 const PUBLIC_PATHS = new Set(["/health", "/partners"]);
@@ -106,7 +106,7 @@ export function registerGuard(app: FastifyInstance, db: SupabaseClient, env: Env
     if (revoked === true) {
       return reply
         .status(401)
-        .send({ error: "session_revoked", message: "Сессия завершена — войдите заново" });
+        .send({ error: "session_revoked", message: "Сессия завершена – войдите заново" });
     }
   });
 }

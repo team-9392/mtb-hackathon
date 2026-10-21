@@ -284,7 +284,7 @@ export async function registerBonusRoutes(app: FastifyInstance, db: SupabaseClie
       await db.from("users").update({ coins }).eq("id", claims.sub);
       await insertCoinLedger(db, { user_id: claims.sub, amount: points, reason: "quest" });
 
-      // Ребёнок заработал монеты — родитель должен это видеть.
+      // Ребёнок заработал монеты – родитель должен это видеть.
       if (claims.familyId && claims.role === "child") {
         const parentId = await parentUserIdOfFamily(db, claims.familyId);
         if (parentId) {

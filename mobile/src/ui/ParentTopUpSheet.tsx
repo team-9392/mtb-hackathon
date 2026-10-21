@@ -13,7 +13,7 @@ import { Text } from "@/ui/Text";
 const PRESETS = [10, 20, 50, 100];
 const EXTRA = [200, 500];
 
-/** Главное действие родителя: перевести деньги ребёнку на карман. Одно движение — и готово. */
+/** Главное действие родителя: перевести деньги ребёнку на карман. Одно движение – и готово. */
 export function ParentTopUpSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const styles = useThemedStyles(makeStyles);
   const { colors } = useTheme();

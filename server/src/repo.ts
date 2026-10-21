@@ -46,7 +46,7 @@ export async function bootstrapChild(
   childId: string,
   bracket: Bracket,
 ): Promise<void> {
-  // consents.family_id — NOT NULL: без реальной семьи вставка молча падала.
+  // consents.family_id – NOT NULL: без реальной семьи вставка молча падала.
   const { data: childRow } = await db
     .from("children")
     .select("family_id")
@@ -138,7 +138,7 @@ export async function parentUserIdOfFamily(db: SupabaseClient, familyId: string)
   return (data?.user_id as string) ?? null;
 }
 
-/** Полное состояние ребёнка одним запросом — из него рисуются все экраны приложения. */
+/** Полное состояние ребёнка одним запросом – из него рисуются все экраны приложения. */
 export async function childState(db: SupabaseClient, child: ChildRow) {
   const [limits, permissions, operations, categories, cards, accounts, consents, goals, requests, txns] =
     await Promise.all([
@@ -146,12 +146,12 @@ export async function childState(db: SupabaseClient, child: ChildRow) {
       db.from("permissions").select("*").eq("child_id", child.id),
       db.from("operation_permissions").select("*").eq("child_id", child.id),
       db.from("allowed_categories").select("category_id, allowed").eq("child_id", child.id),
-      // Первая карта — самая ранняя: её же отдаёт legacy-поле card.
+      // Первая карта – самая ранняя: её же отдаёт legacy-поле card.
       db.from("cards").select("*").eq("child_id", child.id).order("created_at", { ascending: true }),
       db.from("accounts").select("*").eq("child_id", child.id),
       db.from("consents").select("*").eq("child_id", child.id),
       db.from("goals").select("*").eq("child_id", child.id).eq("status", "active").order("created_at", { ascending: false }),
-      // Каталог заданий живёт в /bonuses: таблица quests (см. 0008_quests_fix.sql) —
+      // Каталог заданий живёт в /bonuses: таблица quests (см. 0008_quests_fix.sql) –
       // общий каталог без child_id и без статусов прогресса, поэтому per-child
       // состояние из неё не читаем. Поле оставляем для совместимости ответа.
       db.from("access_requests").select("*").eq("child_id", child.id).order("created_at", { ascending: false }).limit(20),

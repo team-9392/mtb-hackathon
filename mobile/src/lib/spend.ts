@@ -3,7 +3,7 @@ import type { Lang } from "@/lib/format";
 import type { Palette } from "@/theme/palette";
 import type { CategoryId, Txn } from "@/store/types";
 
-/** Подпись категории трат — используем уже переведённые названия из прав. */
+/** Подпись категории трат – используем уже переведённые названия из прав. */
 export const SPEND_CATEGORY_KEY: Record<CategoryId, TKey> = {
   kids: "rg.op.kids",
   fun: "rg.op.fun",
@@ -39,7 +39,7 @@ export type SpendGroup = {
 
 /**
  * Группируем траты ребёнка по категориям: сумма, магазины и сортировка
- * от большего к меньшему — как в аккордеоне макета.
+ * от большего к меньшему – как в аккордеоне макета.
  */
 export function groupSpending(txns: Txn[], lang: Lang): SpendGroup[] {
   const groups = new Map<CategoryId, SpendGroup>();

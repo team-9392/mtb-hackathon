@@ -45,7 +45,7 @@ const legacyIssueSchema = z.object({
 const blockSchema = z.object({ blocked: z.boolean() });
 
 /**
- * Ребёнок видит только свой профиль, родитель — профили своей семьи.
+ * Ребёнок видит только свой профиль, родитель – профили своей семьи.
  * Для выпуска и блокировки отдельно требуем роль родителя.
  */
 async function childForRead(
@@ -73,7 +73,7 @@ async function childForRead(
   return data as unknown as ChildRow;
 }
 
-/** Первая (самая ранняя) карта ребёнка — для legacy-эндпоинтов. */
+/** Первая (самая ранняя) карта ребёнка – для legacy-эндпоинтов. */
 async function firstCard(db: SupabaseClient, childId: string): Promise<CardRow | null> {
   const { data } = await db
     .from("cards")
@@ -94,7 +94,7 @@ async function allCards(db: SupabaseClient, childId: string): Promise<CardRow[]>
   return (data ?? []) as unknown as CardRow[];
 }
 
-/** Новая карта: PAN по Луну, срок 4 года, CVV/PIN — демо-хранение в БД. */
+/** Новая карта: PAN по Луну, срок 4 года, CVV/PIN – демо-хранение в БД. */
 async function insertCard(
   db: SupabaseClient,
   childId: string,
@@ -207,7 +207,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
     }
   });
 
-  /** Выпустить ещё одну карту. Первый выпуск и повторный — один и тот же путь. */
+  /** Выпустить ещё одну карту. Первый выпуск и повторный – один и тот же путь. */
   app.post("/children/:id/cards", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
@@ -216,7 +216,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
       const body = issueSchema.parse(request.body ?? {});
       const child = await getChild(db, params.id, familyId);
 
-      // Повторный тап не должен плодить дубли: та же пара тип+система — та же карта.
+      // Повторный тап не должен плодить дубли: та же пара тип+система – та же карта.
       const existing = (await allCards(db, child.id)).find((card) => sameCard(card, body.type, body.system));
       if (existing) {
         return reply.send({ card: cardView(existing), reused: true });
@@ -281,7 +281,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
   });
 
   /**
-   * Реквизиты (CVV/PIN) — только в Telegram родителю и привязанному ребёнку.
+   * Реквизиты (CVV/PIN) – только в Telegram родителю и привязанному ребёнку.
    * В ответе API секретов нет: их не должен увидеть ни лог, ни клиентский кэш.
    */
   app.post("/children/:id/cards/:cardId/details", async (request, reply) => {
@@ -308,7 +308,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
       }
       let card = stored as unknown as CardRow;
 
-      // Старые карты выпущены до 0011 — секреты досоздаём при первом запросе.
+      // Старые карты выпущены до 0011 – секреты досоздаём при первом запросе.
       if (!card.cvv || !card.pin) {
         const cvv = card.cvv ?? generateCvv();
         const pin = card.pin ?? generatePin();
@@ -348,7 +348,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
         }
       }
       if (sent === 0) {
-        throw new ApiError(502, "telegram_failed", "Не удалось отправить в Telegram — попробуйте позже");
+        throw new ApiError(502, "telegram_failed", "Не удалось отправить в Telegram – попробуйте позже");
       }
 
       // В лог пишем только факт отправки, без CVV/PIN.
@@ -369,7 +369,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
   });
 
   /**
-   * Legacy: POST /children/:id/card — выпуск/перевыпуск ПЕРВОЙ карты.
+   * Legacy: POST /children/:id/card – выпуск/перевыпуск ПЕРВОЙ карты.
    * Повторный вызов с той же парой тип+система сохраняет номер и секреты.
    */
   app.post("/children/:id/card", async (request, reply) => {
@@ -418,7 +418,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
     }
   });
 
-  /** Legacy: PATCH /children/:id/card — блокирует/разблокирует все карты ребёнка. */
+  /** Legacy: PATCH /children/:id/card – блокирует/разблокирует все карты ребёнка. */
   app.patch("/children/:id/card", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);

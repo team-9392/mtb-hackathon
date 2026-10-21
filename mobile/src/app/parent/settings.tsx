@@ -31,7 +31,7 @@ function initialsOf(name: string): string {
   return parts.slice(0, 2).map((part) => part.charAt(0)).join("").toUpperCase();
 }
 
-/** Профиль родителя — тот же макет profile: карточка, аналитика, лимит ребёнка. */
+/** Профиль родителя – тот же макет profile: карточка, аналитика, лимит ребёнка. */
 export default function ParentSettingsScreen() {
   const { t, lang, setLang } = useI18n();
   const { user, signOut } = useAuth();

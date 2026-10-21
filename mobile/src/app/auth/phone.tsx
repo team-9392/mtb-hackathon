@@ -23,7 +23,7 @@ import { TextInput } from "@/ui/TextInput";
 
 /**
  * Шаг 1: номер телефона.
- * Код оператора выбирается из четырёх вариантов, дальше — 7 цифр номера.
+ * Код оператора выбирается из четырёх вариантов, дальше – 7 цифр номера.
  * Итоговый номер 375XXXXXXXXX.
  */
 export default function PhoneScreen() {
@@ -72,7 +72,7 @@ export default function PhoneScreen() {
         },
       });
     } catch (caught) {
-      // Нет привязки Telegram — не тупик: код можно запросить на экране кода.
+      // Нет привязки Telegram – не тупик: код можно запросить на экране кода.
       if (caught instanceof ApiError && caught.code === "telegram_not_linked") {
         patch({ step: 2, phone: local });
         router.push({

@@ -118,7 +118,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setState((prev) => ({ ...prev, ...patch }));
       }
     } catch {
-      // Сервер недоступен — экраны продолжают работать на локальных данных.
+      // Сервер недоступен – экраны продолжают работать на локальных данных.
     }
     // familyId меняется после оформления пакета: без него состояние семьи
     // не перечиталось бы до первого realtime-события.
@@ -133,7 +133,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     void hydrate();
   }, [hydrate]);
 
-  // Живой канал: любое изменение в семье — перечитываем состояние.
+  // Живой канал: любое изменение в семье – перечитываем состояние.
   // Без семьи следить не за чем, а токен без familyId бесконечно переподключался бы.
   useRealtime(() => {
     void hydrateRef.current();
@@ -301,7 +301,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }));
     pushNotification({
       title: L("Продукты выпущены", "Прадукты выпушчаны"),
-      body: L("Виртуальная карта активна, физическая — в доставке", "Віртуальная карта актыўная, фізічная — у дастаўцы"),
+      body: L("Виртуальная карта активна, физическая – в доставке", "Віртуальная карта актыўная, фізічная – у дастаўцы"),
       kind: "ops",
     });
   }, [push, pushNotification]);
@@ -385,7 +385,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [pushOrFail],
   );
 
-  /** Перевод между своими счетами — деньги не покидают семью. */
+  /** Перевод между своими счетами – деньги не покидают семью. */
   const moveMoney = useCallback(
     async (from: AccountKind | "goal", to: AccountKind | "goal", amount: number): Promise<boolean> => {
       if (amount <= 0) {
@@ -563,7 +563,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     showToast("Demo reset");
   }, [showToast]);
 
-  /** Пополнение счёта ребёнка родителем — главное действие в обзоре. */
+  /** Пополнение счёта ребёнка родителем – главное действие в обзоре. */
   const topUpChild = useCallback(
     async (amount: number): Promise<boolean> => {
       if (amount <= 0) {

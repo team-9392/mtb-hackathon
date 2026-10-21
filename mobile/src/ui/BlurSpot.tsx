@@ -1,7 +1,7 @@
 import React from "react";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 
-/** Мягкое размытое пятно (радиальный градиент) — замена CSS-blur. */
+/** Мягкое размытое пятно (радиальный градиент) – замена CSS-blur. */
 export function BlurSpot({ size, color, intensity = 1 }: { size: number; color: string; intensity?: number }) {
   const id = "blur" + color.replace(/[^a-zA-Z0-9]/g, "") + Math.round(size);
   const c = size / 2;

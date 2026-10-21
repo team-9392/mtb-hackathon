@@ -7,8 +7,8 @@ import { requireAuth, sendError } from "../http.js";
 import { notify, parentUserIdOfFamily } from "../repo.js";
 
 const FALLBACK = [
-  "Больше всего уходит на развлечения — попробуй поставить недельный лимит.",
-  "Половина трат — мелкие покупки: они съедают бюджет незаметно.",
+  "Больше всего уходит на развлечения – попробуй поставить недельный лимит.",
+  "Половина трат – мелкие покупки: они съедают бюджет незаметно.",
   "Ты уже экономишь: продолжай откладывать в копилку.",
 ];
 
@@ -16,10 +16,10 @@ const FALLBACK = [
 type ChatTurn = { role: "user" | "assistant"; text: string };
 
 const CHAT_SYSTEM = [
-  "Ты Моби — дружелюбный помощник по деньгам в приложении Moby Family для подростков 10-16 лет и их родителей.",
+  "Ты Моби – дружелюбный помощник по деньгам в приложении Moby Family для подростков 10-16 лет и их родителей.",
   "Отвечай коротко: 2-5 предложений, по-русски, без эмодзи, без морализаторства.",
-  "Тебе дают ОБЕЗЛИЧЕННУЮ сводку: только суммы, категории, цели и лимиты — никаких имён, телефонов, номеров карт.",
-  "Если вопрос не про деньги и покупки — мягко верни к теме бюджета.",
+  "Тебе дают ОБЕЗЛИЧЕННУЮ сводку: только суммы, категории, цели и лимиты – никаких имён, телефонов, номеров карт.",
+  "Если вопрос не про деньги и покупки – мягко верни к теме бюджета.",
   "Не проси персональные данные и не советуй сомнительные финансовые схемы. Это виртуальная песочница, реальные деньги не двигаются.",
 ].join(" ");
 
@@ -53,7 +53,7 @@ async function buildAnonymizedContext(db: SupabaseClient, childId: string): Prom
       parts.push("цель «" + (goal.title_ru ?? "копилка") + "»: накоплено " + Math.round(Number(goal.saved)) + " из " + Math.round(Number(goal.target)));
     }
   } catch {
-    // таблицы целей может не быть в старых сборках — не критично
+    // таблицы целей может не быть в старых сборках – не критично
   }
   return parts.join("; ");
 }
@@ -75,12 +75,12 @@ async function aiChat(env: Env, context: string, history: ChatTurn[], message: s
       headers: { "content-type": "application/json", authorization: "Bearer " + key },
       body: JSON.stringify({ model: env.PROXYAPI_MODEL || "gpt-4o-mini", temperature: 0.6, max_tokens: 220, messages }),
     });
-    if (!response.ok) return "Не получилось подумать — попробуй ещё раз через минуту.";
+    if (!response.ok) return "Не получилось подумать – попробуй ещё раз через минуту.";
     const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const text = data.choices?.[0]?.message?.content?.trim();
-    return text ? text.slice(0, 600) : "Не получилось подумать — попробуй ещё раз через минуту.";
+    return text ? text.slice(0, 600) : "Не получилось подумать – попробуй ещё раз через минуту.";
   } catch {
-    return "Не получилось подумать — попробуй ещё раз через минуту.";
+    return "Не получилось подумать – попробуй ещё раз через минуту.";
   }
 }
 
@@ -116,7 +116,7 @@ export async function runFraudCheck(
     const hour = new Date().getHours();
     const lastDay = rows.filter((r) => Date.now() - new Date(r.created_at).getTime() < 24 * 60 * 60 * 1000).length;
 
-    // Быстрые правила без ИИ — чтобы алерт был даже без сети
+    // Быстрые правила без ИИ – чтобы алерт был даже без сети
     let score = 0;
     if (amount > Math.max(50, avg * 2.5)) score += 2;
     if (hour >= 0 && hour < 6) score += 1;
@@ -141,7 +141,7 @@ export async function runFraudCheck(
               {
                 role: "system",
                 content:
-                  "Ты антифрод-модуль семейного банка. По ОБЕЗЛИЧЕННЫМ признакам операции оцени риск: верни строго JSON {\"risk\":\"low\"|\"medium\"|\"high\",\"reason\":string}. reason — одна фраза до 90 символов по-русски, без имён. Учитывай: сумма, средняя трата, ночное время, активность за сутки.",
+                  "Ты антифрод-модуль семейного банка. По ОБЕЗЛИЧЕННЫМ признакам операции оцени риск: верни строго JSON {\"risk\":\"low\"|\"medium\"|\"high\",\"reason\":string}. reason – одна фраза до 90 символов по-русски, без имён. Учитывай: сумма, средняя трата, ночное время, активность за сутки.",
               },
               {
                 role: "user",
@@ -205,7 +205,7 @@ export async function registerAiRoutes(app: FastifyInstance, db: SupabaseClient,
 
       const key = env.PROXYAPI_KEY;
       if (!key || rows.length === 0) {
-        return reply.send({ insights: rows.length === 0 ? ["Пока мало данных — сделай пару трат или пополни копилку."] : FALLBACK, source: "fallback" });
+        return reply.send({ insights: rows.length === 0 ? ["Пока мало данных – сделай пару трат или пополни копилку."] : FALLBACK, source: "fallback" });
       }
       try {
         const base = env.PROXYAPI_URL || "https://api.proxyapi.ru/openai/v1";

@@ -15,7 +15,7 @@ export type SvgCheckProps = SvgProps & {
 /**
  * Заготовка для нового SVG-дизайна: кружок с градиентом и галочкой,
  * нарисованный инлайн примитивами react-native-svg.
- * Ни к одному экрану не подключён — это пример для команды.
+ * Ни к одному экрану не подключён – это пример для команды.
  */
 export default function SvgCheck({ size = 72, ...props }: SvgCheckProps) {
   return (

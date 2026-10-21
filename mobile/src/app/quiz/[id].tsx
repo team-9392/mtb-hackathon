@@ -37,7 +37,7 @@ export default function QuizScreen() {
   const [result, setResult] = useState<QuizResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  /** Контент приходит на двух языках — берём нужный. */
+  /** Контент приходит на двух языках – берём нужный. */
   const loc = useCallback(
     (ru: string | null, be: string | null) => (lang === "be" ? be ?? ru ?? "" : ru ?? be ?? ""),
     [lang],
@@ -137,7 +137,7 @@ export default function QuizScreen() {
     );
   }
 
-  // quiz.reward — метка награды; баллы и монеты показываем рядом с ней.
+  // quiz.reward – метка награды; баллы и монеты показываем рядом с ней.
   const rewardLabel = t("quiz.reward") + " +" + quiz.points + " " + t("qs.coinsShort");
   const progressValue = total > 0 ? (index + 1) / total : 0;
   const progressPercent = Math.round(progressValue * 100);

@@ -16,7 +16,7 @@ import { TextInput } from "@/ui/TextInput";
 
 type Mode = "erip" | "phone";
 
-/** ЕРИП и перевод по номеру. Ребёнок только просит — деньги уходят после подтверждения родителя. */
+/** ЕРИП и перевод по номеру. Ребёнок только просит – деньги уходят после подтверждения родителя. */
 export default function ChildEripScreen() {
   const { colors } = useTheme();
   const palette = colors;

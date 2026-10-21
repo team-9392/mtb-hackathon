@@ -72,7 +72,7 @@ export function requireChild(claims: AuthClaims): string {
   return claims.childId;
 }
 
-/** Человеческие тексты для ошибок валидации — вместо простыни из zod. */
+/** Человеческие тексты для ошибок валидации – вместо простыни из zod. */
 const FIELD_HINTS: Record<string, string> = {
   fullName: "Укажите имя и фамилию",
   name: "Укажите имя",
@@ -105,7 +105,7 @@ export function sendError(reply: FastifyReply, error: unknown): void {
   if (raw.includes("coerce the result") || raw.includes("JSON object")) {
     void reply
       .status(409)
-      .send({ error: "stale_data", message: "Данные устарели — обновите экран и попробуйте ещё раз" });
+      .send({ error: "stale_data", message: "Данные устарели – обновите экран и попробуйте ещё раз" });
     return;
   }
   const message = raw.length > 0 ? raw : "Внутренняя ошибка";

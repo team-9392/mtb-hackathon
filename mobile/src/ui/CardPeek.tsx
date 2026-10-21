@@ -13,7 +13,7 @@ const LIFT = 150;
 const CARD_HEIGHT = 208;
 
 /**
- * Одна карта на экране: лицо — фото карты, вокруг тонкое свечение.
+ * Одна карта на экране: лицо – фото карты, вокруг тонкое свечение.
  * Свайп влево/вправо перелистывает на следующую карту, свайп вниз раскрывает реквизиты.
  */
 export function CardPeek({
@@ -96,7 +96,7 @@ export function CardPeek({
       <View style={styles.empty}>
         <Ionicons name="card-outline" size={26} color="rgba(255,255,255,0.7)" />
         <Text style={styles.emptyTitle}>Карта не выпущена</Text>
-        <Text style={styles.emptyHint}>Выпустите карту — займёт минуту</Text>
+        <Text style={styles.emptyHint}>Выпустите карту – займёт минуту</Text>
         {onIssue ? (
           <Pressable style={styles.emptyButton} onPress={onIssue}>
             <Text style={styles.emptyButtonText}>Выпустить карту</Text>

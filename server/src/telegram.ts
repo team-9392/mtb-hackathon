@@ -110,7 +110,7 @@ async function consumeTelegramLinkToken(
   return (data?.phone as string | null) ?? null;
 }
 
-/** Привязан ли номер к чату — тогда код подтверждения уходит в Telegram. */
+/** Привязан ли номер к чату – тогда код подтверждения уходит в Telegram. */
 export async function telegramChatForPhone(
   db: SupabaseClient,
   phone: string,
@@ -182,7 +182,7 @@ async function telegramFetch(url: string, init?: RequestInit): Promise<Response 
 
 /**
  * Бот не может написать первым по правилам Telegram. Поэтому ловим один /start
- * от человека и запоминаем chat_id — дальше пишем ему в личку когда угодно.
+ * от человека и запоминаем chat_id – дальше пишем ему в личку когда угодно.
  */
 export function startTelegramPoller(db: SupabaseClient, env: Env): void {
   if (!config) {
@@ -242,7 +242,7 @@ export function startTelegramPoller(db: SupabaseClient, env: Env): void {
           // который создаст приложение. После возврата в приложение человек
           // нажимает «Получить код», и код приходит в этот же чат.
           await sendTelegram(
-            "✅ Telegram привязан.\nВернитесь в приложение и нажмите «Получить код» — код придёт сюда.",
+            "✅ Telegram привязан.\nВернитесь в приложение и нажмите «Получить код» – код придёт сюда.",
             String(chatId),
           );
           continue;
@@ -280,7 +280,7 @@ export function startTelegramPoller(db: SupabaseClient, env: Env): void {
 
 /**
  * Отправка с фоновой досылкой: если Telegram недоступен прямо сейчас,
- * сообщение повторяется ещё несколько раз — важно для CVV/PIN.
+ * сообщение повторяется ещё несколько раз – важно для CVV/PIN.
  */
 export function sendTelegramQueued(text: string, chatId?: string): void {
   void (async () => {
@@ -303,7 +303,7 @@ export async function sendTelegram(text: string, chatId?: string): Promise<boole
   if (!config) {
     return false;
   }
-  // Неизвестный получатель — молча выходим, чтобы не спамить ошибками в лог.
+  // Неизвестный получатель – молча выходим, чтобы не спамить ошибками в лог.
   if (!chatId && !config.chatId) {
     return false;
   }

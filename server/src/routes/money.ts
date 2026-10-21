@@ -112,8 +112,8 @@ async function writePot(db: SupabaseClient, childId: string, kind: string, value
 
 export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, env: Env): void {
   /**
-   * Открытие счёта. Доступно по возрасту — открываем сразу.
-   * Недоступно — ребёнок оставляет запрос, и счёт открывает родитель, подтверждая его.
+   * Открытие счёта. Доступно по возрасту – открываем сразу.
+   * Недоступно – ребёнок оставляет запрос, и счёт открывает родитель, подтверждая его.
    */
   app.post("/children/:id/accounts", async (request, reply) => {
     try {
@@ -211,7 +211,7 @@ export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, en
           .eq("product_id", "savings")
           .maybeSingle();
         if (permission && permission.allowed === false) {
-          throw forbidden("Копилка отключена — попросите родителя");
+          throw forbidden("Копилка отключена – попросите родителя");
         }
       }
 
@@ -264,7 +264,7 @@ export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, en
     }
   });
 
-  /** Родитель переводит деньги ребёнку на карман — главное действие банкинга. */
+  /** Родитель переводит деньги ребёнку на карман – главное действие банкинга. */
   app.post("/children/:id/topup", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
@@ -307,7 +307,7 @@ export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, en
         );
       }
 
-      // Родитель тоже получает уведомление о зачислении — чек-лист ждёт его обеим сторонам.
+      // Родитель тоже получает уведомление о зачислении – чек-лист ждёт его обеим сторонам.
       const parentId = await parentUserIdOfFamily(db, child.family_id);
       if (parentId && parentId !== child.user_id) {
         await notify(
@@ -328,7 +328,7 @@ export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, en
     }
   });
 
-  /** История переводов — на случай вопроса «покажите движение денег». */
+  /** История переводов – на случай вопроса «покажите движение денег». */
   app.get("/children/:id/transfers", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);

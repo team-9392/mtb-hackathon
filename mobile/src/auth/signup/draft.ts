@@ -251,7 +251,7 @@ async function readRaw(): Promise<string | null> {
       return await SecureStore.getItemAsync(SIGNUP_STORAGE_KEY);
     }
   } catch {
-    // Keychain недоступен — черновик проживёт до перезапуска.
+    // Keychain недоступен – черновик проживёт до перезапуска.
   }
   return null;
 }
@@ -269,7 +269,7 @@ async function writeRaw(value: string | null): Promise<void> {
         storage.setItem(SIGNUP_STORAGE_KEY, value);
       }
     } catch {
-      // Приватный режим браузера — черновик остаётся в памяти.
+      // Приватный режим браузера – черновик остаётся в памяти.
     }
     return;
   }

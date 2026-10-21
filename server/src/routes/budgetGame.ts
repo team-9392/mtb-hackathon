@@ -6,12 +6,12 @@ import type { Env } from "../env.js";
 import { requireAuth, sendError } from "../http.js";
 
 const FALLBACK = [
-  { title: "Кофе с другом", description: "Друг зовёт в кофейню после школы. Кофе и десерт — 12 BYN.", amount: 12 },
+  { title: "Кофе с другом", description: "Друг зовёт в кофейню после школы. Кофе и десерт – 12 BYN.", amount: 12 },
   { title: "Новая игра", description: "Вышла скидка на игру мечты: 25 BYN вместо 40.", amount: 25 },
-  { title: "Кино с классом", description: "Класс идёт в кино в субботу, билет — 15 BYN.", amount: 15 },
-  { title: "Наушники", description: "Старые наушники сломались, новые — 30 BYN.", amount: 30 },
-  { title: "Подарок маме", description: "Скоро день рождения мамы, букет — 18 BYN.", amount: 18 },
-  { title: "Такси домой", description: "Опаздываешь, такси до дома — 10 BYN.", amount: 10 },
+  { title: "Кино с классом", description: "Класс идёт в кино в субботу, билет – 15 BYN.", amount: 15 },
+  { title: "Наушники", description: "Старые наушники сломались, новые – 30 BYN.", amount: 30 },
+  { title: "Подарок маме", description: "Скоро день рождения мамы, букет – 18 BYN.", amount: 18 },
+  { title: "Такси домой", description: "Опаздываешь, такси до дома – 10 BYN.", amount: 10 },
 ];
 
 const decideSchema = z.object({ decision: z.enum(["spend", "skip"]) });
@@ -70,7 +70,7 @@ async function aiScenario(env: Env): Promise<Scenario | null> {
           {
             role: "system",
             content:
-              "Ты придумываешь ситуации для игры «Недельный бюджет» для подростка 10-16 лет. Верни строго JSON без пояснений: {\"title\": string (до 40 символов), \"description\": string (до 120 символов), \"amount\": number (5-40)}. Ситуация — бытовая трата виртуальных денег: школа, друзья, хобби, транспорт, подарки. Без повторов.",
+              "Ты придумываешь ситуации для игры «Недельный бюджет» для подростка 10-16 лет. Верни строго JSON без пояснений: {\"title\": string (до 40 символов), \"description\": string (до 120 символов), \"amount\": number (5-40)}. Ситуация – бытовая трата виртуальных денег: школа, друзья, хобби, транспорт, подарки. Без повторов.",
           },
           { role: "user", content: "Придумай новую ситуацию." },
         ],
@@ -96,7 +96,7 @@ async function aiReaction(env: Env, scenario: Scenario, decision: "spend" | "ski
   const fallback =
     decision === "spend"
       ? "Трата принята. Следи, чтобы к концу недели баланс остался положительным."
-      : "Отличное решение! Экономия — это тоже доход.";
+      : "Отличное решение! Экономия – это тоже доход.";
   if (!key) return fallback;
   try {
     const base = env.PROXYAPI_URL || "https://api.proxyapi.ru/openai/v1";

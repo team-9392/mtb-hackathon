@@ -1,16 +1,16 @@
 # Развёртывание: Supabase + Node API на VPS с Ubuntu
 
 Стек зафиксирован: **Node.js + Supabase**. Клиент (мобильное приложение) в базу не ходит
-вообще — только в API. Supabase даёт managed PostgreSQL, бэкапы и консоль для показа жюри.
+вообще – только в API. Supabase даёт managed PostgreSQL, бэкапы и консоль для показа жюри.
 
 Нужен ли сервер: **да, но только под Node API**. База живёт в Supabase, поэтому хватает
-самого маленького VPS (1 vCPU / 1 ГБ). API без состояния — можно перезапускать когда угодно.
+самого маленького VPS (1 vCPU / 1 ГБ). API без состояния – можно перезапускать когда угодно.
 
 ---
 
 ## 1. Supabase (10 минут)
 
-1. Создать проект на supabase.com (регион — ближайший к Беларуси, обычно Frankfurt).
+1. Создать проект на supabase.com (регион – ближайший к Беларуси, обычно Frankfurt).
 2. SQL Editor → вставить содержимое `supabase/migrations/0001_init.sql` → Run.
    (Кто пользуется CLI: `npx supabase db push` после `npx supabase link`.)
 3. При желании загрузить демо-данные: `supabase/seed.sql`.
@@ -98,7 +98,7 @@ sudo systemctl reload caddy
 curl -s https://api.moby-family.by/health
 ```
 
-Альтернатива без домена: `ngrok http 8080` — быстро для теста, но адрес плавающий.
+Альтернатива без домена: `ngrok http 8080` – быстро для теста, но адрес плавающий.
 Самодельный сертификат не подходит: iOS не пустит самоподписанный HTTPS.
 
 Файрвол: открыть 22, 80, 443; порт 8080 наружу не выпускать.
@@ -122,7 +122,7 @@ sudo ufw allow 22,80,443/tcp && sudo ufw enable
 
 Либо на время запуска: `EXPO_PUBLIC_API_URL=https://api.moby-family.by npx expo start --tunnel`.
 
-Если адрес не задан — приложение автоматически работает в демо-режиме на локальных данных,
+Если адрес не задан – приложение автоматически работает в демо-режиме на локальных данных,
 поэтому стенд не падает без сети. Это осознанный запасной вариант, а не «забыли подключить».
 
 ---
@@ -143,7 +143,7 @@ curl -s -X POST https://api.moby-family.by/auth/otp/verify \
   -d '{"challengeId":"<id из шага 2>","code":"1111"}'
 ```
 
-Дальше — два телефона в Expo Go: родитель входит первым, создаёт пакет «Фэмили»,
+Дальше – два телефона в Expo Go: родитель входит первым, создаёт пакет «Фэмили»,
 добавляет ребёнка и выдаёт доступ; ребёнок входит своим номером и кодом доступа.
 
 ---
@@ -155,6 +155,6 @@ cd /srv/moby/app && git pull && cd server && npm ci && npm run build
 sudo systemctl restart moby-api
 ```
 
-- Бэкапы базы — штатные Supabase (Database → Backups), плюс можно включить PITR.
-- Журнал изменений прав и согласий — таблица `audit_log`, смотреть через SQL Editor:
+- Бэкапы базы – штатные Supabase (Database → Backups), плюс можно включить PITR.
+- Журнал изменений прав и согласий – таблица `audit_log`, смотреть через SQL Editor:
   `select action, entity, payload, at from audit_log order by at desc limit 50;`

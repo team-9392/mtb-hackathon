@@ -7,7 +7,7 @@ import { Text } from "@/ui/Text";
 
 type Pet = { name: string; emoji: string; title: string; speech: string; saved: number; nextAt: number | null; nextTitle: string | null; progress: number };
 
-/** Питомец Мобик: растёт от накоплений в копилке — чем больше накопил, тем круче. */
+/** Питомец Мобик: растёт от накоплений в копилке – чем больше накопил, тем круче. */
 export function PetCard() {
   const [pet, setPet] = useState<Pet | null>(null);
   const bounce = useRef(new Animated.Value(0)).current;

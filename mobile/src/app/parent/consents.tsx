@@ -82,7 +82,7 @@ export default function ConsentsScreen() {
           <View style={styles.optionalRow}>
             <Ionicons name="information-circle-outline" size={18} color={palette.muted2} />
             <Text style={styles.optionalText}>
-              {t("p3.c4t")} — {t("p3.optional")}
+              {t("p3.c4t")} – {t("p3.optional")}
             </Text>
           </View>
         </Card>

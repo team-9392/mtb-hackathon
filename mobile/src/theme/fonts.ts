@@ -3,10 +3,10 @@ import type { FontSource } from "expo-font";
 /**
  * Шрифты приложения.
  *
- * Основной — TikTok Sans (400/500/600/700), второстепенный — Inter (400/500/600/700).
+ * Основной – TikTok Sans (400/500/600/700), второстепенный – Inter (400/500/600/700).
  * Файлы лежат в assets/fonts и грузятся в корневом _layout.tsx через useFonts.
  *
- * В React Native каждый вес — отдельная семья (файл), поэтому вес выбирается
+ * В React Native каждый вес – отдельная семья (файл), поэтому вес выбирается
  * по fontFamily, а не через fontWeight: см. familyForWeight().
  */
 export const fonts = {

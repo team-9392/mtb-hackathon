@@ -195,7 +195,7 @@ export default function PaymentScreen() {
         try {
           await signConsentsApi(created.child.id, kinds);
         } catch {
-          // Согласия можно подписать повторно на экране согласий — оплата уже прошла.
+          // Согласия можно подписать повторно на экране согласий – оплата уже прошла.
         }
       }
 
@@ -221,7 +221,7 @@ export default function PaymentScreen() {
         router.replace("/auth/phone");
         return;
       }
-      // Семья уже создана (повтор после сетевого сбоя) — пакет считаем оформленным.
+      // Семья уже создана (повтор после сетевого сбоя) – пакет считаем оформленным.
       if (caught instanceof ApiError && caught.status === 409) {
         const payment = paymentRef.current;
         doneRef.current = true;

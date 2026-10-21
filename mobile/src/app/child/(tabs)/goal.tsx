@@ -22,7 +22,7 @@ import { Text } from "@/ui/Text";
 
 const GOAL_GRADIENT = ["#9333ea", "#ec4899", "#f43f5e"] as const;
 
-/** Копилка ребёнка — 1:1 к макету kopilka: шапка, сумма, цель, пополнение. */
+/** Копилка ребёнка – 1:1 к макету kopilka: шапка, сумма, цель, пополнение. */
 export default function ChildGoalScreen() {
   const { colors, isDark } = useTheme();
   const styles = useThemedStyles(makeStyles);

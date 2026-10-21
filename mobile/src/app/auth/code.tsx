@@ -56,7 +56,7 @@ export default function CodeScreen() {
     return () => clearTimeout(timer);
   }, [seconds]);
 
-  /** Запрос кода: единственный канал — Telegram. */
+  /** Запрос кода: единственный канал – Telegram. */
   const requestTelegramCode = useCallback(async (): Promise<boolean> => {
     if (!phone) {
       setMessage(t("auth.requestError"));
@@ -184,7 +184,7 @@ export default function CodeScreen() {
     }
   }, [phone, requestCode, t, tgBusy]);
 
-  // Пользователь ушёл в Telegram, нажал Start и вернулся — доводим сценарий.
+  // Пользователь ушёл в Telegram, нажал Start и вернулся – доводим сценарий.
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active" && tgState === "link_opened") {

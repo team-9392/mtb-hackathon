@@ -38,6 +38,6 @@ export async function registerPush(): Promise<void> {
       await registerPushTokenApi(token, Platform.OS);
     }
   } catch {
-    // Без настроенных FCM-ключей пуши просто не включатся — остальные каналы работают.
+    // Без настроенных FCM-ключей пуши просто не включатся – остальные каналы работают.
   }
 }

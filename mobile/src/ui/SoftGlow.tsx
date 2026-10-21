@@ -3,7 +3,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 
 /**
- * Мягкое радиальное свечение в углу карточки — замена CSS-blur из макета.
+ * Мягкое радиальное свечение в углу карточки – замена CSS-blur из макета.
  * Радиальный градиент даёт тот же рассеянный блик без filter: blur.
  */
 export function SoftGlow({

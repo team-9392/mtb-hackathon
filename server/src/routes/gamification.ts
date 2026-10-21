@@ -41,11 +41,11 @@ const SKINS: Array<{ code: string; title: string; description: string; accent: s
 const DAILY_REWARDS = [10, 15, 20, 25, 30, 40, 100];
 
 const PET_STAGES = [
-  { at: 0, emoji: "🥚", title: "Яйцо", speech: "Положи первую монету в копилку — и я начну расти." },
-  { at: 100, emoji: "🐣", title: "Цыплёнок", speech: "Ты накопил 100 BYN — я вылупился!" },
-  { at: 300, emoji: "🐥", title: "Птенец", speech: "300 BYN — я уже уверенно стою на лапках." },
-  { at: 700, emoji: "🦅", title: "Орлёнок", speech: "700 BYN — я умею летать, а ты умеешь копить." },
-  { at: 1500, emoji: "🐉", title: "Дракон", speech: "1500 BYN — легенда копилки! Продолжай в том же духе." },
+  { at: 0, emoji: "🥚", title: "Яйцо", speech: "Положи первую монету в копилку – и я начну расти." },
+  { at: 100, emoji: "🐣", title: "Цыплёнок", speech: "Ты накопил 100 BYN – я вылупился!" },
+  { at: 300, emoji: "🐥", title: "Птенец", speech: "300 BYN – я уже уверенно стою на лапках." },
+  { at: 700, emoji: "🦅", title: "Орлёнок", speech: "700 BYN – я умею летать, а ты умеешь копить." },
+  { at: 1500, emoji: "🐉", title: "Дракон", speech: "1500 BYN – легенда копилки! Продолжай в том же духе." },
 ];
 
 function petStage(saved: number) {
@@ -167,7 +167,7 @@ export async function registerGamificationRoutes(app: FastifyInstance, db: Supab
       if (streak >= 7) ownedSkins.add("aurora");
       if (achievements.earned >= 500) ownedSkins.add("carbon");
 
-      // Дуэль недели: ребёнок — монеты за неделю, родитель — подтверждённые задания
+      // Дуэль недели: ребёнок – монеты за неделю, родитель – подтверждённые задания
       const start = weekStart();
       const { data: ledgerWeek } = await db.from("coin_ledger").select("amount, created_at").eq("user_id", userId).gte("created_at", start);
       const childPoints = ((ledgerWeek ?? []) as Array<{ amount: number | string }>).reduce((sum, row) => sum + Number(row.amount), 0);

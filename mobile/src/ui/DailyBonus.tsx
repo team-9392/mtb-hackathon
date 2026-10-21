@@ -58,7 +58,7 @@ export function DailyBonus() {
           </View>
           <Text style={styles.title}>{claimed ? "Бонус получен!" : "День " + state.day + " подряд"}</Text>
           <Text style={styles.subtitle}>
-            {claimed ? "Мобик доволен: +" + claimed + " монет" : "Заходи каждый день — награда растёт. Серия: " + state.streak}
+            {claimed ? "Мобик доволен: +" + claimed + " монет" : "Заходи каждый день – награда растёт. Серия: " + state.streak}
           </Text>
           <View style={styles.reward}>
             <Text style={styles.rewardAmount}>+{state.reward}</Text>

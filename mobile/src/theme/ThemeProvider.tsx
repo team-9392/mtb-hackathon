@@ -44,7 +44,7 @@ function isThemeMode(value: string | null | undefined): value is ThemeMode {
   return value === "dark" || value === "light";
 }
 
-/** Веб-превью: ?theme=dark|light — удобно для скриншотов и проверки дизайна. */
+/** Веб-превью: ?theme=dark|light – удобно для скриншотов и проверки дизайна. */
 function readPreviewMode(): ThemeMode | null {
   if (Platform.OS !== "web") {
     return null;
@@ -70,7 +70,7 @@ function readWebMode(): ThemeMode | null {
       return isThemeMode(stored) ? stored : null;
     }
   } catch {
-    // Приватный режим браузера — остаёмся на тёмной теме.
+    // Приватный режим браузера – остаёмся на тёмной теме.
   }
   return null;
 }
@@ -86,7 +86,7 @@ async function readStoredMode(): Promise<ThemeMode | null> {
       return isThemeMode(stored) ? stored : null;
     }
   } catch {
-    // Keychain недоступен — тема просто не запомнится.
+    // Keychain недоступен – тема просто не запомнится.
   }
   return null;
 }
@@ -113,7 +113,7 @@ async function persistMode(mode: ThemeMode): Promise<void> {
 }
 
 /**
- * Тема приложения. По умолчанию — тёмная, как в макетах.
+ * Тема приложения. По умолчанию – тёмная, как в макетах.
  * Выбор пользователя сохраняется: SecureStore на телефоне, localStorage на вебе.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

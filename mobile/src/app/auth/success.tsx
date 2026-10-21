@@ -47,7 +47,7 @@ export default function SuccessScreen() {
   const amountNumber = Number(params.amount ?? SIGNUP_PACKAGE_PRICE);
   const amount = Number.isFinite(amountNumber) && amountNumber > 0 ? amountNumber : SIGNUP_PACKAGE_PRICE;
   const paidAt = params.paidAt ?? new Date().toISOString();
-  const receipt = params.receipt ?? "—";
+  const receipt = params.receipt ?? "–";
   const childName = params.childName ?? "";
   const method = params.method ?? t("reg.methodAccount");
   const bracket = params.bracket === "teen_14_17" ? t("reg.bracket1417") : t("reg.bracket713");

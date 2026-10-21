@@ -52,7 +52,7 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
 
   await app.register(cors, {
     origin: (requestOrigin, callback) => {
-      // Мобильные клиенты не присылают Origin — это не браузерный CORS-запрос.
+      // Мобильные клиенты не присылают Origin – это не браузерный CORS-запрос.
       if (!requestOrigin) {
         callback(null, true);
         return;
@@ -67,7 +67,7 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
    * Мобильные сборки иногда присылают POST с content-type: application/json
    * и пустым телом (например, «выпустить карту» без настроек). Штатный парсер
    * Fastify отвечает на это 400 FST_ERR_CTP_EMPTY_JSON_BODY, а глобальный
-   * обработчик превращал его в 500 — отсюда жалоба «карта не выпускается».
+   * обработчик превращал его в 500 – отсюда жалоба «карта не выпускается».
    * Пустое тело считаем пустым объектом: схема запроса подставит значения
    * по умолчанию или вернёт понятную ошибку валидации.
    */
@@ -175,7 +175,7 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
   });
 
   app.setErrorHandler((error, request, reply) => {
-    // Ошибки уровня Fastify (кривой JSON, слишком большое тело) — это 4xx,
+    // Ошибки уровня Fastify (кривой JSON, слишком большое тело) – это 4xx,
     // а не 500. Раньше они маскировались под «внутреннюю ошибку сервера».
     const statusCode =
       typeof (error as { statusCode?: number }).statusCode === "number"

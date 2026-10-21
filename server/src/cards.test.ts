@@ -14,7 +14,7 @@ import {
   type CardRow,
 } from "./cards.js";
 
-test("CVV — ровно 3 цифры, PIN — ровно 4 цифры", () => {
+test("CVV – ровно 3 цифры, PIN – ровно 4 цифры", () => {
   for (let index = 0; index < 50; index += 1) {
     assert.match(generateCvv(), /^[0-9]{3}$/);
     assert.match(generatePin(), /^[0-9]{4}$/);
@@ -37,7 +37,7 @@ test("номер карты проходит проверку Луна для в
   }
 });
 
-test("срок действия — формат MM/YY", () => {
+test("срок действия – формат MM/YY", () => {
   assert.match(expiryFromNow(), /^(0[1-9]|1[0-2])\/\d{2}$/);
 });
 
@@ -64,7 +64,7 @@ test("представление карты не содержит CVV и PIN", (
   assert.equal(cardView({ ...row, status: "blocked" }).blocked, true);
 });
 
-test("сообщение с реквизитами в Telegram — согласованный формат", () => {
+test("сообщение с реквизитами в Telegram – согласованный формат", () => {
   assert.equal(
     cardDetailsMessage({ type: "virtual", system: "visa", last4: "1234", cvv: "123", pin: "1234" }),
     "💳 Moby Family: Виртуальная карта · Visa · •••• 1234\nCVV: 123\nPIN: 1234",

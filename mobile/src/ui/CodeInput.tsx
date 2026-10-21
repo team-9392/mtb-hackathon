@@ -16,7 +16,7 @@ interface CodeInputProps {
 
 /**
  * Ячейки кода с одним скрытым полем: работает автозаполнение из SMS,
- * вставка из буфера и посимвольный ввод. При ошибке — короткий сдвиг.
+ * вставка из буфера и посимвольный ввод. При ошибке – короткий сдвиг.
  */
 export function CodeInput({ value, onChange, length = 6, autoFocus, error, onComplete }: CodeInputProps) {
   const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);

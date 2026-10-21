@@ -49,7 +49,7 @@ const EMPTY_REWARDS: RewardDto[] = [];
 
 /**
  * Монеты Moby: тесты и задания банка плюс магазин наград.
- * Компоновка — по макету mobyfamily_tasks_dark_theme.html: заголовок,
+ * Компоновка – по макету mobyfamily_tasks_dark_theme.html: заголовок,
  * стеклянный виджет баланса, фильтры-таблетки и карточки с наградой.
  * Один экран для двух ролей: отличается только подпись баланса.
  */
@@ -302,7 +302,7 @@ export function BonusesView({ audience = "child" }: { audience?: "child" | "pare
         ))}
       </View>
 
-      {/* Шторка выбранного задания — как в макете */}
+      {/* Шторка выбранного задания – как в макете */}
       <Modal
         visible={selected !== null}
         transparent

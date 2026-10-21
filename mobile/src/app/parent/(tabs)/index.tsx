@@ -23,7 +23,7 @@ import { SecurityAlerts } from "@/ui/SecurityAlerts";
 import { DailyBonus } from "@/ui/DailyBonus";
 import { Text } from "@/ui/Text";
 
-/** Главная родителя — тот же стиль, что у ребёнка, но действия банка для семьи. */
+/** Главная родителя – тот же стиль, что у ребёнка, но действия банка для семьи. */
 export default function ParentHomeScreen() {
     const { t, lang } = useI18n();
     const { state, resolveRequest, showToast, refresh } = useStore();

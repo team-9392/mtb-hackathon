@@ -32,7 +32,7 @@ async function loadChild(db: SupabaseClient, childId: string): Promise<ChildRef>
   return data as unknown as ChildRef;
 }
 
-/** Ребёнок работает только со своим профилем, родитель — с профилем своей семьи. */
+/** Ребёнок работает только со своим профилем, родитель – с профилем своей семьи. */
 function assertChildAccess(
   claims: { sub: string; familyId: string | null; role: string; childId: string | null },
   child: ChildRef,
@@ -121,7 +121,7 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
         operationAllowed,
       });
 
-      // Платим первой (самой ранней) картой; заблокирована ли она — решает статус.
+      // Платим первой (самой ранней) картой; заблокирована ли она – решает статус.
       const { data: card } = await db
         .from("cards")
         .select("id, status")

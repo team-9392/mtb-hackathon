@@ -21,7 +21,7 @@ export default function AiAssistantScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [turns, setTurns] = useState<Turn[]>([
-    { role: "assistant", text: "Привет! Я Моби. Спроси про траты, лимиты или как накопить на цель. Я вижу только суммы и категории — без имён и реквизитов." },
+    { role: "assistant", text: "Привет! Я Моби. Спроси про траты, лимиты или как накопить на цель. Я вижу только суммы и категории – без имён и реквизитов." },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);

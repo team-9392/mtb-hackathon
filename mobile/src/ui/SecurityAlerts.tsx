@@ -36,7 +36,7 @@ export function SecurityAlerts() {
       </Text>
         <Ionicons name={open ? "chevron-up" : "chevron-down"} size={14} color="#8b94a3" />
       </View>
-      {alerts.length === 0 ? <Text style={styles.alertBody}>Пока всё спокойно — ИИ следит за операциями и предупредит о необычных тратах.</Text> : null}
+      {alerts.length === 0 ? <Text style={styles.alertBody}>Пока всё спокойно – ИИ следит за операциями и предупредит о необычных тратах.</Text> : null}
       {visible.map((alert) => (
         <View key={alert.id} style={styles.row}>
           <Text style={styles.alertTitle}>{alert.title_ru}</Text>

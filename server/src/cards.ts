@@ -142,7 +142,7 @@ export interface CardSecret {
   pin: string;
 }
 
-/** Сообщение с реквизитами — ровно тот формат, который ждёт демо. */
+/** Сообщение с реквизитами – ровно тот формат, который ждёт демо. */
 export function cardDetailsMessage(card: CardSecret): string {
   return (
     "💳 Moby Family: " +

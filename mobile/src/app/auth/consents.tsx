@@ -30,7 +30,7 @@ const CONSENT_ITEMS: { id: ConsentId; title: TKey; hint: TKey }[] = [
 /**
  * Шаг 5: согласия.
  * Показываем все четыре пункта и их статус, но требуем только те,
- * которые нужны возрастной группе ребёнка: written14 — для 14–17 лет.
+ * которые нужны возрастной группе ребёнка: written14 – для 14–17 лет.
  */
 export default function ConsentsScreen() {
   const { colors } = useTheme();

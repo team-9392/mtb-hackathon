@@ -2,8 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Push через Expo Push API. Работает, когда у устройства есть токен:
- * на Android нужны FCM-ключи проекта, на iOS — APNs (платный Apple Developer).
- * Если токенов нет или провайдер не настроен — молча пропускаем, in-app уведомление уже создано.
+ * на Android нужны FCM-ключи проекта, на iOS – APNs (платный Apple Developer).
+ * Если токенов нет или провайдер не настроен – молча пропускаем, in-app уведомление уже создано.
  */
 export async function sendPush(
   db: SupabaseClient,

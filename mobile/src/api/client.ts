@@ -38,7 +38,7 @@ async function setItem(key: string, value: string | null): Promise<void> {
         globalThis.sessionStorage.setItem(key, value);
       }
     } catch {
-      // Приватный режим браузера — остаёмся на памяти.
+      // Приватный режим браузера – остаёмся на памяти.
     }
     return;
   }
@@ -118,7 +118,7 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
     });
   } catch {
     throw controller.signal.aborted
-      ? new ApiError(0, "timeout", "Сервер не ответил — попробуйте ещё раз")
+      ? new ApiError(0, "timeout", "Сервер не ответил – попробуйте ещё раз")
       : new OfflineError();
   } finally {
     clearTimeout(timer);
@@ -171,7 +171,7 @@ export async function refreshSession(): Promise<boolean> {
   }
 }
 
-/** Токен для WebSocket. Если access протух — обновляем сессию. */
+/** Токен для WebSocket. Если access протух – обновляем сессию. */
 export async function accessTokenForSocket(): Promise<string | null> {
   const token = await getItem(ACCESS_KEY);
   if (token) {

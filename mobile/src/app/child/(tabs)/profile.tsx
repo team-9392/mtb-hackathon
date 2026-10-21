@@ -29,7 +29,7 @@ function initialsOf(name: string): string {
   return parts.slice(0, 2).map((part) => part.charAt(0)).join("").toUpperCase();
 }
 
-/** Профиль ребёнка — 1:1 к макету profile: карточка, аналитика трат, лимиты. */
+/** Профиль ребёнка – 1:1 к макету profile: карточка, аналитика трат, лимиты. */
 export default function ChildProfileScreen() {
   const { t, lang, setLang } = useI18n();
   const { state, setRole, showToast } = useStore();

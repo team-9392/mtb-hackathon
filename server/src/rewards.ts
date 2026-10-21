@@ -6,18 +6,18 @@ export interface Reward {
   title: { ru: string; be: string };
   desc: { ru: string; be: string };
   value: string;                  // theme: id темы (default/graphite/ocean/sunset); promo: префикс/текст скидки; perk: что даёт
-  code: string | null;            // фиксированный промокод или null — тогда сервер сгенерирует сам
-  partner: { name: string; logo: string } | null;  // logo — имя файла PNG в server/assets/partners/
+  code: string | null;            // фиксированный промокод или null – тогда сервер сгенерирует сам
+  partner: { name: string; logo: string } | null;  // logo – имя файла PNG в server/assets/partners/
   sort: number;
 }
 
 /**
  * Каталог наград Moby Family.
  *
- * Контент живёт в коде — редактируйте прямо этот массив, перезапускайте сервер.
+ * Контент живёт в коде – редактируйте прямо этот массив, перезапускайте сервер.
  * Правила и порядок добавления описаны в docs/REWARDS.md.
  *
- * ВАЖНО: id уже выданных наград менять нельзя — на них ссылаются записи в
+ * ВАЖНО: id уже выданных наград менять нельзя – на них ссылаются записи в
  * purchases у пользователей. Меняйте цену/тексты/партнёра, но не id.
  */
 export const REWARDS: Reward[] = [

@@ -23,7 +23,7 @@ const SYSTEM_LABEL: Record<CardSystem, string> = {
   unionpay: "UnionPay",
 };
 
-/** Сразу после оплаты пакета — выбор карты для ребёнка: тип и платёжная система. */
+/** Сразу после оплаты пакета – выбор карты для ребёнка: тип и платёжная система. */
 export default function CardSetupScreen() {
   const { t } = useI18n();
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function CardSetupScreen() {
         amount: params.amount ?? "",
         method: params.method ?? "",
         paidAt: params.paidAt ?? new Date().toISOString(),
-        receipt: params.receipt ?? "—",
+        receipt: params.receipt ?? "–",
         bracket: params.bracket ?? "child_7_13",
       },
     });
@@ -87,7 +87,7 @@ export default function CardSetupScreen() {
           </View>
           <Text style={styles.title}>Пакет оформлен</Text>
           <Text style={styles.subtitle}>
-            {params.childName ? params.childName + " · " : ""}остался последний шаг — выпустите карту
+            {params.childName ? params.childName + " · " : ""}остался последний шаг – выпустите карту
           </Text>
         </View>
 

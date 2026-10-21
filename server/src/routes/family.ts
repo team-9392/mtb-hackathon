@@ -168,7 +168,7 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
     }
   });
 
-  /** Все четыре согласия: подписанные и неподписанные — с флагами и датой. */
+  /** Все четыре согласия: подписанные и неподписанные – с флагами и датой. */
   app.get("/children/:id/consents", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
@@ -466,7 +466,7 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
     }
   });
 
-  /** Журнал согласий и изменений прав — для вопросов жюри «чем докажете». */
+  /** Журнал согласий и изменений прав – для вопросов жюри «чем докажете». */
   app.get("/family/audit", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);

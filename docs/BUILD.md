@@ -8,7 +8,7 @@ cd mobile
 npm install
 npx expo prebuild -p ios     # создаёт ios/ (в git не хранится)
 ```
-Подпись уже прописана в `app.json`: `ios.appleTeamId = F66252VQWS` — при prebuild Xcode
+Подпись уже прописана в `app.json`: `ios.appleTeamId = F66252VQWS` – при prebuild Xcode
 сам подставит команду в проект, руками в Xcode ничего менять не нужно.
 
 ## 1. Android APK (облако, телефон не нужен)
@@ -27,7 +27,7 @@ npx expo run:ios --device 00008140-001538EC3C93801C --configuration Release
 Телефон подключён кабелем и разблокирован. Флаг `--configuration Release` обязателен:
 Debug-сборка ищет Metro и без него показывает «No script URL provided».
 
-Если добавили нативную библиотеку (например `expo-notifications`) — сначала
+Если добавили нативную библиотеку (например `expo-notifications`) – сначала
 `cd ios && pod install`, потом снова `expo run:ios`.
 
 ## 3. Xcode, Cmd+R
@@ -35,7 +35,7 @@ Debug из Xcode требует запущенного Metro:
 ```bash
 cd mobile && npx expo start
 ```
-Без Metro — снова «No script URL provided». Для запуска без Metro:
+Без Metro – снова «No script URL provided». Для запуска без Metro:
 Product → Scheme → Edit Scheme → Run → Build Configuration = **Release**.
 
 **Нельзя** запускать Cmd+R, пока в терминале работает `expo run:ios` или `xcodebuild`:
@@ -52,11 +52,11 @@ cd mobile && npm run logo
 `brand/logo.png` для экрана открытия.
 
 После замены лого:
-- **Android** — просто новая EAS-сборка (п. 1), иконки подхватятся сами;
-- **iOS** — `npx expo prebuild -p ios --clean` (пересоздаст ios/ с новыми иконками),
+- **Android** – просто новая EAS-сборка (п. 1), иконки подхватятся сами;
+- **iOS** – `npx expo prebuild -p ios --clean` (пересоздаст ios/ с новыми иконками),
   затем `npx expo run:ios --device … --configuration Release`.
 
-Иконка в приложении на телефоне **не меняется без переустановки** — это нативные ассеты.
+Иконка в приложении на телефоне **не меняется без переустановки** – это нативные ассеты.
 
 ## 5. Проверка перед сборкой
 ```bash
@@ -64,7 +64,7 @@ cd mobile
 npx tsc --noEmit
 npx expo lint
 ```
-Оба должны быть чистыми по ошибкам (warnings — стилевые, не блокируют).
+Оба должны быть чистыми по ошибкам (warnings – стилевые, не блокируют).
 
 ## Частые ошибки
 | Симптом | Причина |

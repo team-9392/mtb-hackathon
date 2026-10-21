@@ -151,7 +151,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
   });
 
 
-  /** Подтверждение чувствительного действия кодом из Telegram — без новой сессии. */
+  /** Подтверждение чувствительного действия кодом из Telegram – без новой сессии. */
   app.post("/me/confirm/request", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);
@@ -173,7 +173,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
       const body = z.object({ challengeId: z.string().uuid(), code: z.string().min(4).max(8) }).parse(request.body ?? {});
       const result = await verifyChallenge(db, body.challengeId, body.code);
       if (!result.ok) {
-        const message = result.reason === "expired" ? "Код истёк — запросите новый" : result.reason === "too_many_attempts" ? "Слишком много попыток" : "Неверный код";
+        const message = result.reason === "expired" ? "Код истёк – запросите новый" : result.reason === "too_many_attempts" ? "Слишком много попыток" : "Неверный код";
         return reply.code(400).send({ error: "wrong_code", message });
       }
       return reply.send({ ok: true, sub: claims.sub });
@@ -229,7 +229,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
       // Гейтинг пакета: сначала идентификационный номер, затем ребёнок.
       const idNumber = (body.idNumber ?? "").trim().toUpperCase();
       if (!/^\d{7}[A-Z]\d{3}[A-Z]{2}\d$/.test(idNumber)) {
-        throw badRequest("Проверьте идентификационный номер: 7 цифр, буква, 3 цифры, 2 буквы, цифра — например 5120609A014PB2");
+        throw badRequest("Проверьте идентификационный номер: 7 цифр, буква, 3 цифры, 2 буквы, цифра – например 5120609A014PB2");
       }
       const childName = (body.childName ?? "").trim();
       if (childName.length === 0) {
@@ -394,7 +394,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
       if (body.idNumber !== undefined) {
         const value = body.idNumber.trim().toUpperCase();
         if (!/^\d{7}[A-Z]\d{3}[A-Z]{2}\d$/.test(value)) {
-          throw badRequest("Проверьте идентификационный номер: 7 цифр, буква, 3 цифры, 2 буквы, цифра — например 5120609A014PB2");
+          throw badRequest("Проверьте идентификационный номер: 7 цифр, буква, 3 цифры, 2 буквы, цифра – например 5120609A014PB2");
         }
         if (value.length === 0) {
           throw badRequest("Укажите идентификационный номер");
@@ -416,7 +416,7 @@ export function registerAuthRoutes(app: FastifyInstance, db: SupabaseClient, env
       }
       // Токен мог остаться от аккаунта, который уже удалён (переустановка, очистка базы).
       if (!data) {
-        return reply.code(401).send({ error: "session_stale", message: "Сессия устарела — войдите заново" });
+        return reply.code(401).send({ error: "session_stale", message: "Сессия устарела – войдите заново" });
       }
       return reply.send({
         user: {

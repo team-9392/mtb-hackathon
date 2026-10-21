@@ -129,13 +129,13 @@ export interface FamilyState {
   notifications: AppNotification[];
   accessGranted: boolean;
   childSession: boolean;
-  /** UUID ребёнка из базы — только в режиме API. */
+  /** UUID ребёнка из базы – только в режиме API. */
   childId?: string;
   /** Код доступа, который родитель даёт ребёнку для входа. */
   accessCode?: string;
   /** Все карты ребёнка (для листания на главной). */
   cards?: CardInfo[];
-  /** UUID цели из базы — только в режиме API. */
+  /** UUID цели из базы – только в режиме API. */
   goalId?: string;
   /** Счета ребёнка из базы. */
   accounts?: AccountRow[];

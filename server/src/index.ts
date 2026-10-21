@@ -5,7 +5,7 @@ import { readEnv } from "./env.js";
 import { createDb } from "./supabase.js";
 
 /**
- * На VPS нет IPv6-маршрута, а DNS отдаёт api.telegram.org сначала по IPv6 —
+ * На VPS нет IPv6-маршрута, а DNS отдаёт api.telegram.org сначала по IPv6 –
  * fetch падал с «fetch failed», и коды/реквизиты в Telegram не доходили.
  * Явно предпочитаем IPv4: Telegram и Supabase всё равно доступны по нему.
  */

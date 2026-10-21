@@ -88,7 +88,7 @@ export default function GameCenterScreen() {
           </View>
         </View>
 
-        {/* Питомец Мобик живёт в копилке — растёт от накоплений */}
+        {/* Питомец Мобик живёт в копилке – растёт от накоплений */}
 
         {/* Серия входов */}
         <View style={styles.dailyRow}>
@@ -114,7 +114,7 @@ export default function GameCenterScreen() {
             <Text style={styles.duelValue}>{state.duel.parentPoints}</Text>
           </View>
           <Text style={styles.duelHint}>
-            {state.duel.childPoints >= state.duel.parentPoints ? "Ты впереди — так держать!" : "Родитель впереди: выполни задание или пройди тест."}
+            {state.duel.childPoints >= state.duel.parentPoints ? "Ты впереди – так держать!" : "Родитель впереди: выполни задание или пройди тест."}
           </Text>
         </View>
 

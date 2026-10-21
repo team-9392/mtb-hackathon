@@ -42,7 +42,7 @@ function PushRegistrar() {
 
 function AppShell() {
   const { colors, isDark } = useTheme();
-  // ?preview=1 — веб-превью без анимации сплэша (скриншоты, проверка дизайна).
+  // ?preview=1 – веб-превью без анимации сплэша (скриншоты, проверка дизайна).
   const [showSplash, setShowSplash] = useState(
     () => !(Platform.OS === "web" && typeof window !== "undefined" && window.location.search.includes("preview=1")),
   );
@@ -64,10 +64,10 @@ function AppShell() {
   );
 }
 
-// react-native-svg на вебе пишет предупреждение про transform-origin — на натив не влияет.
+// react-native-svg на вебе пишет предупреждение про transform-origin – на натив не влияет.
 LogBox.ignoreLogs(["Invalid DOM property", "transform-origin", "transformOrigin"]);
 
-// react-native-svg на вебе шлёт невалидный DOM-атрибут transform-origin — глушим шум.
+// react-native-svg на вебе шлёт невалидный DOM-атрибут transform-origin – глушим шум.
 if (Platform.OS === "web") {
   const originalError = console.error;
   console.error = (...args: unknown[]) => {

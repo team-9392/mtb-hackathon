@@ -7,7 +7,7 @@ import { useI18n } from "@/i18n";
 import { fonts } from "@/theme/fonts";
 import { useTheme } from "@/theme/ThemeProvider";
 
-/** Вкладки родителя: Обзор, Продукты, Задания, Права (лимиты — внутри прав). */
+/** Вкладки родителя: Обзор, Продукты, Задания, Права (лимиты – внутри прав). */
 export default function ParentTabsLayout() {
   const { t } = useI18n();
   const { colors } = useTheme();

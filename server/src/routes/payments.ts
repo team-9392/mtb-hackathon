@@ -101,7 +101,7 @@ export function registerPaymentRoutes(app: FastifyInstance, db: SupabaseClient, 
     }
   });
 
-  /** Личная ссылка на бота: человек жмёт Start один раз — и бот пишет ему сам. */
+  /** Личная ссылка на бота: человек жмёт Start один раз – и бот пишет ему сам. */
   app.get("/telegram/link", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);

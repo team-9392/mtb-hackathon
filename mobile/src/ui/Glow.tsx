@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
-/** Мягкое свечение фона: красное слева, синее справа — как в макете. */
+/** Мягкое свечение фона: красное слева, синее справа – как в макете. */
 export function HeroGlow() {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>

@@ -16,9 +16,9 @@ export type AppTextProps = TextProps & {
 /**
  * Глобальный Text приложения.
  *
- * По умолчанию — TikTok Sans; вес подбирается по fontWeight (в RN каждый вес
+ * По умолчанию – TikTok Sans; вес подбирается по fontWeight (в RN каждый вес
  * это отдельный файл). Inter включается пропом secondary или явным fontFamily.
- * Существующие экраны просто импортируют Text отсюда — размеры не меняются.
+ * Существующие экраны просто импортируют Text отсюда – размеры не меняются.
  */
 export const Text = forwardRef<React.ComponentRef<typeof RNText>, AppTextProps>(function AppText(
   { style, secondary = false, ...rest },

@@ -20,7 +20,7 @@ import { DailyBonus } from "@/ui/DailyBonus";
 import { Text } from "@/ui/Text";
 import { TopUpSheet } from "@/ui/TopUpSheet";
 
-/** Главная ребёнка — по макету: шапка, баланс, выглядывающая карта под углом, шторка с glassmorphism, копилка, операции. */
+/** Главная ребёнка – по макету: шапка, баланс, выглядывающая карта под углом, шторка с glassmorphism, копилка, операции. */
 export default function ChildHomeScreen() {
     const { t, lang } = useI18n();
     const { state, showToast, refresh } = useStore();
