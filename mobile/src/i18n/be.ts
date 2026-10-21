@@ -469,6 +469,7 @@ export const be: Record<TKey, string> = {
   "pr.settings": "Налады",
   "ov.tabProducts": "Прадукты",
   "ov.tasksTab": "Заданні",
+  "rg.open": "Адкрыць",
 "common.swipeConfirm": "Правядзіце ўправа, каб пацвердзіць",
   "common.swipeTransfer": "Правядзіце ўправа, каб перавесці",
   "pay.title": "Аплата і пераводы",

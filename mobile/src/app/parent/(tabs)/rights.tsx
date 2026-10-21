@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useI18n, useL, type TKey } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
@@ -42,6 +43,7 @@ const CATEGORY_LABEL: Record<CategoryId, TKey> = {
 const ALLOWED_CATEGORIES: CategoryId[] = ["kids", "fun", "pharmacy", "groceries"];
 
 export default function ParentRightsScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
   const palette = colors;
   const styles = useThemedStyles(makeStyles);
@@ -56,6 +58,14 @@ export default function ParentRightsScreen() {
 
   return (
     <Screen title={t("rg.title")} subtitle={t("rg.subtitle")}>
+      <Card>
+        <Row style={{ justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ fontSize: 15, fontWeight: "700" }}>{t("lm.tab")}</Text>
+          <Pressable onPress={() => router.push("/parent/limits")} hitSlop={8}>
+            <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>{t("rg.open")}</Text>
+          </Pressable>
+        </Row>
+      </Card>
       {pending.length > 0 ? (
         <Card>
           <Row style={styles.pendingHead}>

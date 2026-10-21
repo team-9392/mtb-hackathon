@@ -467,6 +467,7 @@ export const ru = {
   "pr.settings": "Настройки",
   "ov.tabProducts": "Продукты",
   "ov.tasksTab": "Задания",
+  "rg.open": "Открыть",
 "common.swipeConfirm": "Проведите вправо, чтобы подтвердить",
   "common.swipeTransfer": "Проведите вправо, чтобы перевести",
   "pay.title": "Оплата и переводы",
