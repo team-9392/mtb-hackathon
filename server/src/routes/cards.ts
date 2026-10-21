@@ -125,6 +125,52 @@ async function insertCard(
   return data as unknown as CardRow;
 }
 
+
+/** После выпуска сразу отправляем CVV и PIN родителю в Telegram (и ребёнку, если привязан). */
+async function autoSendCardDetails(
+  db: SupabaseClient,
+  childId: string,
+  card: CardRow,
+): Promise<void> {
+  try {
+    if (!card.cvv || !card.pin) {
+      return;
+    }
+    const { data: childRow } = await db
+      .from("children")
+      .select("id, family_id, user_id")
+      .eq("id", childId)
+      .maybeSingle();
+    if (!childRow?.family_id) {
+      return;
+    }
+    const parentId = await parentUserIdOfFamily(db, childRow.family_id as string);
+    const ids = Array.from(
+      new Set([parentId, childRow.user_id as string | null].filter((value): value is string => Boolean(value))),
+    );
+    const { data: users } = await db.from("users").select("telegram_chat_id").in("id", ids);
+    const chats = Array.from(
+      new Set(
+        (users ?? [])
+          .map((row) => row.telegram_chat_id as string | null)
+          .filter((chat): chat is string => Boolean(chat)),
+      ),
+    );
+    const text = cardDetailsMessage({
+      type: card.type,
+      system: card.system,
+      last4: card.last4,
+      cvv: card.cvv,
+      pin: card.pin,
+    });
+    for (const chatId of chats) {
+      await sendTelegram(text, chatId);
+    }
+  } catch (error) {
+    console.error("[cards] авто-отправка реквизитов: " + (error as Error).message);
+  }
+}
+
 function sameCard(card: CardRow, type: string, system: string): boolean {
   return card.type === type && card.system === system;
 }
@@ -159,6 +205,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
       }
 
       const card = await insertCard(db, child.id, body.type, body.system);
+      void autoSendCardDetails(db, child.id, card);
       await hub.publish(db, familyId, "permission.updated", {
         childId: child.id,
         cardIssued: true,
@@ -327,6 +374,7 @@ export function registerCardRoutes(app: FastifyInstance, db: SupabaseClient, env
 
       if (!current) {
         const card = await insertCard(db, child.id, body.type, body.system);
+        void autoSendCardDetails(db, child.id, card);
         await hub.publish(db, familyId, "permission.updated", { childId: child.id, cardIssued: true, cardId: card.id });
         return reply.status(201).send({ card: cardView(card) });
       }

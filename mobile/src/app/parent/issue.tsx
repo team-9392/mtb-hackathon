@@ -56,7 +56,7 @@ export default function IssueScreen() {
     }
     if (ok) {
       // Реквизиты приходят в состояние, а из выпуска сразу уходим в главное меню.
-      showToast(t("card.issued"));
+      showToast(t("card.issuedSent"));
       router.replace("/parent");
     }
   };

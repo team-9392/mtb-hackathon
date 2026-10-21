@@ -27,6 +27,15 @@ function randomCvv(): string {
   return String(Math.floor(100 + Math.random() * 900));
 }
 
+function cardDetailsText(row: Record<string, unknown>): string {
+  const dto = toDto(row);
+  return [
+    "💳 <b>Moby Family</b>: " + (row.type === "plastic" ? "Пластиковая карта" : "Виртуальная карта") + " · " + (SYSTEM_LABEL[row.system as string] ?? row.system) + " · " + dto.masked,
+    "CVV: <b>" + row.cvv + "</b>",
+    "PIN: <b>" + row.pin + "</b>",
+  ].join("\n");
+}
+
 function toDto(row: Record<string, unknown>, withSecrets = false) {
   return {
     id: row.id as string,
@@ -81,6 +90,19 @@ export async function registerParentCardRoutes(
       if (error || !data) {
         return reply.code(500).send({ error: "issue_failed", message: "Не удалось выпустить карту" });
       }
+      // Реквизиты новой карты сразу уходят родителю в Telegram.
+      const autoSendOwn = async () => {
+        try {
+          if (!telegramEnabled()) return;
+          const { data: me } = await db.from("users").select("phone").eq("id", claims.sub).maybeSingle();
+          const chatId = me?.phone ? await telegramChatForPhone(db, me.phone as string) : null;
+          if (!chatId) return;
+          await sendTelegram(cardDetailsText(data), chatId);
+        } catch (error) {
+          console.error("[parent-cards] авто-отправка: " + (error as Error).message);
+        }
+      };
+      void autoSendOwn();
       return reply.code(201).send({ card: toDto(data) });
     } catch (error) {
       return sendError(reply, error);
