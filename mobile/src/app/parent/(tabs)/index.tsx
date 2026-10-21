@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { requestCardDetailsApi } from "@/api/actions";
+import { issueMyCardApi, myCardsApi, requestCardDetailsApi, requestMyCardDetailsApi } from "@/api/actions";
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -28,6 +28,46 @@ export default function ParentHomeScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const [topup, setTopup] = useState(false);
+  const [myCards, setMyCards] = useState<CardInfo[]>([]);
+  const [myCardBusy, setMyCardBusy] = useState(false);
+
+  const loadMyCards = useCallback(async () => {
+    try {
+      const answer = await myCardsApi();
+      setMyCards(
+        (answer.cards ?? []).map((item) => ({
+          id: item.id,
+          status: item.status === "blocked" ? "blocked" : "active",
+          physical: item.type === "plastic" ? "delivered" : "ordered",
+          last4: item.last4,
+          number: item.number,
+          system: item.system as CardInfo["system"],
+          type: item.type as CardInfo["type"],
+          expiry: item.expiry,
+        })),
+      );
+    } catch {
+      // карта выпускается по кнопке
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMyCards();
+  }, [loadMyCards]);
+
+  const issueMyCard = useCallback(async () => {
+    if (myCardBusy) return;
+    setMyCardBusy(true);
+    try {
+      await issueMyCardApi({ type: "virtual", system: "visa" });
+      showToast(t("card.issued"));
+      await loadMyCards();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : t("auth.connectFailed"));
+    } finally {
+      setMyCardBusy(false);
+    }
+  }, [loadMyCards, myCardBusy, showToast, t]);
   const [refreshing, setRefreshing] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
   const busyPull = useRef(false);
@@ -46,7 +86,7 @@ export default function ParentHomeScreen() {
 
   const spent = spentThisMonth(state.txns);
   const left = Math.max(0, state.limits.monthly - spent);
-  const cards: CardInfo[] = state.cards && state.cards.length > 0 ? state.cards : state.card.number.length > 0 ? [state.card] : [];
+  const cards: CardInfo[] = myCards;
   const goal = state.goal;
   const progress = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
   const pending = state.requests.filter((request) => request.status === "pending");
@@ -114,11 +154,16 @@ export default function ParentHomeScreen() {
 
           <CardPeek
             cards={cards}
-            holder={state.child.name}
+            holder={user?.full_name ?? "Моя карта"}
             limitLeft={left}
             scrollY={scrollY}
-            onIssue={() => router.push("/parent/issue")}
-            onDetails={(card) => void requestDetails(card)}
+            onIssue={() => void issueMyCard()}
+            onDetails={(card) => {
+              if (!card.id) return;
+              void requestMyCardDetailsApi(card.id)
+                .then(() => showToast(t("card.detailsSent")))
+                .catch((error) => showToast(error instanceof Error ? error.message : t("auth.connectFailed")));
+            }}
           />
         </View>
 
@@ -223,7 +268,7 @@ const makeStyles = (colors: Palette) =>
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     greeting: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2, marginBottom: spacing.sm },
     panel: {
-      marginTop: -spacing.lg,
+      marginTop: -spacing.xl,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
       paddingBottom: spacing.xl,

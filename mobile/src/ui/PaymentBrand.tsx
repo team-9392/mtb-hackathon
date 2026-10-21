@@ -22,6 +22,17 @@ const LOGOS: Record<CardSystem, ImageSourcePropType> = {
 const SQUARE_LOGOS: Partial<Record<CardSystem, true>> = { belkart: true };
 
 export function PaymentBrand({ system, onDark = false }: { system: CardSystem; onDark?: boolean }) {
+  if (system === "belkart") {
+    return (
+      <Image
+        source={LOGOS.belkart}
+        resizeMode="contain"
+        accessibilityRole="image"
+        accessibilityLabel="belkart"
+        style={onDark ? styles.belkartDark : styles.belkartLight}
+      />
+    );
+  }
   const square = SQUARE_LOGOS[system] === true;
   const logo = (
     <Image
@@ -60,4 +71,7 @@ const styles = StyleSheet.create({
   /* Квадратная эмблема на светлом фоне — бокс 30×30, без пустых полей слева. */
   squareLightBox: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   squareLightLogo: { width: 30, height: 30 },
+  /* Белкарт: только эмблема, без белой плашки, крупнее. */
+  belkartDark: { width: 34, height: 34 },
+  belkartLight: { width: 44, height: 44 },
 });

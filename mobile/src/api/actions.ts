@@ -193,3 +193,23 @@ export function requestCardDetailsApi(
 ): Promise<{ ok: boolean; sentTo?: string[]; message?: string }> {
   return api(`/children/${childId}/cards/${cardId}/details`, { method: "POST", body: {} });
 }
+
+export interface MyCardDto {
+  id: string;
+  last4: string;
+  number: string;
+  system: string;
+  type: string;
+  expiry: string;
+  status: string;
+  masked: string;
+}
+export function myCardsApi(): Promise<{ cards: MyCardDto[] }> {
+  return api("/me/cards");
+}
+export function issueMyCardApi(body: { type: string; system: string }): Promise<{ card: MyCardDto }> {
+  return api("/me/cards", { method: "POST", body });
+}
+export function requestMyCardDetailsApi(cardId: string): Promise<{ ok: boolean; message?: string }> {
+  return api(`/me/cards/${cardId}/details`, { method: "POST", body: {} });
+}
