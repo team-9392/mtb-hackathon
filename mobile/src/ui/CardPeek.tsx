@@ -122,17 +122,19 @@ export function CardPeek({
             </Pressable>
           </Animated.View>
 
-          {count > 1 ? (
-            <View style={styles.nav}>
-              <Pressable style={styles.navButton} onPress={() => setIndex((prev) => Math.max(0, prev - 1))} hitSlop={8}>
-                <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.85)" />
-              </Pressable>
-              <Text style={styles.navText}>{(index + 1) + " / " + count}</Text>
-              <Pressable style={styles.navButton} onPress={() => setIndex((prev) => Math.min(count - 1, prev + 1))} hitSlop={8}>
-                <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.85)" />
-              </Pressable>
-            </View>
-          ) : null}
+      {count > 1 ? (
+        <View style={styles.navOutside}>
+          <Pressable style={styles.navButton} onPress={() => setIndex((prev) => Math.max(0, prev - 1))} hitSlop={8}>
+            <Ionicons name="chevron-back" size={16} color="rgba(255,255,255,0.85)" />
+          </Pressable>
+          <Text style={styles.navText}>{(index + 1) + " / " + count}</Text>
+          <Pressable style={styles.navButton} onPress={() => setIndex((prev) => Math.min(count - 1, prev + 1))} hitSlop={8}>
+            <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.85)" />
+          </Pressable>
+        </View>
+      ) : null}
+
+
         </View>
       </Animated.View>
     </View>
@@ -195,7 +197,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   detailsText: { color: "#dbeafe", fontSize: 11, fontWeight: "700" },
-  nav: { position: "absolute", right: spacing.lg, bottom: spacing.md, flexDirection: "row", alignItems: "center", gap: 8 },
+  navOutside: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 8 },
   navButton: { width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" },
   navText: { color: "rgba(255,255,255,0.8)", fontSize: 11, fontWeight: "700" },
   empty: { marginTop: spacing.sm, borderRadius: 24, backgroundColor: "#000", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", padding: spacing.xl, gap: 6 },
