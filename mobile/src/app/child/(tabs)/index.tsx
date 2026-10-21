@@ -15,6 +15,7 @@ import { spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
 import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
+import { BlurSpot } from "@/ui/BlurSpot";
 import { HeroGlow } from "@/ui/Glow";
 import { Text } from "@/ui/Text";
 import { TopUpSheet } from "@/ui/TopUpSheet";
@@ -149,8 +150,8 @@ export default function ChildHomeScreen() {
                 {/* Верхний блок с градиентным свечением, балансом и картой */}
                 <View style={styles.hero}>
                     <HeroGlow />
-                    <View pointerEvents="none" style={styles.heroRedSpot} />
-                    <View pointerEvents="none" style={styles.heroBlueSpot} />
+                    <View pointerEvents="none" style={styles.heroRedSpot}><BlurSpot size={280} color="#8c283c" intensity={1.5} /></View>
+                    <View pointerEvents="none" style={styles.heroBlueSpot}><BlurSpot size={280} color="#2f5ba8" intensity={1.5} /></View>
 
                     {refreshing ? (
                         <View style={styles.refresh}>
@@ -227,7 +228,7 @@ export default function ChildHomeScreen() {
                             style={styles.glassCard}
                             onPress={() => router.push("/child/goal")}
                         >
-                            <View pointerEvents="none" style={styles.goalCornerGlow} />
+                            <View pointerEvents="none" style={styles.goalCornerGlow}><BlurSpot size={150} color="#3b82f6" intensity={1.3} /></View>
                             <View style={styles.goalHead}>
                                 <Ionicons name="heart-outline" size={15} color="#8b94a3" />
                                 <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
@@ -250,7 +251,7 @@ export default function ChildHomeScreen() {
                             style={styles.glassCard}
                             onPress={() => router.push("/child/goal")}
                         >
-                            <View pointerEvents="none" style={styles.goalCornerGlow} />
+                            <View pointerEvents="none" style={styles.goalCornerGlow}><BlurSpot size={150} color="#3b82f6" intensity={1.3} /></View>
                             <View style={styles.goalHead}>
                                 <Ionicons name="add-circle-outline" size={16} color="#60a5fa" />
                                 <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
