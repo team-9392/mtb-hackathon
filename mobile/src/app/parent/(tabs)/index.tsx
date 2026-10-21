@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { issueMyCardApi, myCardsApi, requestCardDetailsApi, requestMyCardDetailsApi } from "@/api/actions";
+import { issueMyCardApi, myCardsApi, requestMyCardDetailsApi } from "@/api/actions";
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { formatDate, formatMoney } from "@/lib/format";
