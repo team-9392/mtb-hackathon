@@ -28,6 +28,7 @@ export default function ChildHomeScreen() {
   const myTxns = state.txns.filter((t) => t.byChild).slice(0, 4);
   const canTransfer = state.permissions.find((p) => p.id === "transfer")?.allowed ?? false;
   const canOnline = state.permissions.find((p) => p.id === "online")?.allowed ?? false;
+  const cardIssued = state.card.number.length > 0;
 
   const quick = [
     { id: "pay", icon: "qr-code-outline" as const, label: t("pay.erip"), allowed: true, route: "/child/erip" },
@@ -47,23 +48,27 @@ export default function ChildHomeScreen() {
         <Row style={styles.heroTop}>
           <Text style={styles.heroLabel}>{t("ch.card")}</Text>
           <Row style={styles.heroRight}>
-            <PaymentBrand system={state.card.system} onDark />
+            {cardIssued ? <PaymentBrand system={state.card.system} onDark /> : null}
             <Badge
-              label={t(state.card.type === "plastic" ? "card.plastic" : "card.virtual")}
-              tone="child"
+              label={cardIssued ? t(state.card.type === "plastic" ? "card.plastic" : "card.virtual") : t("card.notIssued")}
+              tone={cardIssued ? "child" : "warn"}
               style={styles.heroBadge}
             />
           </Row>
         </Row>
         <Text style={styles.heroValue}>{formatMoney(state.balance)}</Text>
-        <Text style={styles.heroPan}>{formatPan(state.card.number)}</Text>
+        <Text style={styles.heroPan}>{cardIssued ? formatPan(state.card.number) : "•••• •••• •••• ••••"}</Text>
         <Row style={styles.heroFooter}>
           <Text style={styles.heroFooterText}>
-            {t("card.expiry")}: {state.card.expiry.length > 0 ? state.card.expiry : "••/••"}
+            {cardIssued
+              ? t("card.expiry") + ": " + (state.card.expiry.length > 0 ? state.card.expiry : "••/••")
+              : t("card.notIssuedChild")}
           </Text>
-          <Text style={styles.heroFooterText}>
-            {t("ch.limitLeft")}: {formatMoney(left, 0)}
-          </Text>
+          {cardIssued ? (
+            <Text style={styles.heroFooterText}>
+              {t("ch.limitLeft")}: {formatMoney(left, 0)}
+            </Text>
+          ) : null}
         </Row>
       </HeroCard>
 

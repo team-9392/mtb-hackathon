@@ -68,19 +68,35 @@ export default function ParentOverviewScreen() {
         <Row style={styles.heroTop}>
           <Text style={styles.heroLabel}>{t("ov.balance")}</Text>
           <Row style={styles.heroRight}>
-            <PaymentBrand system={state.card.system} onDark />
+            {cardIssued ? <PaymentBrand system={state.card.system} onDark /> : null}
             <Badge
-              label={blocked ? t("ov.blocked") : t(state.card.type === "plastic" ? "card.plastic" : "card.virtual")}
-              tone={blocked ? "danger" : "mint"}
+              label={
+                !cardIssued
+                  ? t("card.notIssued")
+                  : blocked
+                    ? t("ov.blocked")
+                    : t(state.card.type === "plastic" ? "card.plastic" : "card.virtual")
+              }
+              tone={!cardIssued || blocked ? "warn" : "mint"}
               style={styles.heroBadge}
             />
           </Row>
         </Row>
         <Text style={styles.heroValue}>{formatMoney(state.balance)}</Text>
-        <Text style={styles.heroCard}>{formatPan(state.card.number)}</Text>
+        <Text style={styles.heroCard}>{cardIssued ? formatPan(state.card.number) : "•••• •••• •••• ••••"}</Text>
         <Text style={styles.heroOwner}>
-          {state.child.name} · {state.card.expiry.length > 0 ? state.card.expiry : "••/••"}
+          {cardIssued
+            ? state.child.name + " · " + (state.card.expiry.length > 0 ? state.card.expiry : "••/••")
+            : t("card.notIssuedHint")}
         </Text>
+        {!cardIssued ? (
+          <Button
+            compact
+            label={t("pk.cardOfferCta")}
+            onPress={() => router.push("/parent/issue")}
+            style={styles.heroCta}
+          />
+        ) : null}
         <View style={styles.heroStats}>
           <View style={styles.heroStat}>
             <Text style={styles.heroStatLabel}>{t("ov.spentMonth")}</Text>
@@ -306,6 +322,7 @@ const styles = StyleSheet.create({
   heroValue: { color: palette.white, fontSize: 38, fontWeight: "800", marginTop: spacing.sm, letterSpacing: -1 },
   heroCard: { color: palette.white, fontSize: font.body, fontWeight: "700", letterSpacing: 1.2, marginTop: 6 },
   heroOwner: { color: "rgba(255,255,255,0.72)", fontSize: font.tiny, marginTop: 3 },
+  heroCta: { marginTop: spacing.md, alignSelf: "flex-start" },
   heroRight: { alignItems: "center", gap: spacing.sm },
   heroStats: { flexDirection: "row", gap: spacing.md, marginTop: spacing.lg },
   heroStat: { flex: 1, gap: 3 },
