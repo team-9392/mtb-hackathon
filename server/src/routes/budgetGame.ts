@@ -57,6 +57,37 @@ async function aiScenario(env: Env): Promise<Scenario | null> {
   }
 }
 
+async function aiReaction(env: Env, scenario: Scenario, decision: "spend" | "skip", balance: number): Promise<string> {
+  const key = env.PROXYAPI_KEY;
+  const fallback =
+    decision === "spend"
+      ? "Трата принята. Следи, чтобы к концу недели баланс остался положительным."
+      : "Отличное решение! Экономия — это тоже доход.";
+  if (!key) return fallback;
+  try {
+    const base = env.PROXYAPI_URL || "https://api.proxyapi.ru/openai/v1";
+    const response = await fetch(base + "/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Bearer " + key },
+      body: JSON.stringify({
+        model: env.PROXYAPI_MODEL || "gpt-4o-mini",
+        temperature: 0.8,
+        max_tokens: 60,
+        messages: [
+          { role: "system", content: "Ты игровой наставник по финансовой грамотности для подростка. Ответь ОДНОЙ короткой фразой (до 90 символов), дружелюбно, по-русски, без эмодзи." },
+          { role: "user", content: "Ситуация: " + scenario.title + " (" + scenario.amount + " BYN). Игрок " + (decision === "spend" ? "потратил" : "отказался от траты") + ". Баланс теперь " + balance + " BYN." },
+        ],
+      }),
+    });
+    if (!response.ok) return fallback;
+    const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const text = data.choices?.[0]?.message?.content?.trim();
+    return text ? text.slice(0, 120) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function pickFallback(): Scenario {
   return FALLBACK[Math.floor(Math.random() * FALLBACK.length)] ?? FALLBACK[0]!;
 }
@@ -124,8 +155,10 @@ export async function registerBudgetGameRoutes(app: FastifyInstance, db: Supabas
       await db.from("budget_games").update({ balance, scenario: null, updated_at: new Date().toISOString() }).eq("user_id", claims.sub);
       await db.from("budget_events").insert({ user_id: claims.sub, title: scenario.title, amount, decision: body.decision });
       const history = await db.from("budget_events").select("id, title, amount, decision, created_at").eq("user_id", claims.sub).order("created_at", { ascending: false }).limit(5);
+      const reaction = await aiReaction(env, scenario, body.decision, balance);
       return reply.send({
         balance,
+        reaction,
         result: body.decision === "spend" ? "Потрачено " + amount + " BYN" : "Сэкономлено! +" + Math.round(amount / 2) + " BYN бонусом",
         history: history.data ?? [],
       });
