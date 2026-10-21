@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n";
 import { formatMoney } from "@/lib/format";
 import { useStore } from "@/store/StoreProvider";
 import { font, radius, spacing } from "@/theme/tokens";
-import { SlideToConfirm } from "@/ui/SlideToConfirm";
+import { Button } from "@/ui/Button";
 import type { Palette } from "@/theme/palette";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { Text } from "@/ui/Text";
@@ -79,11 +79,10 @@ export function ParentTopUpSheet({ visible, onClose }: { visible: boolean; onClo
           ))}
         </View>
 
-        <SlideToConfirm
-          label={t("pt.action", { amount: String(amount) })}
-          onConfirm={() => void submit()}
-          disabled={busy}
-          doneLabel={t("common.done")}
+        <Button
+          label={busy ? "Переводим…" : "Перевести " + amount + " BYN"}
+          onPress={() => void submit()}
+          loading={busy}
         />
       </View>
     </Modal>
