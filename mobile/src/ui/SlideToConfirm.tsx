@@ -53,7 +53,7 @@ export function SlideToConfirm({
       toValue: 0,
       bounciness: 0,
       speed: 18,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   };
 
@@ -65,7 +65,7 @@ export function SlideToConfirm({
     Animated.timing(translate, {
       toValue: travelRef.current,
       duration: 120,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start(() => {
       posRef.current = travelRef.current;
       doneRef.current = true;
