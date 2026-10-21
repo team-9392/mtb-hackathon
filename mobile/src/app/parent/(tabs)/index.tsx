@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Animated, PanResponder, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { issueMyCardApi, myCardsApi, requestMyCardDetailsApi } from "@/api/actions";
@@ -73,6 +73,24 @@ export default function ParentHomeScreen() {
   }, [loadMyCards, myCardBusy, showToast, t]);
   const [refreshing, setRefreshing] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const pull = useRef(new Animated.Value(0)).current;
+  const pullRef = useRef(0);
+  pull.addListener(({ value }) => { pullRef.current = value; });
+  const settle = (to: number) => Animated.spring(pull, { toValue: to, useNativeDriver: false, bounciness: 0 }).start();
+  const pullGesture = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) => g.dy > 8 && g.dy > Math.abs(g.dx),
+      onPanResponderMove: (_e, g) => pull.setValue(Math.max(0, Math.min(190, g.dy))),
+      onPanResponderRelease: (_e, g) => {
+        if (g.dy > 230) {
+          void refresh().finally(() => settle(0));
+          return;
+        }
+        settle(g.dy > 70 ? 150 : 0);
+      },
+      onPanResponderTerminate: () => settle(0),
+    }),
+  ).current;
   const busyPull = useRef(false);
 
   const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false });
@@ -148,7 +166,7 @@ export default function ParentHomeScreen() {
                                   cards={cards}
                                   holder={user?.full_name ?? "Моя карта"}
                                   limitLeft={left}
-                                  scrollY={scrollY}
+                                  scrollY={pull}
                                   onIssue={() => void issueMyCard()}
                                   onIndexChange={setActiveIndex}
             onDetails={(card) => {
@@ -164,7 +182,10 @@ export default function ParentHomeScreen() {
 
         </View>
 
-        <View style={styles.panel}>
+        <Animated.View style={[styles.panel, { transform: [{ translateY: pull }] }]}>
+          <View style={styles.grabberWrap} {...pullGesture.panHandlers}>
+            <View style={styles.grabber} />
+          </View>
           <View style={styles.actions}>
             {actions.map((action) => (
               <Pressable key={action.id} onPress={action.onPress} style={styles.action}>
@@ -256,7 +277,7 @@ export default function ParentHomeScreen() {
               })
             )}
           </View>
-        </View>
+        </Animated.View>
       </Animated.ScrollView>
       <ParentTopUpSheet visible={topup} onClose={() => setTopup(false)} />
     </SafeAreaView>
@@ -278,6 +299,8 @@ const makeStyles = (colors: Palette) =>
     balance: { color: colors.text, fontSize: 56, fontWeight: "800", letterSpacing: -1.5 },
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     greeting: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2, marginBottom: spacing.sm },
+    grabberWrap: { alignItems: "center", paddingVertical: 8, marginTop: -8 },
+    grabber: { width: 44, height: 5, borderRadius: 3, backgroundColor: colors.lineStrong },
     panel: {
       marginTop: -104,
       paddingHorizontal: spacing.lg,
