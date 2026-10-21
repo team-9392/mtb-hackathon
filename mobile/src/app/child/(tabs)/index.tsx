@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import React, { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { requestCardDetailsApi } from "@/api/actions";
@@ -14,17 +14,33 @@ import type { Palette } from "@/theme/palette";
 import { spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
+import { HeroGlow } from "@/ui/Glow";
 import { Text } from "@/ui/Text";
 import { TopUpSheet } from "@/ui/TopUpSheet";
 
 /** Главная ребёнка — по макету: шапка, баланс, выглядывающая карта, действия, копилка, операции. */
 export default function ChildHomeScreen() {
   const { t, lang } = useI18n();
-  const { state, showToast } = useStore();
+  const { state, showToast, refresh } = useStore();
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const [topup, setTopup] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const busyPull = useRef(false);
+
+  const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false });
+  const maybeRefresh = (value: number) => {
+    if (value < -90 && !busyPull.current) {
+      busyPull.current = true;
+      setRefreshing(true);
+      void refresh().finally(() => {
+        setRefreshing(false);
+        busyPull.current = false;
+      });
+    }
+  };
 
   const spent = spentThisMonth(state.txns);
   const left = Math.max(0, state.limits.monthly - spent);
@@ -58,8 +74,24 @@ export default function ChildHomeScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        bounces
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          onScroll(e);
+          maybeRefresh(e.nativeEvent.contentOffset.y);
+        }}
+      >
         <View style={styles.hero}>
+          <HeroGlow />
+          {refreshing ? (
+            <View style={styles.refresh}>
+              <ActivityIndicator color={colors.primary} size="small" />
+              <Text style={styles.refreshText}>Обновляем…</Text>
+            </View>
+          ) : null}
           <View style={styles.header}>
             <View>
               <Text style={styles.brand}>MobyFamily</Text>
@@ -79,6 +111,7 @@ export default function ChildHomeScreen() {
             cards={cards}
             holder={state.child.name}
             limitLeft={left}
+            scrollY={scrollY}
             onIssue={() => router.push("/child/accounts")}
             onDetails={(card) => void requestDetails(card)}
           />
@@ -142,7 +175,7 @@ export default function ChildHomeScreen() {
             )}
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
       <TopUpSheet visible={topup} onClose={() => setTopup(false)} />
     </SafeAreaView>
   );
@@ -152,7 +185,9 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
     scroll: { paddingBottom: 110 },
-    hero: {
+    refresh: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: spacing.sm },
+    refreshText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+    hero: { overflow: "hidden",
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.md,
       paddingBottom: spacing.lg,

@@ -80,6 +80,8 @@ interface StoreValue {
   resolveRequest: (id: string, approve: boolean) => void;
   pushNotification: (n: { title: Localized; body: Localized; kind: AppNotification["kind"] }) => void;
   reset: () => void;
+  /** Перечитать состояние с сервера (pull-to-refresh). */
+  refresh: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -631,6 +633,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       resolveRequest,
       pushNotification,
       reset,
+      refresh: hydrate,
     }),
     [
       state,
@@ -659,6 +662,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       resolveRequest,
       pushNotification,
       reset,
+      hydrate,
     ],
   );
 

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import React, { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Animated, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { requestCardDetailsApi } from "@/api/actions";
@@ -15,18 +15,34 @@ import type { Palette } from "@/theme/palette";
 import { radius, spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
+import { HeroGlow } from "@/ui/Glow";
 import { ParentTopUpSheet } from "@/ui/ParentTopUpSheet";
 import { Text } from "@/ui/Text";
 
 /** Главная родителя — тот же стиль, что у ребёнка, но действия банка для семьи. */
 export default function ParentHomeScreen() {
   const { t, lang } = useI18n();
-  const { state, resolveRequest, showToast } = useStore();
+  const { state, resolveRequest, showToast, refresh } = useStore();
   const { user } = useAuth();
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const [topup, setTopup] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const busyPull = useRef(false);
+
+  const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false });
+  const maybeRefresh = (value: number) => {
+    if (value < -90 && !busyPull.current) {
+      busyPull.current = true;
+      setRefreshing(true);
+      void refresh().finally(() => {
+        setRefreshing(false);
+        busyPull.current = false;
+      });
+    }
+  };
 
   const spent = spentThisMonth(state.txns);
   const left = Math.max(0, state.limits.monthly - spent);
@@ -62,8 +78,24 @@ export default function ParentHomeScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        bounces
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          onScroll(e);
+          maybeRefresh(e.nativeEvent.contentOffset.y);
+        }}
+      >
         <View style={styles.hero}>
+          <HeroGlow />
+          {refreshing ? (
+            <View style={styles.refresh}>
+              <ActivityIndicator color={colors.primary} size="small" />
+              <Text style={styles.refreshText}>Обновляем…</Text>
+            </View>
+          ) : null}
           <View style={styles.header}>
             <View>
               <Text style={styles.brand}>MobyFamily</Text>
@@ -84,6 +116,7 @@ export default function ParentHomeScreen() {
             cards={cards}
             holder={state.child.name}
             limitLeft={left}
+            scrollY={scrollY}
             onIssue={() => router.push("/parent/issue")}
             onDetails={(card) => void requestDetails(card)}
           />
@@ -168,7 +201,7 @@ export default function ParentHomeScreen() {
             )}
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
       <ParentTopUpSheet visible={topup} onClose={() => setTopup(false)} />
     </SafeAreaView>
   );
@@ -178,7 +211,9 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
     scroll: { paddingBottom: 110 },
-    hero: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg, backgroundColor: colors.bg },
+    refresh: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: spacing.sm },
+    refreshText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+    hero: { overflow: "hidden", paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg, backgroundColor: colors.bg },
     header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: spacing.lg },
     brand: { color: colors.text, fontSize: 22, fontWeight: "800", letterSpacing: -0.3 },
     caption: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2 },
