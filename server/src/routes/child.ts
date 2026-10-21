@@ -1,3 +1,4 @@
+import { runFraudCheck } from "./ai.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
@@ -172,6 +173,11 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
 
       if (error || !txn) {
         throw new Error("Не удалось сохранить операцию: " + (error?.message ?? ""));
+      }
+
+      // ИИ-антифрод: обезличенная проверка операции, при риске родителю придёт алерт.
+      if (status === "approved") {
+        void runFraudCheck(db, env, child.id, { amount: Math.abs(body.amount), category: body.category, titleRu: body.titleRu, status });
       }
 
       if (status === "declined" && child.user_id && localized) {
