@@ -237,6 +237,10 @@ export default function ParentHomeScreen() {
                                 );
                             }}
                         />
+                        <Pressable onPress={() => router.push("/parent/issue")} style={styles.addCard}>
+                            <Ionicons name="add-circle-outline" size={14} color="#93c5fd" />
+                            <Text style={styles.addCardText}>Выпустить ещё карту</Text>
+                        </Pressable>
                     </View>
                 </View>
 
@@ -482,6 +486,8 @@ const makeStyles = (_colors: Palette) =>
             fontWeight: "700",
             letterSpacing: 0.5,
         },
+        addCard: { flexDirection: "row", alignItems: "center", alignSelf: "center", gap: 5, marginTop: 8 },
+        addCardText: { color: "#93c5fd", fontSize: 12, fontWeight: "700" },
         cardWrap: {
             width: "104%",
             alignSelf: "center",
