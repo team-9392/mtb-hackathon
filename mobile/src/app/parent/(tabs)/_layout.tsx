@@ -28,37 +28,33 @@ export default function ParentTabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: t("ov.tab"),
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color as string} />,
-        }}
-      />
+              name="index"
+              options={{
+                title: t("ov.tab"),
+                tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color as string} />
+
       <Tabs.Screen
-        name="rights"
-        options={{
-          title: t("rg.tab"),
-          tabBarIcon: ({ color, size }) => <Ionicons name="options-outline" size={size} color={color as string} />,
-        }}
-      />
+              name="products"
+              options={{
+                title: t("ov.tabProducts"),
+                tabBarIcon: ({ color, size }) => <Ionicons name="albums-outline" size={size} color={color as string} />
+
       <Tabs.Screen
-        name="bonuses"
-        options={{
-          title: t("ov.tasksTab"),
-          tabBarIcon: ({ color, size }) => <Ionicons name="gift-outline" size={size} color={color as string} />,
-        }}
-      />
+              name="bonuses"
+              options={{
+                title: t("ov.tasksTab"),
+                tabBarIcon: ({ color, size }) => <Ionicons name="gift-outline" size={size} color={color as string} />
+
       <Tabs.Screen
-        name="products"
-        options={{
-          title: t("ov.tabProducts"),
-          tabBarIcon: ({ color, size }) => <Ionicons name="albums-outline" size={size} color={color as string} />,
-        }}
-      />
+              name="rights"
+              options={{
+                title: t("rg.tab"),
+                tabBarIcon: ({ color, size }) => <Ionicons name="options-outline" size={size} color={color as string} />
+
       <Tabs.Screen
-        name="limits"
-        options={{ title: t("lm.tab"), href: null }}
-      />
+              name="limits"
+              options={{ title: t("lm.tab"), href: null }}
+            />
     </Tabs>
   );
 }
