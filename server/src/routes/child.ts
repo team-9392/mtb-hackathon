@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import type { Env } from "../env.js";
 import { hub } from "../hub.js";
-import { badRequest, conflict, forbidden, requireAuth, requireParent, sendError } from "../http.js";
+import { badRequest, conflict, forbidden, requireAuth, sendError } from "../http.js";
 import { parentUserIdOfFamily } from "../repo.js";
 import { DECLINE_MESSAGE, decidePayment, spentThisMonth, type OperationId } from "../rules.js";
 
@@ -322,132 +322,6 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
       });
 
       return reply.send({ ok: true, saved });
-    } catch (error) {
-      return sendError(reply, error);
-    }
-  });
-
-  app.post("/children/:id/quests/:questId/complete", async (request, reply) => {
-    try {
-      const claims = requireAuth(request, env);
-      const params = z.object({ id: z.string().uuid(), questId: z.string().uuid() }).parse(request.params);
-      const child = await loadChild(db, params.id);
-      assertChildAccess(claims, child);
-
-      const { data: quest } = await db
-        .from("quests")
-        .select("id, kind, points, amount, status, title_ru")
-        .eq("id", params.questId)
-        .eq("child_id", child.id)
-        .maybeSingle();
-      if (!quest) {
-        throw conflict("Задание не найдено");
-      }
-      if (quest.status !== "todo") {
-        throw conflict("Задание уже выполнено");
-      }
-
-      const isLesson = quest.kind === "lesson";
-      if (isLesson) {
-        const points: number = child.points + Number(quest.points);
-        await db.from("children").update({ points }).eq("id", child.id);
-        await db.from("quests").update({ status: "approved", completed_at: new Date().toISOString() }).eq("id", quest.id);
-        return reply.send({ ok: true, status: "approved", points });
-      }
-
-      await db.from("quests").update({ status: "waiting", completed_at: new Date().toISOString() }).eq("id", quest.id);
-      const parentId = await parentUserIdOfFamily(db, child.family_id);
-      if (parentId) {
-        await db.from("notifications").insert({
-          user_id: parentId,
-          family_id: child.family_id,
-          kind: "quest_waiting",
-          title_ru: child.name + " выполнил задание",
-          title_be: child.name + " выканаў заданне",
-          body_ru: quest.title_ru as string,
-          body_be: quest.title_ru as string,
-        });
-      }
-      await hub.publish(db, child.family_id, "quest.completed", {
-        childId: child.id,
-        questId: quest.id,
-        amount: Number(quest.amount),
-      });
-      return reply.send({ ok: true, status: "waiting" });
-    } catch (error) {
-      return sendError(reply, error);
-    }
-  });
-
-  app.patch("/children/:id/quests/:questId/approve", async (request, reply) => {
-    try {
-      const claims = requireAuth(request, env);
-      const familyId = requireParent(claims);
-      const params = z.object({ id: z.string().uuid(), questId: z.string().uuid() }).parse(request.params);
-      const child = await loadChild(db, params.id);
-      if (child.family_id !== familyId) {
-        throw forbidden("Профиль из другой семьи");
-      }
-
-      const { data: quest } = await db
-        .from("quests")
-        .select("id, kind, points, amount, status")
-        .eq("id", params.questId)
-        .eq("child_id", child.id)
-        .maybeSingle();
-      if (!quest) {
-        throw conflict("Задание не найдено");
-      }
-
-      await db
-        .from("quests")
-        .update({ status: "approved", approved_by_user_id: claims.sub })
-        .eq("id", quest.id);
-
-      const points: number = child.points + Number(quest.points);
-      await db.from("children").update({ points }).eq("id", child.id);
-
-      const amount = Number(quest.amount);
-      if (amount > 0) {
-        const { data: pocket } = await db
-          .from("accounts")
-          .select("id, balance")
-          .eq("child_id", child.id)
-          .eq("kind", "pocket")
-          .maybeSingle();
-        if (pocket) {
-          await db.from("accounts").update({ balance: Number(pocket.balance) + amount }).eq("id", pocket.id);
-        }
-        await db.from("transactions").insert({
-          child_id: child.id,
-          amount: Math.abs(amount),
-          category: "quest",
-          title_ru: "Награда за задание",
-          title_be: "Узнагарода за заданне",
-          status: "approved",
-          by_child: true,
-        });
-      }
-
-      if (child.user_id) {
-        await db.from("notifications").insert({
-          user_id: child.user_id,
-          family_id: child.family_id,
-          kind: "quest_approved",
-          title_ru: "Родитель подтвердил задание",
-          title_be: "Бацька пацвердзіў заданне",
-          body_ru: "Начислено " + points + " баллов",
-          body_be: "Налічана " + points + " балаў",
-        });
-      }
-
-      await hub.publish(db, child.family_id, "quest.approved", {
-        childId: child.id,
-        questId: quest.id,
-        points,
-        amount,
-      });
-      return reply.send({ ok: true, points });
     } catch (error) {
       return sendError(reply, error);
     }

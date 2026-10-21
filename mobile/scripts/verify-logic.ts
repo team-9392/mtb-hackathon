@@ -2,7 +2,8 @@
  * Проверка бизнес-логики: возрастные ветки, согласия, жёсткие правила ядра, лимиты.
  * Запуск: npm test  (npx tsx scripts/verify-logic.ts)
  */
-import { buildConsents, buildPermissions, initialState } from "../src/store/mock";
+import { L, buildConsents, buildPermissions, initialState } from "../src/store/mock";
+import type { Txn } from "../src/store/types";
 import {
   HARD_BLOCKED_CATEGORIES,
   consentsFor,
@@ -38,6 +39,59 @@ function close(actual: number, expected: number, message: string): void {
     throw new Error(message + ": получено " + actual + ", ожидалось " + expected);
   }
 }
+
+/**
+ * Демо-операции из initialState убраны намеренно (mobile/src/store/mock.ts:70), поэтому
+ * фикстуры для проверок трат и лимитов тест собирает сам и не зависит от стора.
+ */
+const MONTHLY_LIMIT = 60;
+const FIXTURE_TXNS: Txn[] = [
+  {
+    id: "t-fun",
+    title: L("Кофе с булочкой", "Кава з булачкай"),
+    amount: -24.9,
+    category: "fun",
+    at: "2026-10-02T09:00:00.000Z",
+    status: "done",
+    byChild: true,
+  },
+  {
+    id: "t-groceries",
+    title: L("Продукты", "Прадукты"),
+    amount: -12.4,
+    category: "groceries",
+    at: "2026-10-05T18:30:00.000Z",
+    status: "done",
+    byChild: true,
+  },
+  {
+    id: "t-pharmacy",
+    title: L("Аптека", "Аптэка"),
+    amount: -8.5,
+    category: "pharmacy",
+    at: "2026-10-09T11:15:00.000Z",
+    status: "done",
+    byChild: true,
+  },
+  {
+    id: "t-gambling",
+    title: L("Ставки", "Стаўкі"),
+    amount: -50,
+    category: "gambling",
+    at: "2026-10-11T21:40:00.000Z",
+    status: "declined",
+    byChild: true,
+  },
+  {
+    id: "t-parent",
+    title: L("Покупка родителя", "Пакупка бацькі"),
+    amount: -200,
+    category: "kids",
+    at: "2026-10-12T10:00:00.000Z",
+    status: "done",
+    byChild: false,
+  },
+];
 
 const checks: { name: string; run: () => void }[] = [
   {
@@ -83,10 +137,11 @@ const checks: { name: string; run: () => void }[] = [
     },
   },
   {
-    name: "попытка ставки отклонена в стартовом состоянии",
+    name: "попытка ставки отклонена",
     run: () => {
-      const gambling = initialState.txns.find((txn) => txn.category === "gambling");
+      const gambling = FIXTURE_TXNS.find((txn) => txn.category === "gambling");
       equal(gambling?.status, "declined", "статус операции со ставкой");
+      equal(isHardBlocked(gambling?.category ?? "kids"), true, "категория ставки жёстко заблокирована");
     },
   },
   {
@@ -114,12 +169,14 @@ const checks: { name: string; run: () => void }[] = [
     run: () => {
       equal(limitLeft(30, 60), 30, "остаток 30");
       equal(limitLeft(90, 60), 0, "остаток 0");
+      close(limitLeft(spentThisMonth(FIXTURE_TXNS), MONTHLY_LIMIT), 14.2, "остаток лимита по фактическим тратам");
     },
   },
   {
     name: "траты ребёнка не включают отклонённые операции и операции родителя",
     run: () => {
-      close(spentThisMonth(initialState.txns), 24.9 + 12.4 + 8.5, "сумма трат ребёнка");
+      close(spentThisMonth(FIXTURE_TXNS), 24.9 + 12.4 + 8.5, "сумма трат ребёнка");
+      equal(spentThisMonth(initialState.txns), 0, "траты в пустом стартовом состоянии");
     },
   },
 ];

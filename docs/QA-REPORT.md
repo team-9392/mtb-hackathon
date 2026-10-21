@@ -9,6 +9,8 @@
 
 Кратко: все обязательные сценарии мобильного API на проде прошли, веб-бандл собирается, серверные typecheck/build/tests зелёные. Проблемы — в конфиге Expo (app.json), в устаревших мобильных логических тестах, в рассинхроне документации по полю why и в мёртвом/сломанном коде доступа к несуществующей колонке quests.child_id.
 
+> **Обновление после отчёта:** исправлены 3 из 4 проблем — M3 (app.json), M4 (фикстуры тестов), E4 (мёртвый quests.child_id). D7 (формулировка про why) осталась как есть. Что изменено и результаты повторных проверок — в разделе 6.
+
 ---
 
 ## 1. Сводка по блокам
@@ -208,3 +210,33 @@ curl -s -o /dev/null -w '%{http_code} %{content_type} %{size_download}\n' \
 ~~~
 
 **Ограничения проверки:** не запускались iOS/Android-сборки и реальные устройства, не проверялись push/Telegram/WebSocket и нагрузка; веб-версия проверена по HTTP и сборке бандла, без визуального прогона в браузере.
+
+---
+
+## 6. Исправления после отчёта
+
+**Коммит:** `fix: починить фикстуры тестов, схему app.json и мёртвый фильтр quests.child_id` (один коммит; фактический хэш — в `git log -1 --format=%H` и в ответе агента).
+
+| Пункт | Что сделано | Файлы |
+| --- | --- | --- |
+| M3 | Убрано поле `"newArchEnabled": true` из конфига Expo: в SDK 58 New Architecture включена по умолчанию, схема его больше не принимает. | mobile/app.json |
+| M4 | Тест больше не читает демо-операции из `initialState`: фикстуры (3 траты ребёнка на 24.9 + 12.4 + 8.5, отклонённая ставка на 50, операция родителя на 200) собираются внутри `scripts/verify-logic.ts`. Проверяется реальная логика: `spentThisMonth` отбрасывает отклонённые операции и операции не ребёнка, остаток лимита считается по фактическим тратам (60 − 45.8 = 14.2), пустой `initialState` даёт 0 трат. | mobile/scripts/verify-logic.ts |
+| E4 | `childState` больше не запрашивает `quests` с фильтром `child_id` (поле ответа оставлено пустым массивом, чтобы не менять контракт с `mobile/src/api/sync.ts`). Legacy-эндпоинты `POST /children/:id/quests/:questId/complete` и `PATCH /children/:id/quests/:questId/approve` удалены: они фильтровали по `child_id` и обращались к колонкам `status/amount/created_at`, которых в `quests` после 0008 нет, и из UI не вызываются. Актуальные пути не затронуты: `/bonuses`, `POST /quests/:id/complete`, `POST /quests/:id/quiz`, покупки наград. | server/src/repo.ts, server/src/routes/child.ts |
+
+Повторные проверки после правок:
+
+| Проверка | Результат |
+| --- | --- |
+| cd server && npx tsc --noEmit | ✅ 0 ошибок |
+| cd server && npm run build | ✅ exit 0 |
+| cd server && npm test | ✅ 8 tests, 8 pass, 0 fail |
+| cd mobile && npx tsc --noEmit | ✅ 0 ошибок |
+| cd mobile && npm test | ✅ **10/10** проверок пройдено |
+| cd mobile && npx expo-doctor | ✅ **20/20** checks passed |
+| cd mobile && npx expo lint | ✅ 0 errors, **66 warnings** (как в M2, не трогали) |
+
+Замечания:
+
+- `GET /family` и `GET /children/:id/state` по-прежнему отдают `quests: []` — контракт ответа для приложения не изменился, ошибка PostgREST 42703 по `quests.child_id` больше не возникает.
+- Мобильные обёртки `completeQuestApi`/`approveQuestApi` в mobile/src/api/actions.ts и одноимённые методы в StoreProvider остались, но из экранов не вызываются — это мёртвый код, его удаление вынесено за рамки этой правки (в коммит вошли только mobile/app.json, mobile/scripts, server/src, docs).
+- Пункт D7 (документация про why) и шум линтера (3.5) не правились: в задачу не входили.

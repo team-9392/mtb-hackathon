@@ -128,7 +128,7 @@ export async function parentUserIdOfFamily(db: SupabaseClient, familyId: string)
 
 /** Полное состояние ребёнка одним запросом — из него рисуются все экраны приложения. */
 export async function childState(db: SupabaseClient, child: ChildRow) {
-  const [limits, permissions, operations, categories, cards, accounts, consents, goals, quests, requests, txns] =
+  const [limits, permissions, operations, categories, cards, accounts, consents, goals, requests, txns] =
     await Promise.all([
       db.from("limits").select("*").eq("child_id", child.id).maybeSingle(),
       db.from("permissions").select("*").eq("child_id", child.id),
@@ -138,7 +138,9 @@ export async function childState(db: SupabaseClient, child: ChildRow) {
       db.from("accounts").select("*").eq("child_id", child.id),
       db.from("consents").select("*").eq("child_id", child.id),
       db.from("goals").select("*").eq("child_id", child.id).eq("status", "active").order("created_at", { ascending: false }),
-      db.from("quests").select("*").eq("child_id", child.id).order("created_at", { ascending: false }),
+      // Каталог заданий живёт в /bonuses: таблица quests (см. 0008_quests_fix.sql) —
+      // общий каталог без child_id и без статусов прогресса, поэтому per-child
+      // состояние из неё не читаем. Поле оставляем для совместимости ответа.
       db.from("access_requests").select("*").eq("child_id", child.id).order("created_at", { ascending: false }).limit(20),
       db.from("transactions").select("*").eq("child_id", child.id).order("created_at", { ascending: false }).limit(30),
     ]);
@@ -161,7 +163,7 @@ export async function childState(db: SupabaseClient, child: ChildRow) {
     accounts: accounts.data ?? [],
     consents: consents.data ?? [],
     goals: goals.data ?? [],
-    quests: quests.data ?? [],
+    quests: [],
     requests: requests.data ?? [],
     transactions: txns.data ?? [],
   };
