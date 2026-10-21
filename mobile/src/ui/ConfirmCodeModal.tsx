@@ -6,7 +6,7 @@ import { api } from "@/api/client";
 import { useI18n } from "@/i18n";
 import type { Palette } from "@/theme/palette";
 import { spacing } from "@/theme/tokens";
-import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
+import { useThemedStyles } from "@/theme/ThemeProvider";
 import { CodeInput } from "@/ui/CodeInput";
 import { Text } from "@/ui/Text";
 
