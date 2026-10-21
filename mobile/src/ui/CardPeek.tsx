@@ -19,6 +19,7 @@ export function CardPeek({
   onIssue,
   onDetails,
   onIndexChange,
+  onRefresh,
 }: {
   cards: CardInfo[];
   holder: string;
@@ -27,6 +28,7 @@ export function CardPeek({
   onIssue?: () => void;
   onDetails?: (card: CardInfo) => void;
   onIndexChange?: (index: number) => void;
+  onRefresh?: () => void;
   limitLeft?: number;
 }) {
   const [index, setIndex] = useState(0);
@@ -72,14 +74,19 @@ export function CardPeek({
           {cards.map((item, i) => (
             <View key={item.id ?? item.last4 + i} style={[styles.page, { width: Math.max(1, width), height: cardHeight }]}>
               <View style={styles.card}>
-                <Text style={styles.watermark}>MT</Text>
-                <View style={styles.topRow}>
-                  <Text style={styles.currency}>BYN</Text>
-                  <View style={styles.bank}>
-                    <View style={styles.bankBadge}><Ionicons name="snow" size={14} color="#000" /></View>
-                    <Text style={styles.bankName}>МТбанк</Text>
-                  </View>
+                <View style={styles.watermarkBox} pointerEvents="none">
+                  <Text style={styles.watermark}>MT</Text>
                 </View>
+                {/* EMV-чип и кнопка обновления — по макету */}
+                <View style={styles.chip}>
+                  <View style={styles.chipLineH} />
+                  <View style={styles.chipLineV} />
+                </View>
+                {onRefresh ? (
+                  <Pressable style={styles.refreshButton} onPress={onRefresh} hitSlop={8}>
+                    <Ionicons name="refresh" size={18} color="rgba(255,255,255,0.7)" />
+                  </Pressable>
+                ) : null}
                 <Text style={styles.holder} numberOfLines={1}>{(item.holder ?? holder).toUpperCase()}</Text>
                 <View style={styles.brandPos}><PaymentBrand system={item.system} onDark /></View>
                 <Animated.View style={[styles.details, { opacity: expanded }]}>
@@ -118,14 +125,34 @@ const styles = StyleSheet.create({
   sheet: { width: "100%", overflow: "hidden" },
   pager: { width: "100%" },
   page: { overflow: "hidden" },
-  card: { flex: 1, backgroundColor: "#000", overflow: "hidden", padding: spacing.lg },
-  watermark: { position: "absolute", alignSelf: "center", top: 10, fontSize: 120, fontWeight: "900", color: "#1b2bff", letterSpacing: -4 },
-  topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  currency: { color: "#fff", fontSize: 16, fontWeight: "600", letterSpacing: 0.8 },
-  bank: { flexDirection: "row", alignItems: "center", gap: 6 },
-  bankBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
-  bankName: { color: "#fff", fontSize: 16, fontWeight: "800" },
-  holder: { position: "absolute", left: spacing.lg, top: 74, color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 1, maxWidth: "60%" },
+  card: {
+    position: "absolute",
+    left: 6,
+    right: 6,
+    top: 16,
+    bottom: 16,
+    backgroundColor: "#000",
+    overflow: "hidden",
+    padding: spacing.lg,
+    transform: [{ rotate: "-4deg" }],
+  },
+  watermarkBox: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
+  watermark: {
+    fontSize: 160,
+    fontWeight: "900",
+    color: "#1a1aff",
+    letterSpacing: -6,
+    opacity: 0.95,
+    textShadowColor: "rgba(40,40,255,0.75)",
+    textShadowRadius: 22,
+    textShadowOffset: { width: 0, height: 0 },
+    includeFontPadding: false,
+  },
+  chip: { position: "absolute", top: 40, left: spacing.lg, width: 42, height: 30, borderRadius: 6, backgroundColor: "#c2c2c2", borderWidth: 1, borderColor: "#7a7a7a", overflow: "hidden", opacity: 0.92, zIndex: 5 },
+  chipLineH: { position: "absolute", left: 0, right: 0, top: 14, height: 1, backgroundColor: "rgba(90,90,90,0.65)" },
+  chipLineV: { position: "absolute", top: 0, bottom: 0, left: 20, width: 1, backgroundColor: "rgba(90,90,90,0.65)" },
+  refreshButton: { position: "absolute", top: 16, right: 16, width: 30, height: 30, alignItems: "center", justifyContent: "center", zIndex: 6 },
+  holder: { position: "absolute", left: spacing.lg, top: 78, color: "#fff", fontSize: 17, fontWeight: "700", letterSpacing: 2, maxWidth: "60%" },
   brandPos: { position: "absolute", right: spacing.lg, top: 72 },
   details: { marginTop: "auto", gap: 4 },
   balance: { color: "#fff", fontSize: 22, fontWeight: "800" },
