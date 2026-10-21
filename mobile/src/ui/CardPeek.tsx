@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   face: { width: "100%", height: "100%" },
   refresh: { position: "absolute", top: 14, right: 18, width: 26, height: 26, alignItems: "center", justifyContent: "center" },
   holder: { position: "absolute", left: 18, bottom: 48, color: "#fff", fontSize: 13, fontWeight: "700", letterSpacing: 1.4, maxWidth: "60%", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
-  brand: { position: "absolute", right: 18, bottom: 44 },
+  brand: { position: "absolute", right: 18, bottom: 86 },
   details: {
     position: "absolute",
     left: 18,
