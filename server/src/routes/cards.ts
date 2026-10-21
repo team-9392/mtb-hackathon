@@ -28,7 +28,7 @@ import {
 } from "../http.js";
 import { checkRate } from "../ratelimit.js";
 import { getChild, parentUserIdOfFamily, type ChildRow } from "../repo.js";
-import { sendTelegram, telegramChatForPhone } from "../telegram.js";
+import { sendTelegram, sendTelegramQueued, telegramChatForPhone } from "../telegram.js";
 
 const childParams = z.object({ id: z.string().uuid() });
 const cardParams = z.object({ id: z.string().uuid(), cardId: z.string().uuid() });
@@ -182,7 +182,7 @@ async function autoSendCardDetails(
       pin: card.pin,
     });
     for (const chatId of chats) {
-      await sendTelegram(text, chatId);
+      sendTelegramQueued(text, chatId);
     }
   } catch (error) {
     console.error("[cards] авто-отправка реквизитов: " + (error as Error).message);

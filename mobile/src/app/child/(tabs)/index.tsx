@@ -60,7 +60,7 @@ export default function ChildHomeScreen() {
             onPanResponderRelease: (_e, g) => {
                 const tapped = Math.abs(g.dy) < 8 && Math.abs(g.dx) < 8 && Date.now() - grantAt.current < 350;
                 if (tapped) {
-                    settle(pullValue.current > 75 ? 0 : 150);
+                    settle(pullValue.current > 75 ? 0 : 185);
                     return;
                 }
                 const value = Math.max(0, Math.min(190, base.current + g.dy));
@@ -68,7 +68,7 @@ export default function ChildHomeScreen() {
                     void refresh().finally(() => settle(0));
                     return;
                 }
-                settle(value > 70 ? 150 : 0);
+                settle(value > 70 ? 185 : 0);
             },
             onPanResponderTerminate: () => settle(pullValue.current),
         }),
@@ -149,8 +149,8 @@ export default function ChildHomeScreen() {
 
     // Плавный сдвиг нижней шторки при раскрытии карты
     const panelTranslateY = pull.interpolate({
-        inputRange: [0, 150],
-        outputRange: [0, 95],
+        inputRange: [0, 150, 185],
+        outputRange: [0, 110, 145],
         extrapolate: "clamp",
     });
 
