@@ -86,6 +86,7 @@ export interface ApiAccount {
   balance: number | string;
 }
 export interface ApiChildBlock {
+  cards?: ApiCard[];
   child: {
     id: string;
     name: string;
