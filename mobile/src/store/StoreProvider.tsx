@@ -55,6 +55,8 @@ interface StoreValue {
   setRole: (role: Role | null) => void;
   setChild: (patch: Partial<ChildProfile>) => void;
   setBracket: (bracket: AgeBracket) => void;
+  /** Создать профиль ребёнка в семье и получить код доступа. */
+  createChild: (name: string, bracket: AgeBracket) => Promise<boolean>;
   toggleConsent: (id: ConsentId) => void;
   signAllConsents: () => void;
   issueProducts: () => void;
@@ -583,6 +585,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [hydrate, pushOrFail],
   );
 
+  /** Профиль ребёнка создаётся один раз, дальше сервер отдаёт код доступа в снапшоте. */
+  const createChild = useCallback(
+    async (name: string, bracket: AgeBracket): Promise<boolean> => {
+      if (demoRef.current) {
+        setState((prev) => ({ ...prev, child: { ...prev.child, name, bracket } }));
+        return true;
+      }
+      const ok = await pushOrFail(() => createChildApi({ name, bracket }));
+      if (ok) {
+        void hydrate();
+      }
+      return ok;
+    },
+    [hydrate, pushOrFail],
+  );
+
   const value = useMemo<StoreValue>(
     () => ({
       state,
@@ -591,6 +609,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRole,
       setChild,
       setBracket: applyBracket,
+      createChild,
       toggleConsent,
       signAllConsents,
       issueProducts,
@@ -618,6 +637,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRole,
       setChild,
       applyBracket,
+      createChild,
       toggleConsent,
       signAllConsents,
       issueProducts,

@@ -26,9 +26,22 @@ export class OfflineError extends Error {
 }
 
 const canUseSecureStore = Platform.OS !== "web";
+const canUseWebStore = Platform.OS === "web" && typeof globalThis.sessionStorage !== "undefined";
 
 async function setItem(key: string, value: string | null): Promise<void> {
   memory[key] = value;
+  if (canUseWebStore) {
+    try {
+      if (value === null) {
+        globalThis.sessionStorage.removeItem(key);
+      } else {
+        globalThis.sessionStorage.setItem(key, value);
+      }
+    } catch {
+      // Приватный режим браузера — остаёмся на памяти.
+    }
+    return;
+  }
   if (!canUseSecureStore) {
     return;
   }
@@ -42,6 +55,15 @@ async function setItem(key: string, value: string | null): Promise<void> {
 async function getItem(key: string): Promise<string | null> {
   if (memory[key] !== undefined) {
     return memory[key] ?? null;
+  }
+  if (canUseWebStore) {
+    try {
+      const stored = globalThis.sessionStorage.getItem(key);
+      memory[key] = stored;
+      return stored;
+    } catch {
+      return null;
+    }
   }
   if (!canUseSecureStore) {
     return null;

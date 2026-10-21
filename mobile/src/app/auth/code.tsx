@@ -126,7 +126,7 @@ export default function CodeScreen() {
         </>
       }
     >
-      <CodeInput value={code} onChange={setCode} error={error} autoFocus onComplete={(value) => void submit(value)} />
+      <CodeInput length={4} value={code} onChange={setCode} error={error} autoFocus onComplete={(value) => void submit(value)} />
 
       {message ? <Text style={styles.error}>{message}</Text> : null}
 

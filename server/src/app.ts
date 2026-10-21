@@ -10,6 +10,7 @@ import { registerChildRoutes } from "./routes/child.js";
 import { registerFamilyRoutes } from "./routes/family.js";
 import { registerMoneyRoutes } from "./routes/money.js";
 import { registerBonusRoutes } from "./routes/bonuses.js";
+import { registerPartnerRoutes } from "./routes/partners.js";
 import { registerPaymentRoutes } from "./routes/payments.js";
 import { configureTelegram, startTelegramPoller } from "./telegram.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -44,6 +45,7 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
   registerMoneyRoutes(app, db, env);
   registerPaymentRoutes(app, db, env);
   registerBonusRoutes(app, db, env);
+  registerPartnerRoutes(app);
 
   /**
    * Живая связь двух телефонов: родитель и ребёнок одной семьи получают

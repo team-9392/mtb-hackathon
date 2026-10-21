@@ -78,3 +78,8 @@ yarn-error.log
 .secrets/
 server/.env
 mobile/.expo/
+
+# артефакты сборки и сгенерированные нативные проекты
+server/dist/
+mobile/ios/
+mobile/android/

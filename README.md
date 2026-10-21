@@ -15,6 +15,9 @@
 | [`docs/DECOMPOSITION.md`](docs/DECOMPOSITION.md) | Декомпозиция: роли, экраны, экономика в цифрах |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Архитектура, API, вход по номеру, визуальный язык |
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | Развёртывание Supabase + Node API на VPS с Ubuntu |
+| [`docs/COLLAB.md`](docs/COLLAB.md) | Как работать вместе: ветки, миграции, деплой, секреты, веб-версия |
+| [`docs/QUIZ.md`](docs/QUIZ.md) | Как править тесты по финграмотности: `server/src/quizzes.ts` |
+| [`docs/REWARDS.md`](docs/REWARDS.md) | Каталог наград: цены, промокоды, логотипы партнёров (`server/assets/partners/`) |
 
 ## Стек
 
@@ -31,6 +34,9 @@
 cd mobile
 npm test && npm run typecheck && npm run lint
 npx expo export --platform android
+
+# веб-версия без телефона и APK — http://localhost:8081
+cd mobile && npx expo start --web
 
 # сервер: типы и проверки правил
 cd ../server

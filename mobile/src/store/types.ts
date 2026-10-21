@@ -127,6 +127,8 @@ export interface FamilyState {
   childSession: boolean;
   /** UUID ребёнка из базы — только в режиме API. */
   childId?: string;
+  /** Код доступа, который родитель даёт ребёнку для входа. */
+  accessCode?: string;
   /** UUID цели из базы — только в режиме API. */
   goalId?: string;
   /** Счета ребёнка из базы. */

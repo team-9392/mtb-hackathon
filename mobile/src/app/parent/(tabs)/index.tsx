@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "@/auth/AuthProvider";
 import { useI18n, useL } from "@/i18n";
@@ -18,6 +18,8 @@ import { Badge, Card, EmptyState, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
 import { SlideToConfirm } from "@/ui/SlideToConfirm";
 
+let cardOfferShown = false;
+
 /** Главный экран родителя: счёт ребёнка, три главных действия, ниже — запросы и операции. */
 export default function ParentOverviewScreen() {
   const { t, lang } = useI18n();
@@ -26,6 +28,24 @@ export default function ParentOverviewScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [sheet, setSheet] = useState(false);
+  const cardIssued = state.card.number.length > 0;
+  const [offer, setOffer] = useState(() => !cardOfferShown && state.card.number.length === 0);
+  const dismissOffer = () => {
+    cardOfferShown = true;
+    setOffer(false);
+  };
+  const startIssue = () => {
+    cardOfferShown = true;
+    setOffer(false);
+    router.push("/parent/issue");
+  };
+
+  useEffect(() => {
+    if (cardIssued && offer) {
+      cardOfferShown = true;
+      setOffer(false);
+    }
+  }, [cardIssued, offer]);
 
   const spent = spentThisMonth(state.txns);
   const left = Math.max(0, state.limits.monthly - spent);
@@ -72,6 +92,30 @@ export default function ParentOverviewScreen() {
           </View>
         </View>
       </HeroCard>
+
+      {!cardIssued ? (
+        <Pressable onPress={() => router.push("/parent/issue")} style={styles.offer}>
+          <View style={styles.offerIcon}>
+            <Ionicons name="card-outline" size={20} color={palette.primary} />
+          </View>
+          <View style={styles.offerText}>
+            <Text style={styles.offerTitle}>{t("pk.cardOfferTitle")}</Text>
+            <Text style={styles.offerHint}>{t("pk.cardOfferText")}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={palette.muted2} />
+        </Pressable>
+      ) : null}
+
+      <Pressable onPress={() => router.push("/parent/child-access")} style={styles.childRow}>
+        <View style={styles.childIcon}>
+          <Ionicons name="people-outline" size={20} color={palette.childDark} />
+        </View>
+        <View style={styles.offerText}>
+          <Text style={styles.childTitle}>{t("kid.title")}</Text>
+          <Text style={styles.childHint}>{state.childId ? t("kid.subtitle") : t("kid.needProfile")}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={palette.muted2} />
+      </Pressable>
 
       <View style={styles.actions}>
         <ActionTile
@@ -195,6 +239,20 @@ export default function ParentOverviewScreen() {
         )}
       </Card>
 
+      <Modal visible={offer} transparent animationType="fade" onRequestClose={dismissOffer}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="card" size={26} color={palette.white} />
+            </View>
+            <Text style={styles.modalTitle}>{t("pk.cardOfferTitle")}</Text>
+            <Text style={styles.modalText}>{t("pk.cardOfferText")}</Text>
+            <Button label={t("pk.cardOfferCta")} onPress={startIssue} />
+            <Button variant="ghost" label={t("pk.cardOfferLater")} onPress={dismissOffer} />
+          </View>
+        </View>
+      </Modal>
+
       <ParentTopUpSheet visible={sheet} onClose={() => setSheet(false)} />
     </Screen>
   );
@@ -253,6 +311,74 @@ const styles = StyleSheet.create({
   heroStat: { flex: 1, gap: 3 },
   heroStatLabel: { color: "rgba(255,255,255,0.75)", fontSize: font.tiny },
   heroStatValue: { color: palette.white, fontSize: font.title, fontWeight: "800" },
+  offer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: palette.primarySoft,
+    borderWidth: 1,
+    borderColor: palette.primary,
+  },
+  offerIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    backgroundColor: palette.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  offerText: { flex: 1, gap: 2 },
+  offerTitle: { fontSize: font.small, fontWeight: "800", color: palette.ink },
+  offerHint: { fontSize: 12, color: palette.ink2, lineHeight: 16 },
+  childRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.line,
+  },
+  childIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    backgroundColor: palette.childSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  childTitle: { fontSize: font.small, fontWeight: "800", color: palette.ink },
+  childHint: { fontSize: 12, color: palette.muted, lineHeight: 16 },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(11,18,32,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+  },
+  modalCard: {
+    width: "100%",
+    backgroundColor: palette.surface,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    gap: spacing.md,
+    alignItems: "center",
+  },
+  modalIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    backgroundColor: palette.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTitle: { fontSize: font.h3, fontWeight: "800", color: palette.ink, textAlign: "center" },
+  modalText: { fontSize: font.small, color: palette.muted, textAlign: "center", lineHeight: 20 },
   actions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
   tile: {
     flex: 1,

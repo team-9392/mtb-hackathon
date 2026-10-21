@@ -21,11 +21,9 @@ export function normalizePhone(raw: string): string {
   return "+" + digits;
 }
 
-export function generateCode(env: Env): string {
-  if (env.DEMO_OTP) {
-    return env.DEMO_OTP;
-  }
-  return String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+/** Код подтверждения: всегда случайный, 4 цифры. DEMO_OTP — только запасной код для сцены. */
+export function generateCode(): string {
+  return String(crypto.randomInt(0, 10_000)).padStart(4, "0");
 }
 
 export async function createChallenge(
@@ -33,7 +31,7 @@ export async function createChallenge(
   env: Env,
   phone: string,
 ): Promise<{ challengeId: string; ttlSeconds: number; demoCode?: string }> {
-  const code = generateCode(env);
+  const code = generateCode();
   const expiresAt = new Date(Date.now() + TTL_SECONDS * 1000).toISOString();
 
   const { data, error } = await db

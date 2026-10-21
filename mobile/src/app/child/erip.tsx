@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createPaymentApi } from "@/api/actions";
@@ -53,7 +53,16 @@ export default function ChildEripScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>{t("pay.title")}</Text>
+        <View style={styles.titleRow}>
+          <Image
+            source={require("../../../assets/brand/systems/erip.png")}
+            resizeMode="contain"
+            accessibilityRole="image"
+            accessibilityLabel="ЕРИП"
+            style={styles.eripLogo}
+          />
+          <Text style={styles.title}>{t("pay.title")}</Text>
+        </View>
         <Text style={styles.subtitle}>{t("pay.pending")}</Text>
 
         <View style={styles.row}>
@@ -112,7 +121,9 @@ export default function ChildEripScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: palette.bg },
   content: { padding: spacing.lg, gap: spacing.md },
-  title: { fontSize: font.h2, fontWeight: "800", color: palette.ink },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  eripLogo: { width: 28, height: 28 },
+  title: { fontSize: font.h2, fontWeight: "800", color: palette.ink, flexShrink: 1 },
   subtitle: { fontSize: font.small, color: palette.muted, marginBottom: spacing.sm },
   row: { flexDirection: "row", gap: spacing.sm },
   chip: {

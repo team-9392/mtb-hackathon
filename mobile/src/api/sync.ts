@@ -85,7 +85,14 @@ export interface ApiAccount {
   balance: number | string;
 }
 export interface ApiChildBlock {
-  child: { id: string; name: string; bracket: string; points: number; accessGranted: boolean };
+  child: {
+    id: string;
+    name: string;
+    bracket: string;
+    points: number;
+    accessGranted: boolean;
+    accessCode?: string;
+  };
   limits: ApiLimits | null;
   permissions: ApiPermission[];
   operations: ApiOperation[];
@@ -135,6 +142,7 @@ export function mapChildBlock(block: ApiChildBlock): Partial<FamilyState> {
   const goal = block.goals[0];
   return {
     childId: block.child.id,
+    accessCode: block.child.accessCode ?? "",
     goalId: goal?.id,
     accounts: [
       ...block.accounts
