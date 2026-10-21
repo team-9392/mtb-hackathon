@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { formatPan } from "@/lib/card";
 import type { CardInfo } from "@/store/types";
@@ -30,7 +30,8 @@ export function CardPeek({
   limitLeft?: number;
 }) {
   const [index, setIndex] = useState(0);
-  const [width, setWidth] = useState(340);
+  const { width: windowWidth } = useWindowDimensions();
+  const [width, setWidth] = useState(Math.max(280, windowWidth - spacing.lg * 2));
 
   const count = cards.length;
   const card = cards[Math.min(index, Math.max(0, count - 1))];
@@ -46,17 +47,18 @@ export function CardPeek({
             <Text style={styles.emptyButtonText}>Выпустить карту</Text>
           </Pressable>
         ) : null}
-      </View>
+      </Animated.View>
     );
   }
 
   const cardHeight = Math.max(210, Math.round((width || 340) / 1.6));
   const expanded = scrollY.interpolate({ inputRange: [0, LIFT], outputRange: [0, 1], extrapolate: "clamp" });
+  const rotate = scrollY.interpolate({ inputRange: [0, LIFT], outputRange: ["-2.5deg", "0deg"], extrapolate: "clamp" });
 
 
   return (
     <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      <View style={[styles.sheet, { height: cardHeight }]}>
+      <Animated.View style={[styles.sheet, { height: cardHeight, transform: [{ rotate }] }]}>
         <ScrollView
           horizontal
           pagingEnabled
