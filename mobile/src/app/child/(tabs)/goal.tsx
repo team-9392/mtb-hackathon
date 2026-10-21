@@ -1,6 +1,7 @@
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+
 import React, { useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -73,6 +74,9 @@ export default function ChildGoalScreen() {
           </Pressable>
           <View style={styles.headerTitleWrap}>
             <Text style={styles.headerTitle}>{t("sp.kopilkaTitle")}</Text>
+            <Pressable onPress={() => router.push("/kopilka")} hitSlop={8} style={{ marginLeft: 10 }}>
+              <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700" }}>{t("gl.target")}</Text>
+            </Pressable>
             <View style={styles.brandPill}>
               <Text secondary style={styles.brandText}>
                 MobyFamily

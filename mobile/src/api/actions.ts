@@ -231,3 +231,10 @@ export function createTaskApi(childId: string, title: string, points: number): P
 export function updateTaskApi(childId: string, taskId: string, status: "done" | "approved"): Promise<{ task: ParentTaskDto }> {
   return api("/children/" + childId + "/tasks/" + taskId, { method: "PATCH", body: { status } });
 }
+
+export function createGoalApi(childId: string, title: string, target: number): Promise<{ goal: { id: string } }> {
+  return api("/children/" + childId + "/goals", { method: "POST", body: { title, target } });
+}
+export function editGoalApi(childId: string, goalId: string, patch: { title?: string; target?: number }): Promise<{ goal: { id: string } }> {
+  return api("/children/" + childId + "/goals/" + goalId, { method: "PATCH", body: patch });
+}

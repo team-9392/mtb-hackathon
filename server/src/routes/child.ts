@@ -280,6 +280,76 @@ export function registerChildRoutes(app: FastifyInstance, db: SupabaseClient, en
     }
   });
 
+
+  /** Создать копилку (цель) ребёнку: может и родитель, и сам ребёнок. */
+  app.post("/children/:id/goals", async (request, reply) => {
+    try {
+      const claims = requireAuth(request, env);
+      const params = z.object({ id: z.string().uuid() }).parse(request.params);
+      const body = z
+        .object({ title: z.string().min(2).max(60), target: z.number().positive().max(100000), emoji: z.string().max(4).optional() })
+        .parse(request.body);
+      const child = await loadChild(db, params.id);
+      assertChildAccess(claims, child);
+      const { data, error } = await db
+        .from("goals")
+        .insert({
+          child_id: child.id,
+          title_ru: body.title.trim(),
+          title_be: body.title.trim(),
+          emoji: body.emoji ?? "🎯",
+          target: body.target,
+          saved: 0,
+          status: "active",
+        })
+        .select("id, title_ru, target, saved")
+        .single();
+      if (error || !data) {
+        return reply.code(500).send({ error: "create_failed", message: "Не удалось создать копилку" });
+      }
+      return reply.code(201).send({ goal: data });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
+  /** Изменить цель копилки. */
+  app.patch("/children/:id/goals/:goalId", async (request, reply) => {
+    try {
+      const claims = requireAuth(request, env);
+      const params = z.object({ id: z.string().uuid(), goalId: z.string().uuid() }).parse(request.params);
+      const body = z
+        .object({ title: z.string().min(2).max(60).optional(), target: z.number().positive().max(100000).optional() })
+        .parse(request.body);
+      const child = await loadChild(db, params.id);
+      assertChildAccess(claims, child);
+      const patch: Record<string, string | number> = {};
+      if (body.title) {
+        patch.title_ru = body.title.trim();
+        patch.title_be = body.title.trim();
+      }
+      if (body.target) {
+        patch.target = body.target;
+      }
+      if (Object.keys(patch).length === 0) {
+        return reply.code(400).send({ error: "empty", message: "Нечего менять" });
+      }
+      const { data, error } = await db
+        .from("goals")
+        .update(patch)
+        .eq("id", params.goalId)
+        .eq("child_id", child.id)
+        .select("id, title_ru, target, saved")
+        .single();
+      if (error || !data) {
+        return reply.code(404).send({ error: "not_found", message: "Копилка не найдена" });
+      }
+      return reply.send({ goal: data });
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
   app.post("/children/:id/goals/:goalId/deposit", async (request, reply) => {
     try {
       const claims = requireAuth(request, env);

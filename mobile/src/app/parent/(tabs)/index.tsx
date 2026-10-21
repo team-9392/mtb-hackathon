@@ -190,7 +190,7 @@ export default function ParentHomeScreen() {
             </View>
           ) : null}
 
-          <Pressable style={styles.card} onPress={() => router.push("/parent/child-access")}>
+          <Pressable style={styles.card} onPress={() => router.push("/parent/kopilka")}>
             <View style={styles.goalHead}>
               <Ionicons name="heart" size={14} color={colors.muted} />
               <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
@@ -224,7 +224,7 @@ export default function ParentHomeScreen() {
                         <Text style={styles.opTitle} numberOfLines={1}>
                           {outgoing ? t("ov.transferChild") : lang === "be" ? txn.title.be : txn.title.ru}
                         </Text>
-                        <Text style={[styles.opAmount, { color: income ? colors.mint : colors.text }]}>
+                        <Text style={[styles.opAmount, { color: income ? colors.mint : outgoing ? colors.danger : colors.text }]}>
                           {outgoing ? "−" : income ? "+" : "−"}
                           {formatMoney(Math.abs(txn.amount), 0)}
                         </Text>
