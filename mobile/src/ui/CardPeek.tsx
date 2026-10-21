@@ -5,6 +5,7 @@ import { Animated, PanResponder, Pressable, StyleSheet, View } from "react-nativ
 import { formatPan } from "@/lib/card";
 import type { CardInfo } from "@/store/types";
 import { radius, spacing } from "@/theme/tokens";
+import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Text } from "@/ui/Text";
 
 const COLLAPSED = 200;
@@ -95,13 +96,26 @@ export function CardPeek({
       <Animated.View style={[styles.sheet, { height, marginHorizontal: edge, transform: [{ rotate }, { translateX: shift }] }]}>
         <View style={styles.card}>
           <Text style={styles.currencyTop}>BYN</Text>
-          <View style={styles.bankTop}>
-            <View style={styles.bankBadge}>
-              <Ionicons name="snow" size={16} color="#000" />
-            </View>
             <Text style={styles.bankName}>МТбанк</Text>
           </View>
           <Animated.Text style={[styles.watermark, { opacity: watermarkOpacity }]}>MT</Animated.Text>
+
+          <View style={styles.chipBox}>
+            <View style={styles.chipH} />
+            <View style={styles.chipV} />
+          </View>
+
+          <Pressable style={styles.refresh} onPress={() => onDetails?.(card)} hitSlop={8}>
+            <Ionicons name="refresh" size={16} color="rgba(255,255,255,0.75)" />
+          </Pressable>
+
+          <View style={styles.brandPos}>
+            <PaymentBrand system={card.system} onDark />
+          </View>
+
+          <Text style={styles.holder} numberOfLines={1}>
+            {(_holder || "").toUpperCase()}
+          </Text>
 
 
 
@@ -164,9 +178,22 @@ const styles = StyleSheet.create({
   },
 
   currencyTop: { position: "absolute", left: spacing.lg, top: 26, color: "#fff", fontSize: 20, fontWeight: "600", letterSpacing: 1 },
-  bankTop: { position: "absolute", right: spacing.lg, top: 22, flexDirection: "row", alignItems: "center", gap: 8 },
-  bankBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
-  bankName: { color: "#fff", fontSize: 20, fontWeight: "800", letterSpacing: -0.3 },
+  chipBox: {
+    position: "absolute",
+    left: spacing.lg,
+    top: 26,
+    width: 40,
+    height: 28,
+    borderRadius: 5,
+    backgroundColor: "#cfcfcf",
+    borderWidth: 1,
+    borderColor: "#8a8a8a",
+    overflow: "hidden",
+  },
+  chipH: { position: "absolute", left: 0, right: 0, top: 13, height: 1, backgroundColor: "#8a8a8a" },
+  chipV: { position: "absolute", top: 0, bottom: 0, left: 19, width: 1, backgroundColor: "#8a8a8a" },
+  refresh: { position: "absolute", right: spacing.lg, top: 24 },
+  brandPos: { position: "absolute", right: spacing.lg, top: 74 },
   holder: {
     position: "absolute",
     left: spacing.lg,
@@ -177,7 +204,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     maxWidth: "62%",
   },
-  brandPos: { position: "absolute", right: spacing.lg, bottom: spacing.md },
   expanded: { marginTop: "auto", gap: 5, paddingBottom: 34 },
   balance: { color: "#fff", fontSize: 24, fontWeight: "800", letterSpacing: -0.5 },
   pan: { color: "#fff", fontSize: 18, fontWeight: "700", letterSpacing: 2, fontFamily: "monospace" },
