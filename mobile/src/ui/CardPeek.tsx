@@ -122,7 +122,7 @@ export function CardPeek({
       <Animated.View style={[styles.glow, { transform: [{ translateY: lift }] }]}>
         <Animated.View style={[styles.card, { transform: [{ translateX: shift }, { rotate: "-3deg" }, { translateY: lift }] }]} {...swipe.panHandlers}>
           <Image
-            source={require("../../assets/brand/card-face.png")}
+            source={require("../../assets/brand/card-face-v2.png")}
             style={styles.face}
             resizeMode="cover"
           />
