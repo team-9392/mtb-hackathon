@@ -131,7 +131,6 @@ export function CardPeek({
         style={[styles.card, { transform: [{ translateX: shift }, { rotateZ }, { translateY }] }]}
         {...swipe.panHandlers}
       >
-        <View pointerEvents="none" style={styles.topEdge} />
         <View pointerEvents="none" style={styles.watermarkWrap}>
           <Text style={styles.watermark}>MT</Text>
         </View>
@@ -205,7 +204,6 @@ const styles = StyleSheet.create({
     shadowRadius: 28,
     elevation: 18,
   },
-  topEdge: { position: "absolute", top: 0, left: "12%", right: "12%", height: 1.5, backgroundColor: "rgba(191,219,254,0.45)" },
   watermarkWrap: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   watermark: {
     fontSize: 158,
