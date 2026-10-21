@@ -68,8 +68,9 @@ export default function CardSetupScreen() {
     try {
       await api("/children/" + childId + "/cards", { method: "POST", body: { type, system } });
       await refresh();
-      setIssued(true);
       showToast(t("card.issuedSent"));
+      router.replace("/parent");
+      return;
     } catch (error) {
       showToast(error instanceof Error ? error.message : t("auth.connectFailed"));
     } finally {
