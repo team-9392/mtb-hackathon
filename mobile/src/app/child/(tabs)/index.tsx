@@ -107,14 +107,6 @@ export default function ChildHomeScreen() {
             <Text style={styles.currency}>BYN</Text>
           </View>
 
-          <CardPeek
-            cards={cards}
-            holder={state.child.name}
-            limitLeft={left}
-            scrollY={scrollY}
-            onIssue={() => router.push("/child/accounts")}
-            onDetails={(card) => void requestDetails(card)}
-          />
         </View>
 
         <View style={styles.panel}>
@@ -127,6 +119,17 @@ export default function ChildHomeScreen() {
                 <Text style={styles.actionLabel}>{action.label}</Text>
               </Pressable>
             ))}
+          </View>
+
+<View style={styles.cardWrap}>
+            <CardPeek
+                        cards={cards}
+                        holder={state.child.name}
+                        limitLeft={left}
+                        scrollY={scrollY}
+                        onIssue={() => router.push("/child/accounts")}
+                        onDetails={(card) => void requestDetails(card)}
+                      />
           </View>
 
           <Pressable style={styles.goalCard} onPress={() => router.push("/child/goal")}>
@@ -212,6 +215,7 @@ const makeStyles = (colors: Palette) =>
       borderTopWidth: 1,
       borderTopColor: colors.line,
     },
+    cardWrap: { marginHorizontal: spacing.xl, marginBottom: spacing.md },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm },
     actionCircle: {

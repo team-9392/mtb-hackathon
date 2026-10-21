@@ -142,19 +142,6 @@ export default function ParentHomeScreen() {
           </View>
           <Text style={styles.greeting}>{firstName} · {state.child.name}</Text>
 
-          <CardPeek
-            cards={cards}
-            holder={user?.full_name ?? "Моя карта"}
-            limitLeft={left}
-            scrollY={scrollY}
-            onIssue={() => void issueMyCard()}
-            onDetails={(card) => {
-              if (!card.id) return;
-              void requestMyCardDetailsApi(card.id)
-                .then(() => showToast(t("card.detailsSent")))
-                .catch((error) => showToast(error instanceof Error ? error.message : t("auth.connectFailed")));
-            }}
-          />
         </View>
 
         <View style={styles.panel}>
@@ -167,6 +154,22 @@ export default function ParentHomeScreen() {
                 <Text style={styles.actionLabel}>{action.label}</Text>
               </Pressable>
             ))}
+          </View>
+
+<View style={styles.cardWrap}>
+            <CardPeek
+                        cards={cards}
+                        holder={user?.full_name ?? "Моя карта"}
+                        limitLeft={left}
+                        scrollY={scrollY}
+                        onIssue={() => void issueMyCard()}
+                        onDetails={(card) => {
+                          if (!card.id) return;
+                          void requestMyCardDetailsApi(card.id)
+                            .then(() => showToast(t("card.detailsSent")))
+                            .catch((error) => showToast(error instanceof Error ? error.message : t("auth.connectFailed")));
+                        }}
+                      />
           </View>
 
           {pending.length > 0 ? (
@@ -270,6 +273,7 @@ const makeStyles = (colors: Palette) =>
       borderTopWidth: 1,
       borderTopColor: colors.line,
     },
+    cardWrap: { marginHorizontal: spacing.xl, marginBottom: spacing.md },
     actions: { flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     action: { alignItems: "center", gap: spacing.sm, width: 64 },
     actionCircle: {
