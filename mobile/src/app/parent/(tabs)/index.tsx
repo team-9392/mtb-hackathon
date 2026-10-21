@@ -197,7 +197,7 @@ export default function ParentHomeScreen() {
             </View>
             <Text style={styles.goalTitle}>{lang === "be" ? goal.title.be : goal.title.ru}</Text>
             <Text style={styles.goalSum}>
-              {formatMoney(goal.saved, 0)} / {formatMoney(goal.target, 0)} BYN
+              {formatMoney(goal.saved, 0)} / {formatMoney(goal.target, 0)}
             </Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: progress + "%" }]} />
@@ -224,7 +224,7 @@ export default function ParentHomeScreen() {
                         </Text>
                         <Text style={[styles.opAmount, { color: income ? colors.mint : colors.text }]}>
                           {income ? "+" : "−"}
-                          {formatMoney(Math.abs(txn.amount), 0)} BYN
+                          {formatMoney(Math.abs(txn.amount), 0)}
                         </Text>
                         <Text style={styles.opDate}>{formatDate(txn.at, lang)}</Text>
                       </View>
