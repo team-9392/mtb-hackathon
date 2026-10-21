@@ -36,6 +36,8 @@ export default function ChildAccountsScreen() {
   const [to, setTo] = useState<Pot>("goal");
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
+  const [opening, setOpening] = useState<AccountKind | null>(null);
+  const [confirmKind, setConfirmKind] = useState<AccountKind | null>(null);
 
   const balances = useMemo(() => {
     const map = new Map<Pot, number>();
@@ -48,6 +50,9 @@ export default function ChildAccountsScreen() {
   const allowedByAge = (kind: AccountKind) => state.permissions.some((p) => p.id === kind);
 
   const submit = async () => {
+    if (busy) {
+      return;
+    }
     const value = Number(amount.replace(",", "."));
     if (!Number.isFinite(value) || value <= 0) {
       showToast(t("acc.needAmount"));
@@ -58,17 +63,29 @@ export default function ChildAccountsScreen() {
       return;
     }
     setBusy(true);
-    const ok = await moveMoney(from, to, Math.round(value * 100) / 100);
-    setBusy(false);
-    if (ok) {
-      setAmount("");
-      showToast(t("acc.done"));
+    try {
+      const ok = await moveMoney(from, to, Math.round(value * 100) / 100);
+      if (ok) {
+        setAmount("");
+        showToast(t("acc.done"));
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
   const request = async (kind: AccountKind) => {
-    const status = await openAccount(kind);
-    showToast(status === "opened" ? t("acc.opened") : t("acc.asked"));
+    if (opening) {
+      return;
+    }
+    setOpening(kind);
+    try {
+      const status = await openAccount(kind);
+      showToast(status === "opened" ? t("acc.opened") : t("acc.asked"));
+    } finally {
+      setOpening(null);
+      setConfirmKind(null);
+    }
   };
 
   return (
@@ -81,23 +98,39 @@ export default function ChildAccountsScreen() {
           {OPENABLE.map((kind) => {
             const balance = balances.get(kind) ?? 0;
             const has = opened(kind);
+            const confirming = confirmKind === kind;
             return (
-              <View key={kind} style={styles.row}>
-                <View style={styles.icon}>
-                  <Ionicons name={ICON[kind]} size={20} color={palette.child as string} />
-                </View>
-                <View style={styles.rowTexts}>
-                  <Text style={styles.rowTitle}>{t(LABEL[kind])}</Text>
-                  <Text style={styles.rowHint}>
-                    {has ? t("acc.balance") + " " + balance.toFixed(2) + " BYN" : t("acc.notOpen")}
-                  </Text>
-                </View>
-                {has ? null : (
-                  <Pressable style={styles.smallButton} onPress={() => void request(kind)}>
-                    <Text style={styles.smallButtonText}>
-                      {allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
+              <View key={kind}>
+                <View style={styles.row}>
+                  <View style={styles.icon}>
+                    <Ionicons name={ICON[kind]} size={20} color={palette.child as string} />
+                  </View>
+                  <View style={styles.rowTexts}>
+                    <Text style={styles.rowTitle}>{t(LABEL[kind])}</Text>
+                    <Text style={styles.rowHint}>
+                      {has ? t("acc.balance") + " " + balance.toFixed(2) + " BYN" : t("acc.notOpen")}
                     </Text>
-                  </Pressable>
+                  </View>
+                  {has ? null : (
+                    <Pressable
+                      style={[styles.smallButton, confirming && styles.smallButtonActive]}
+                      onPress={() => setConfirmKind(confirming ? null : kind)}
+                    >
+                      <Text style={[styles.smallButtonText, confirming && styles.smallButtonTextActive]}>
+                        {allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+                {has || !confirming ? null : (
+                  <View style={styles.openConfirm}>
+                    <SlideToConfirm
+                      label={allowedByAge(kind) ? t("acc.open") : t("acc.ask")}
+                      onConfirm={() => void request(kind)}
+                      disabled={opening !== null}
+                      doneLabel={allowedByAge(kind) ? t("acc.opened") : t("acc.asked")}
+                    />
+                  </View>
                 )}
               </View>
             );
@@ -158,7 +191,12 @@ export default function ChildAccountsScreen() {
             />
             <Text style={styles.currency}>BYN</Text>
           </View>
-          <SlideToConfirm label={t("common.swipeTransfer")} onConfirm={() => void submit()} disabled={busy} />
+          <SlideToConfirm
+            label={t("common.swipeTransfer")}
+            onConfirm={() => void submit()}
+            disabled={busy}
+            doneLabel={t("acc.done")}
+          />
         </View>
 
         <Text style={styles.muted}>{t("acc.hint")}</Text>
@@ -219,6 +257,9 @@ const styles = StyleSheet.create({
     backgroundColor: palette.childSoft,
   },
   smallButtonText: { color: palette.childDark, fontWeight: "700", fontSize: font.small },
+  smallButtonActive: { backgroundColor: palette.child },
+  smallButtonTextActive: { color: palette.white },
+  openConfirm: { paddingBottom: spacing.md },
   sectionTitle: { fontSize: font.title, fontWeight: "800", color: palette.ink, marginBottom: spacing.sm },
   pickLabel: { fontSize: font.small, color: palette.muted, marginTop: spacing.md, marginBottom: 6 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },

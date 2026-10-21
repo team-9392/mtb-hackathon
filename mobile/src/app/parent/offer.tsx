@@ -5,10 +5,10 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { useI18n } from "@/i18n";
 import { font, palette, spacing } from "@/theme/tokens";
-import { Button } from "@/ui/Button";
 import { HeroCard } from "@/ui/Hero";
 import { Badge, Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import { SlideToConfirm } from "@/ui/SlideToConfirm";
 
 const BENEFITS = [
   { icon: "card-outline", title: "p1.b1t", desc: "p1.b1d" },
@@ -35,7 +35,11 @@ export default function OfferScreen() {
       subtitle={t("p1.subtitle")}
       footer={
         <>
-          <Button label={t("p1.cta")} icon="sparkles" onPress={() => router.push("/parent/child-profile")} />
+          <SlideToConfirm
+            label={t("p1.cta")}
+            onConfirm={() => router.push("/parent/child-profile")}
+            doneLabel={t("common.done")}
+          />
           <Text style={styles.terms}>{t("p1.terms")}</Text>
         </>
       }

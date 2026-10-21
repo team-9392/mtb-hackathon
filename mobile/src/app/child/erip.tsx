@@ -24,6 +24,9 @@ export default function ChildEripScreen() {
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
+    if (busy) {
+      return;
+    }
     const value = Number(amount.replace(",", "."));
     if (!recipient.trim()) {
       showToast(t("pay.needRecipient"));
@@ -111,7 +114,12 @@ export default function ChildEripScreen() {
           />
         </View>
 
-        <SlideToConfirm label={t("common.swipeConfirm")} onConfirm={() => void submit()} disabled={busy} />
+        <SlideToConfirm
+          label={t("common.swipeConfirm")}
+          onConfirm={() => void submit()}
+          disabled={busy}
+          doneLabel={t("common.done")}
+        />
         <Text style={styles.note}>{t("pay.note")}</Text>
       </ScrollView>
     </SafeAreaView>

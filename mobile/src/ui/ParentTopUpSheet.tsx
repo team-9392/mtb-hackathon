@@ -18,12 +18,18 @@ export function ParentTopUpSheet({ visible, onClose }: { visible: boolean; onClo
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
+    if (busy) {
+      return;
+    }
     setBusy(true);
-    const ok = await topUpChild(amount);
-    setBusy(false);
-    if (ok) {
-      showToast(t("pt.done"));
-      onClose();
+    try {
+      const ok = await topUpChild(amount);
+      if (ok) {
+        showToast(t("pt.done"));
+        onClose();
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -64,6 +70,7 @@ export function ParentTopUpSheet({ visible, onClose }: { visible: boolean; onClo
           label={t("pt.action", { amount: String(amount) })}
           onConfirm={() => void submit()}
           disabled={busy}
+          doneLabel={t("common.done")}
         />
       </View>
     </Modal>

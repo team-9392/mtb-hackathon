@@ -156,7 +156,7 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
       if ((body.kinds as string[]).includes("written14")) {
         await db
           .from("permissions")
-          .update({ has_consent: true })
+          .update({ has_consent: true, allowed: true })
           .eq("child_id", child.id)
           .eq("requires_consent", true);
       }
@@ -177,12 +177,9 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
       const child = await getChild(db, params.id, familyId);
 
       await db.from("children").update({ access_granted: body.granted }).eq("id", child.id);
-      if (!body.granted) {
-        await db.from("sessions").update({ revoked_at: new Date().toISOString() }).eq(
-          "user_id",
-          child.user_id ?? "00000000-0000-0000-0000-000000000000",
-        );
-      }
+      // Сессии не гасим: доступ проверяет guard по access_granted на каждом
+      // запросе. Иначе после возврата доступа ребёнку пришлось бы логиниться
+      // заново, а logout остаётся отдельным механизмом (revoked_at в sessions).
 
       if (child.user_id) {
         await notify(
@@ -439,7 +436,9 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
           const isErip = requestKind === "erip";
           await db.from("transactions").insert({
             child_id: child.id,
-            amount: paymentAmount,
+            // Расход всегда отрицательный: иначе история показывает «+», а
+            // spentThisMonth (rules.ts) не учитывает платёж в месячном лимите.
+            amount: -Math.abs(paymentAmount),
             category: requestKind,
             merchant: (requestRow.recipient as string | null) ?? null,
             title_ru: isErip ? "Платёж ЕРИП" : "Перевод по номеру",
@@ -447,7 +446,10 @@ export function registerFamilyRoutes(app: FastifyInstance, db: SupabaseClient, e
             status: "approved",
             by_child: true,
           });
-          await hub.publish(db, familyId, "txn.created", { childId: child.id, amount: paymentAmount });
+          await hub.publish(db, familyId, "txn.created", {
+            childId: child.id,
+            amount: -Math.abs(paymentAmount),
+          });
         } else if (target === "limit") {
           const { data: currentLimits } = await db
             .from("limits")

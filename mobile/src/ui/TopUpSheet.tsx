@@ -25,12 +25,18 @@ export function TopUpSheet({ visible, onClose }: { visible: boolean; onClose: ()
       : (state.accounts?.find((account) => account.kind === "savings")?.balance ?? 0);
 
   const submit = async () => {
+    if (busy) {
+      return;
+    }
     setBusy(true);
-    const ok = await moveMoney(from, "pocket", amount);
-    setBusy(false);
-    if (ok) {
-      showToast(t("acc.done"));
-      onClose();
+    try {
+      const ok = await moveMoney(from, "pocket", amount);
+      if (ok) {
+        showToast(t("acc.done"));
+        onClose();
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -71,6 +77,7 @@ export function TopUpSheet({ visible, onClose }: { visible: boolean; onClose: ()
           label={t("ch.topupAction", { amount: String(amount) })}
           onConfirm={() => void submit()}
           disabled={busy}
+          doneLabel={t("common.done")}
         />
       </View>
     </Modal>

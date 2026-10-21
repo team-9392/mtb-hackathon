@@ -13,6 +13,7 @@ import { HeroCard } from "@/ui/Hero";
 import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Badge, Card, Row, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import { SlideToConfirm } from "@/ui/SlideToConfirm";
 
 const SYSTEM_LABEL: Record<CardSystem, string> = {
   visa: "Visa",
@@ -47,8 +48,9 @@ export default function IssueScreen() {
       setBusy(false);
     }
     if (ok) {
-      // Никуда не переходим: реквизиты приходят в состояние, экран обновляется сам.
+      // Реквизиты приходят в состояние, а из выпуска сразу уходим в главное меню.
       showToast(t("card.issued"));
+      router.replace("/parent");
     }
   };
 
@@ -58,11 +60,11 @@ export default function IssueScreen() {
       title={t("p4.title")}
       subtitle={t("p4.subtitle")}
       footer={
-        <Button
+        <SlideToConfirm
           label={state.card.status === "active" && matches ? t("card.reissue") : t("card.issue")}
-          icon="card-outline"
-          loading={busy}
-          onPress={() => void submit()}
+          onConfirm={() => void submit()}
+          disabled={busy}
+          doneLabel={t("common.done")}
         />
       }
     >

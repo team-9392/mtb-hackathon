@@ -44,15 +44,28 @@ export async function bootstrapChild(
   childId: string,
   bracket: Bracket,
 ): Promise<void> {
+  // consents.family_id — NOT NULL: без реальной семьи вставка молча падала.
+  const { data: childRow } = await db
+    .from("children")
+    .select("family_id")
+    .eq("id", childId)
+    .maybeSingle();
+  const familyId = (childRow?.family_id as string | null) ?? null;
+
   await db.from("permissions").insert(
-    ALL_PRODUCTS.map((product) => ({
-      child_id: childId,
-      product_id: product,
-      allowed: defaultAllowed(bracket, product),
-      requires_consent: requiresWrittenConsent(product, bracket),
-      has_consent: false,
-      pending_request: false,
-    })),
+    ALL_PRODUCTS.map((product) => {
+      // Пока письменное согласие на вклад не подписано, продукт закрыт:
+      // иначе правило requiresWrittenConsent обходится через bootstrap.
+      const needsConsent = requiresWrittenConsent(product, bracket);
+      return {
+        child_id: childId,
+        product_id: product,
+        allowed: defaultAllowed(bracket, product) && !needsConsent,
+        requires_consent: needsConsent,
+        has_consent: false,
+        pending_request: false,
+      };
+    }),
   );
 
   await db.from("operation_permissions").insert(
@@ -73,17 +86,14 @@ export async function bootstrapChild(
     confirm_each: false,
   });
 
-  const accounts = [
+  // Вклад открывается отдельно, только после подписанного written14.
+  await db.from("accounts").insert([
     { child_id: childId, kind: "pocket", balance: 0 },
     { child_id: childId, kind: "savings", balance: 0 },
-  ];
-  if (bracket === "teen_14_17") {
-    accounts.push({ child_id: childId, kind: "deposit", balance: 0 });
-  }
-  await db.from("accounts").insert(accounts);
+  ]);
 
   await db.from("consents").insert(
-    consentsFor(bracket).map((kind) => ({ family_id: null, child_id: childId, kind })),
+    consentsFor(bracket).map((kind) => ({ family_id: familyId, child_id: childId, kind })),
   );
 }
 

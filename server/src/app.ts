@@ -4,6 +4,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 
 import { verifyAccess } from "./auth.js";
 import type { Env } from "./env.js";
+import { registerGuard } from "./guard.js";
 import { hub } from "./hub.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerChildRoutes } from "./routes/child.js";
@@ -27,6 +28,9 @@ export async function buildApp(env: Env, db: SupabaseClient): Promise<FastifyIns
     credentials: false,
   });
   await app.register(websocket);
+
+  // Отзыв сессии и отзыв доступа ребёнка проверяются до обработчиков.
+  registerGuard(app, db, env);
 
   app.get("/health", async () => ({
     ok: true,

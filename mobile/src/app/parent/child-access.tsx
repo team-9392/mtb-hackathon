@@ -9,6 +9,7 @@ import { font, palette, radius, shadow, spacing } from "@/theme/tokens";
 import { Button } from "@/ui/Button";
 import { Badge, Card, SectionTitle } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import { SlideToConfirm } from "@/ui/SlideToConfirm";
 
 const BRACKETS: {
   id: AgeBracket;
@@ -128,9 +129,9 @@ export default function ChildAccessScreen() {
               <Badge label={state.accessGranted ? t("kid.granted") : t("kid.blocked")} tone={state.accessGranted ? "mint" : "warn"} />
             </View>
             {state.accessGranted ? (
-              <Button label={t("kid.deny")} variant="secondary" onPress={revokeAccess} />
+              <SlideToConfirm label={t("kid.deny")} onConfirm={revokeAccess} doneLabel={t("common.done")} />
             ) : (
-              <Button label={t("kid.grant")} onPress={grantAccess} />
+              <SlideToConfirm label={t("kid.grant")} onConfirm={grantAccess} doneLabel={t("common.done")} />
             )}
           </Card>
         </>

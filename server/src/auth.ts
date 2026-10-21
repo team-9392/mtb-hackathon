@@ -12,6 +12,8 @@ export interface AuthClaims {
   familyId: string | null;
   role: Role;
   childId: string | null;
+  /** id строки sessions: по нему guard проверяет, не отозвана ли сессия. */
+  sid: string | null;
 }
 
 export interface RefreshPair {
@@ -41,10 +43,14 @@ export function hashToken(token: string): string {
 }
 
 export function signAccess(env: Env, claims: AuthClaims): string {
-  return jwt.sign({ familyId: claims.familyId, role: claims.role, childId: claims.childId }, env.JWT_SECRET, {
-    subject: claims.sub,
-    expiresIn: env.ACCESS_TTL_MIN * 60,
-  });
+  return jwt.sign(
+    { familyId: claims.familyId, role: claims.role, childId: claims.childId, sid: claims.sid },
+    env.JWT_SECRET,
+    {
+      subject: claims.sub,
+      expiresIn: env.ACCESS_TTL_MIN * 60,
+    },
+  );
 }
 
 export function verifyAccess(env: Env, token: string): AuthClaims {
@@ -59,7 +65,9 @@ export function verifyAccess(env: Env, token: string): AuthClaims {
   const familyId = typeof decoded.familyId === "string" ? decoded.familyId : null;
   const childId = typeof decoded.childId === "string" ? decoded.childId : null;
   const role = decoded.role === "parent" || decoded.role === "child" ? decoded.role : "parent";
-  return { sub, familyId, role, childId };
+  // Старые токены без sid остаются валидными: демо-устройства не должны разлогиниться.
+  const sid = typeof decoded.sid === "string" ? decoded.sid : null;
+  return { sub, familyId, role, childId, sid };
 }
 
 export function createRefresh(): RefreshPair {
@@ -77,7 +85,7 @@ export async function loadClaims(db: SupabaseClient, userId: string): Promise<Au
     .maybeSingle();
 
   if (!membership) {
-    return { sub: userId, familyId: null, role: "parent", childId: null };
+    return { sub: userId, familyId: null, role: "parent", childId: null, sid: null };
   }
 
   const role = membership.role === "child" ? "child" : "parent";
@@ -91,7 +99,7 @@ export async function loadClaims(db: SupabaseClient, userId: string): Promise<Au
     childId = child?.id ?? null;
   }
 
-  return { sub: userId, familyId: membership.family_id as string, role, childId };
+  return { sub: userId, familyId: membership.family_id as string, role, childId, sid: null };
 }
 
 export async function issueSession(
@@ -105,15 +113,30 @@ export async function issueSession(
   const refresh = createRefresh();
   const expiresAt = new Date(Date.now() + env.REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-  await db.from("sessions").insert({
-    user_id: userId,
-    refresh_hash: refresh.hash,
-    device_id: deviceId,
-    os,
-    expires_at: expiresAt,
-  });
+  const { data: session, error } = await db
+    .from("sessions")
+    .insert({
+      user_id: userId,
+      refresh_hash: refresh.hash,
+      device_id: deviceId,
+      os,
+      expires_at: expiresAt,
+    })
+    .select("id")
+    .single();
 
-  return { accessToken: signAccess(env, claims), refreshToken: refresh.token, claims };
+  if (error || !session) {
+    throw new Error("Не удалось создать сессию: " + (error?.message ?? ""));
+  }
+
+  // sid привязывает access-токен к строке sessions: logout/отзыв доступа
+  // проверяются guard'ом на каждом запросе, а не только при refresh.
+  const sessionClaims: AuthClaims = { ...claims, sid: session.id as string };
+  return {
+    accessToken: signAccess(env, sessionClaims),
+    refreshToken: refresh.token,
+    claims: sessionClaims,
+  };
 }
 
 export async function rotateRefresh(

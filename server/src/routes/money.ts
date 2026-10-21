@@ -6,7 +6,7 @@ import type { Env } from "../env.js";
 import { hub } from "../hub.js";
 import { badRequest, conflict, forbidden, requireAuth, sendError } from "../http.js";
 import { notify, parentUserIdOfFamily } from "../repo.js";
-import { productsFor, type ProductId } from "../rules.js";
+import { productsFor, requiresWrittenConsent, type ProductId } from "../rules.js";
 
 const ACCOUNT_KINDS = ["pocket", "savings", "deposit"] as const;
 const FLOWS = ["pocket", "savings", "deposit", "goal"] as const;
@@ -125,8 +125,24 @@ export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, en
 
       const title = ACCOUNT_TITLES[body.kind] ?? { ru: body.kind, be: body.kind };
       const allowedByBracket = productsFor(child.bracket).includes(body.kind as ProductId);
+      const needsConsent = requiresWrittenConsent(body.kind as ProductId, child.bracket);
+      let hasConsent = true;
+      if (needsConsent) {
+        const { data: consent } = await db
+          .from("consents")
+          .select("signed_at")
+          .eq("child_id", child.id)
+          .eq("kind", "written14")
+          .maybeSingle();
+        hasConsent = Boolean(consent?.signed_at);
+      }
 
-      if (allowedByBracket || claims.role === "parent") {
+      // Вклад подростку открывается только после подписанного written14.
+      if (needsConsent && !hasConsent && claims.role === "parent") {
+        throw conflict("Сначала подпишите письменное согласие на вклад");
+      }
+
+      if ((allowedByBracket && hasConsent) || (claims.role === "parent" && !needsConsent)) {
         await openAccount(db, child.id, body.kind);
         await hub.publish(db, child.family_id, "account.opened", {
           childId: child.id,
@@ -288,6 +304,21 @@ export function registerMoneyRoutes(app: FastifyInstance, db: SupabaseClient, en
           "Грошы прыйшлі",
           "+" + body.amount.toFixed(2) + " BYN от родителя",
           "+" + body.amount.toFixed(2) + " BYN ад бацькі",
+        );
+      }
+
+      // Родитель тоже получает уведомление о зачислении — чек-лист ждёт его обеим сторонам.
+      const parentId = await parentUserIdOfFamily(db, child.family_id);
+      if (parentId && parentId !== child.user_id) {
+        await notify(
+          db,
+          parentId,
+          child.family_id,
+          "txn",
+          "Пополнение выполнено",
+          "Папаўненне выканана",
+          "Ребёнку " + child.name + " зачислено +" + body.amount.toFixed(2) + " BYN",
+          "Дзіцяці " + child.name + " залічана +" + body.amount.toFixed(2) + " BYN",
         );
       }
 

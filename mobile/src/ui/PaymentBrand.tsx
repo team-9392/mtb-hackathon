@@ -6,6 +6,8 @@ import type { CardSystem } from "@/store/types";
 
 /**
  * Официальные логотипы платёжных систем (PNG с прозрачным фоном, 520 px по ширине).
+ * Белкарт — только эмблема без надписи (квадрат 520×520), поэтому для неё
+ * предусмотрен отдельный квадратный бокс: широкий бокс оставлял бы пустые поля.
  * На тёмной карте цветные знаки теряются, поэтому кладём их на белую плашку;
  * на светлом фоне плашка не нужна.
  */
@@ -16,21 +18,25 @@ const LOGOS: Record<CardSystem, ImageSourcePropType> = {
   unionpay: require("../../assets/brand/systems/unionpay.png"),
 };
 
+/** Квадратные эмблемы (без надписи) вместо широких логотипов. */
+const SQUARE_LOGOS: Partial<Record<CardSystem, true>> = { belkart: true };
+
 export function PaymentBrand({ system, onDark = false }: { system: CardSystem; onDark?: boolean }) {
+  const square = SQUARE_LOGOS[system] === true;
   const logo = (
     <Image
       source={LOGOS[system]}
       resizeMode="contain"
       accessibilityRole="image"
       accessibilityLabel={system}
-      style={onDark ? styles.darkLogo : styles.lightLogo}
+      style={onDark ? (square ? styles.squareDarkLogo : styles.darkLogo) : square ? styles.squareLightLogo : styles.lightLogo}
     />
   );
 
   if (onDark) {
-    return <View style={styles.plate}>{logo}</View>;
+    return <View style={[styles.plate, square && styles.squarePlate]}>{logo}</View>;
   }
-  return <View style={styles.lightBox}>{logo}</View>;
+  return <View style={[styles.lightBox, square && styles.squareLightBox]}>{logo}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -45,7 +51,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   darkLogo: { width: 28, height: 16 },
+  /* Квадратная эмблема: плашка 28×28, внутри 22×22. */
+  squarePlate: { width: 28, height: 28 },
+  squareDarkLogo: { width: 22, height: 22 },
   /* На светлом фоне логотип крупнее и без подложки. */
   lightBox: { width: 96, height: 30, justifyContent: "center" },
   lightLogo: { width: 96, height: 30 },
+  /* Квадратная эмблема на светлом фоне — бокс 30×30, без пустых полей слева. */
+  squareLightBox: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
+  squareLightLogo: { width: 30, height: 30 },
 });

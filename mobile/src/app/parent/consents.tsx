@@ -7,9 +7,9 @@ import { useI18n } from "@/i18n";
 import { useStore } from "@/store/StoreProvider";
 import type { ConsentId } from "@/store/types";
 import { font, palette, radius, spacing } from "@/theme/tokens";
-import { Button } from "@/ui/Button";
 import { Card } from "@/ui/primitives";
 import { Screen } from "@/ui/Screen";
+import { SlideToConfirm } from "@/ui/SlideToConfirm";
 
 const TEXT: Record<ConsentId, { title: string; desc: string }> = {
   legal: { title: "p3.c1t", desc: "p3.c1d" },
@@ -37,7 +37,14 @@ export default function ConsentsScreen() {
       showBack
       title={t("p3.title")}
       subtitle={t("p3.subtitle")}
-      footer={<Button label={t("p3.cta")} onPress={next} disabled={!allSigned} />}
+      footer={
+        <SlideToConfirm
+          label={t("p3.cta")}
+          onConfirm={next}
+          disabled={!allSigned}
+          doneLabel={t("common.done")}
+        />
+      }
     >
       {state.consents.map((consent) => {
         const text = TEXT[consent.id];
@@ -74,12 +81,11 @@ export default function ConsentsScreen() {
         </Card>
       ) : null}
 
-      <Button
+      <SlideToConfirm
         label={allSigned ? t("p3.signedAll") : t("p3.signAll")}
-        variant="secondary"
-        icon={allSigned ? "checkmark-circle" : "create-outline"}
-        onPress={signAllConsents}
+        onConfirm={signAllConsents}
         disabled={allSigned}
+        doneLabel={t("common.done")}
       />
 
       <Text style={styles.note}>{t("p3.note")}</Text>

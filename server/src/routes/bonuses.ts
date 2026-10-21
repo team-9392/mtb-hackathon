@@ -77,6 +77,20 @@ async function syncQuizzes(db: SupabaseClient): Promise<void> {
 }
 const themeSchema = z.object({ theme: z.string().min(1).max(32) });
 
+/**
+ * Журнал монет. В coin_ledger нет колонки quest_id (0008_quests_fix.sql),
+ * поэтому пишем только реальные поля и не теряем ошибку молча.
+ */
+async function insertCoinLedger(
+  db: SupabaseClient,
+  row: { user_id: string; amount: number; reason: string },
+): Promise<void> {
+  const { error } = await db.from("coin_ledger").insert(row);
+  if (error) {
+    console.error("[coin_ledger] не удалось записать операцию: " + error.message);
+  }
+}
+
 /** Монеты Moby: квесты от банка и магазин наград. Один эндпоинт отдаёт всё сразу. */
 export async function registerBonusRoutes(app: FastifyInstance, db: SupabaseClient, env: Env): Promise<void> {
   // Справочники подтягиваем в фоне: Fastify к этому моменту уже может слушать порт.
@@ -158,7 +172,7 @@ export async function registerBonusRoutes(app: FastifyInstance, db: SupabaseClie
       const { data: user } = await db.from("users").select("coins").eq("id", claims.sub).maybeSingle();
       const coins = ((user?.coins as number | null) ?? 0) + points;
       await db.from("users").update({ coins }).eq("id", claims.sub);
-      await db.from("coin_ledger").insert({ user_id: claims.sub, amount: points, reason: "quest", quest_id: quiz.id });
+      await insertCoinLedger(db, { user_id: claims.sub, amount: points, reason: "quest" });
 
       if (claims.familyId && claims.role === "child") {
         const parentId = await parentUserIdOfFamily(db, claims.familyId);
@@ -235,6 +249,14 @@ export async function registerBonusRoutes(app: FastifyInstance, db: SupabaseClie
       const { id } = request.params as { id: string };
       const audience = claims.role === "child" ? "child" : "parent";
 
+      // Монеты за тест начисляет только /quests/:id/quiz после проверки ответов.
+      // Иначе /complete обходил тест и выдавал points из каталога просто так.
+      if (QUIZZES.some((quiz) => quiz.id === id)) {
+        return reply
+          .code(409)
+          .send({ error: "quiz_required", message: "Пройдите тест, чтобы получить монеты" });
+      }
+
       const { data: quest } = await db
         .from("quests")
         .select("id, audience, points, title_ru")
@@ -260,7 +282,7 @@ export async function registerBonusRoutes(app: FastifyInstance, db: SupabaseClie
       const { data: user } = await db.from("users").select("coins").eq("id", claims.sub).maybeSingle();
       const coins = ((user?.coins as number | null) ?? 0) + points;
       await db.from("users").update({ coins }).eq("id", claims.sub);
-      await db.from("coin_ledger").insert({ user_id: claims.sub, amount: points, reason: "quest", quest_id: id });
+      await insertCoinLedger(db, { user_id: claims.sub, amount: points, reason: "quest" });
 
       // Ребёнок заработал монеты — родитель должен это видеть.
       if (claims.familyId && claims.role === "child") {
@@ -309,7 +331,7 @@ export async function registerBonusRoutes(app: FastifyInstance, db: SupabaseClie
           : reward.value;
 
       await db.from("purchases").insert({ user_id: claims.sub, reward_id: id, code });
-      await db.from("coin_ledger").insert({ user_id: claims.sub, amount: -price, reason: "purchase", quest_id: null });
+      await insertCoinLedger(db, { user_id: claims.sub, amount: -price, reason: "purchase" });
       await db.from("users").update({ coins: coins - price }).eq("id", claims.sub);
       if (reward.kind === "theme") {
         await db.from("users").update({ theme: reward.value }).eq("id", claims.sub);
