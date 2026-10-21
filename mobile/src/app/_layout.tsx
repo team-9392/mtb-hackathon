@@ -66,6 +66,18 @@ function AppShell() {
 // react-native-svg на вебе пишет предупреждение про transform-origin — на натив не влияет.
 LogBox.ignoreLogs(["Invalid DOM property", "transform-origin", "transformOrigin"]);
 
+// react-native-svg на вебе шлёт невалидный DOM-атрибут transform-origin — глушим шум.
+if (Platform.OS === "web") {
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => {
+    const first = args[0];
+    if (typeof first === "string" && (first.includes("transform-origin") || first.includes("Invalid DOM property"))) {
+      return;
+    }
+    originalError(...args);
+  };
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontSources);
 
