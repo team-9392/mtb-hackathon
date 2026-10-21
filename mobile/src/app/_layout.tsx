@@ -1,5 +1,6 @@
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
+import { LogBox } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
@@ -59,6 +60,9 @@ function AppShell() {
     </>
   );
 }
+
+// react-native-svg на вебе пишет предупреждение про transform-origin — на натив не влияет.
+LogBox.ignoreLogs(["Invalid DOM property", "transform-origin", "transformOrigin"]);
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontSources);
