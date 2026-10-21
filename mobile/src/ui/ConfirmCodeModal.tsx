@@ -57,7 +57,11 @@ export function ConfirmCodeModal({
       await api("/me/confirm/verify", { method: "POST", body: { challengeId, code: value } });
       setStage("success");
       Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 14 }).start();
-      await onConfirmed();
+      try {
+        await onConfirmed();
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : t("auth.connectFailed"));
+      }
       setTimeout(onClose, 900);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : t("auth.connectFailed"));
