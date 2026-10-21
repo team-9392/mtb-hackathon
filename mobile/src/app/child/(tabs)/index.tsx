@@ -46,6 +46,7 @@ export default function ChildHomeScreen() {
   const left = Math.max(0, state.limits.monthly - spent);
   const cards: CardInfo[] = state.cards && state.cards.length > 0 ? state.cards : state.card.number.length > 0 ? [state.card] : [];
   const goal = state.goal;
+  const hasGoal = Boolean(state.goalId) || goal.target > 0;
   const progress = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
 
   const requestDetails = useCallback(
@@ -133,7 +134,8 @@ export default function ChildHomeScreen() {
 
 
 
-          <Pressable style={styles.goalCard} onPress={() => router.push("/child/goal")}>
+          {hasGoal ? (
+<Pressable style={styles.goalCard} onPress={() => router.push("/child/goal")}>
             <View style={styles.goalHead}>
               <Ionicons name="heart" size={14} color={colors.muted} />
               <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
@@ -147,6 +149,16 @@ export default function ChildHomeScreen() {
               <View style={[styles.progressFill, { width: progress + "%" }]} />
             </View>
           </Pressable>
+          ) : (
+          <Pressable style={styles.goalCard} onPress={() => router.push("/child/goal")}>
+            <View style={styles.goalHead}>
+              <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+              <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
+            </View>
+            <Text style={styles.goalTitle}>{t("gl.create")}</Text>
+            <Text style={styles.goalSum}>{t("gl.createHint")}</Text>
+          </Pressable>
+          )}
 
           <View style={styles.opsCard}>
             <Text style={styles.opsTitle}>{t("ch.lastOps")}</Text>

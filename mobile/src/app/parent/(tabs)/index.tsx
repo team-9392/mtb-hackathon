@@ -97,6 +97,7 @@ export default function ParentHomeScreen() {
         : [];
   const cards: CardInfo[] = [...myCards.map((card) => ({ ...card, holder: user?.full_name ?? "Моя карта" })), ...childCards];
   const goal = state.goal;
+  const hasGoal = Boolean(state.goalId) || goal.target > 0;
   const progress = goal.target > 0 ? Math.min(100, Math.round((goal.saved / goal.target) * 100)) : 0;
   const pending = state.requests.filter((request) => request.status === "pending");
   const firstName = (user?.full_name ?? "").trim().split(" ")[0] ?? "родитель";
@@ -198,7 +199,8 @@ export default function ParentHomeScreen() {
             </View>
           ) : null}
 
-          <Pressable style={styles.card} onPress={() => router.push("/parent/kopilka")}>
+          {hasGoal ? (
+<Pressable style={styles.card} onPress={() => router.push("/parent/kopilka")}>
             <View style={styles.goalHead}>
               <Ionicons name="heart" size={14} color={colors.muted} />
               <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
@@ -212,6 +214,16 @@ export default function ParentHomeScreen() {
               <View style={[styles.progressFill, { width: progress + "%" }]} />
             </View>
           </Pressable>
+          ) : (
+          <Pressable style={styles.card} onPress={() => router.push("/parent/kopilka")}>
+            <View style={styles.goalHead}>
+              <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+              <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
+            </View>
+            <Text style={styles.goalTitle}>{t("gl.create")}</Text>
+            <Text style={styles.goalSum}>{t("gl.createHint")}</Text>
+          </Pressable>
+          )}
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{t("ch.lastOps")}</Text>

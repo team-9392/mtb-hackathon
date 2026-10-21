@@ -529,6 +529,8 @@ export const be: Record<TKey, string> = {
   "gl.namePlaceholder": "Напрыклад, ровар",
   "gl.topUp": "Папоўніць скарбонку",
   "common.save": "Захаваць",
+  "gl.create": "Стварыць скарбонку",
+  "gl.createHint": "Выберыце мэту і збірайце на яе разам",
 "common.swipeConfirm": "Правядзіце ўправа, каб пацвердзіць",
   "common.swipeTransfer": "Правядзіце ўправа, каб перавесці",
   "pay.title": "Аплата і пераводы",

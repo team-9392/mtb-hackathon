@@ -527,6 +527,8 @@ export const ru = {
   "gl.namePlaceholder": "Например, велосипед",
   "gl.topUp": "Пополнить копилку",
   "common.save": "Сохранить",
+  "gl.create": "Создать копилку",
+  "gl.createHint": "Выберите цель и копите на неё вместе",
 "common.swipeConfirm": "Проведите вправо, чтобы подтвердить",
   "common.swipeTransfer": "Проведите вправо, чтобы перевести",
   "pay.title": "Оплата и переводы",
