@@ -263,7 +263,7 @@ const makeStyles = (colors: Palette) =>
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     greeting: { color: colors.muted, fontSize: 13, fontWeight: "600", marginTop: 2, marginBottom: spacing.sm },
     panel: {
-      marginTop: -64,
+      marginTop: -104,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
       paddingBottom: spacing.xl,

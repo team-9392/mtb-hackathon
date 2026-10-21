@@ -39,6 +39,7 @@ export function CardPeek({
   const styles = useThemedStyles(makeStyles);
   const [index, setIndex] = useState(0);
   const [width, setWidth] = useState(340);
+  const [elevated, setElevated] = useState(false);
   const shift = useRef(new Animated.Value(0)).current;
   const indexRef = useRef(index);
   indexRef.current = index;
@@ -50,6 +51,11 @@ export function CardPeek({
   useEffect(() => {
     setIndex((prev) => Math.min(prev, Math.max(0, cards.length - 1)));
   }, [cards.length]);
+
+  useEffect(() => {
+    const id = scrollY.addListener(({ value }) => setElevated(value > 24));
+    return () => scrollY.removeListener(id);
+  }, [scrollY]);
 
   const count = cards.length;
   const card = cards[Math.min(index, Math.max(0, count - 1))];
@@ -100,7 +106,7 @@ export function CardPeek({
   const edge = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [-18, spacing.lg], extrapolate: "clamp" });
 
   return (
-    <View style={styles.wrap} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+    <View style={[styles.wrap, elevated && styles.wrapElevated]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       <Animated.View
         style={[styles.glow, { opacity: glowOpacity, transform: [{ scaleY: 0.7 }, { scale: glowScale }, { rotate: "-4deg" }] }]}
         pointerEvents="none"
@@ -164,7 +170,8 @@ export function CardPeek({
 
 const makeStyles = (colors: Palette) =>
   StyleSheet.create({
-  wrap: { marginTop: spacing.sm },
+  wrap: { marginTop: spacing.sm, zIndex: 1 },
+  wrapElevated: { zIndex: 20 },
   flex: { flex: 1 },
   glow: { position: "absolute", top: 26, left: "-2%", right: "-2%", height: 200 },
   sheet: { zIndex: 2 },

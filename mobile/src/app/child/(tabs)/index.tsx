@@ -205,7 +205,7 @@ const makeStyles = (colors: Palette) =>
     balance: { color: colors.text, fontSize: 56, fontWeight: "800", letterSpacing: -1.5 },
     currency: { color: colors.muted, fontSize: 22, fontWeight: "800", letterSpacing: 1 },
     panel: {
-      marginTop: -64,
+      marginTop: -104,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
       paddingBottom: spacing.xl,
