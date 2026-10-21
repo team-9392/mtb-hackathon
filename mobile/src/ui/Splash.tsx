@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, Image, StyleSheet, useWindowDimensions, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Path, RadialGradient, Stop } from "react-native-svg";
 
 import { useI18n } from "@/i18n";
 import { font, radius, spacing } from "@/theme/tokens";
@@ -14,10 +14,27 @@ const BANDS = 4;
  * Заставка: по экрану волнами проходят голубые полосы «под стеклом» с зерном,
  * затем появляется логотип, название и подпись.
  */
+/** Синусоидальная волна, залитая градиентом. */
+function wavePath(width: number, amp: number, height: number): string {
+  const mid = height / 2;
+  const step = width / 6;
+  let d = "M 0 " + mid;
+  for (let i = 0; i < 6; i += 1) {
+    const x0 = i * step;
+    const up = i % 2 === 0 ? -amp : amp;
+    d += " C " + (x0 + step * 0.25) + " " + (mid + up) + ", " + (x0 + step * 0.75) + " " + (mid + up) + ", " + (x0 + step) + " " + mid;
+  }
+  d += " L " + width + " " + height + " L 0 " + height + " Z";
+  return d;
+}
+
 export function Splash({ onDone }: { onDone: () => void }) {
   const { t } = useI18n();
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
+  const bandWidth = Math.round(width * 1.7);
+  const bandHeight = 110;
+  const paths = useMemo(() => Array.from({ length: BANDS }, (_, i) => wavePath(bandWidth, 22 + i * 7, bandHeight)), [bandWidth]);
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.86)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -75,16 +92,21 @@ export function Splash({ onDone }: { onDone: () => void }) {
               key={index}
               style={[
                 styles.band,
-                { top: height * (0.05 + index * 0.24), opacity, transform: [{ rotate: "-16deg" }, { translateX }] },
+                { top: height * (0.05 + index * 0.24), opacity, transform: [{ rotate: "-9deg" }, { translateX }] },
               ]}
             >
-              <LinearGradient
-                colors={["transparent", "rgba(147,197,253,0.30)", "rgba(96,165,250,0.18)", "rgba(255,255,255,0.22)", "transparent"]}
-                locations={[0, 0.25, 0.55, 0.72, 1]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.bandFill}
-              />
+              <Svg width={bandWidth} height={bandHeight}>
+                <Defs>
+                  <SvgLinearGradient id={"wave" + index} x1="0" y1="0" x2="1" y2="0">
+                    <Stop offset="0" stopColor="#93c5fd" stopOpacity="0" />
+                    <Stop offset="0.22" stopColor="#93c5fd" stopOpacity="0.42" />
+                    <Stop offset="0.55" stopColor="#60a5fa" stopOpacity="0.3" />
+                    <Stop offset="0.72" stopColor="#ffffff" stopOpacity="0.34" />
+                    <Stop offset="1" stopColor="#93c5fd" stopOpacity="0" />
+                  </SvgLinearGradient>
+                </Defs>
+                <Path d={paths[index]} fill={"url(#wave" + index + ")"} />
+              </Svg>
             </Animated.View>
           );
         })}
@@ -110,7 +132,19 @@ export function Splash({ onDone }: { onDone: () => void }) {
       </View>
 
       {/* Мягкое свечение под логотипом */}
-      <Animated.View style={[styles.glow, { opacity: glow, backgroundColor: "rgba(96,165,250,0.18)" }]} pointerEvents="none" />
+      <Animated.View style={[styles.glow, { opacity: glow }]} pointerEvents="none">
+        <Svg width={340} height={340}>
+          <Defs>
+            <RadialGradient id="logoGlow" cx="50%" cy="50%" r="50%">
+              <Stop offset="0" stopColor="#60a5fa" stopOpacity="0.6" />
+              <Stop offset="0.45" stopColor="#3b82f6" stopOpacity="0.3" />
+              <Stop offset="0.75" stopColor="#1d4ed8" stopOpacity="0.12" />
+              <Stop offset="1" stopColor="#1d4ed8" stopOpacity="0" />
+            </RadialGradient>
+          </Defs>
+          <Circle cx="170" cy="170" r="170" fill="url(#logoGlow)" />
+        </Svg>
+      </Animated.View>
 
       <Animated.View
         style={[
@@ -149,10 +183,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   waves: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
-  band: { position: "absolute", left: 0, width: "160%", height: 86, borderRadius: 60, overflow: "hidden" },
+  band: { position: "absolute", left: 0 },
   bandFill: { flex: 1 },
   grain: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.85 },
-  glow: { position: "absolute", width: 260, height: 260, borderRadius: 130 },
+  glow: { position: "absolute", width: 340, height: 340, alignItems: "center", justifyContent: "center" },
   mark: {
     width: 104,
     height: 104,
