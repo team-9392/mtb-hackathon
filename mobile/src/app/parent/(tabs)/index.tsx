@@ -16,7 +16,6 @@ import { radius, spacing } from "@/theme/tokens";
 import { useTheme, useThemedStyles } from "@/theme/ThemeProvider";
 import { CardPeek } from "@/ui/CardPeek";
 import { ConfirmCodeModal } from "@/ui/ConfirmCodeModal";
-import { BlurSpot } from "@/ui/BlurSpot";
 import { HeroGlow } from "@/ui/Glow";
 import { ParentTopUpSheet } from "@/ui/ParentTopUpSheet";
 import { Text } from "@/ui/Text";
@@ -297,7 +296,6 @@ export default function ParentHomeScreen() {
                             style={styles.glassCard}
                             onPress={() => router.push("/parent/kopilka")}
                         >
-                            <View pointerEvents="none" style={styles.goalCornerGlow}><BlurSpot size={150} color="#3b82f6" intensity={1.3} /></View>
                             <View style={styles.goalHead}>
                                 <Ionicons name="heart-outline" size={15} color="#8b94a3" />
                                 <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
@@ -320,7 +318,6 @@ export default function ParentHomeScreen() {
                             style={styles.glassCard}
                             onPress={() => router.push("/parent/kopilka")}
                         >
-                            <View pointerEvents="none" style={styles.goalCornerGlow}><BlurSpot size={150} color="#3b82f6" intensity={1.3} /></View>
                             <View style={styles.goalHead}>
                                 <Ionicons name="add-circle-outline" size={16} color="#60a5fa" />
                                 <Text style={styles.goalLabel}>{t("ch.kopilka")}</Text>
@@ -561,15 +558,6 @@ const makeStyles = (_colors: Palette) =>
             borderColor: "rgba(255,255,255,0.1)",
             position: "relative",
             overflow: "hidden",
-        },
-        goalCornerGlow: {
-            position: "absolute",
-            right: -24,
-            top: -24,
-            width: 96,
-            height: 96,
-            borderRadius: 48,
-            backgroundColor: "rgba(59, 130, 246, 0.12)",
         },
         cardTitle: {
             color: "#ffffff",

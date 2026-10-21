@@ -188,7 +188,7 @@ export function CardPeek({
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: "100%", height: 236, justifyContent: "center" },
+  wrap: { width: "94%", alignSelf: "center", height: 236, justifyContent: "center" },
   topGlow: { position: "absolute", top: -70, alignSelf: "center", width: 300, height: 300, alignItems: "center", justifyContent: "center" },
   card: {
     width: "100%",

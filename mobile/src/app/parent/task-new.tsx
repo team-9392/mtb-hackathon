@@ -22,10 +22,20 @@ export default function NewTaskScreen() {
   const styles = useThemedStyles(makeStyles);
   const [title, setTitle] = useState("");
   const [points, setPoints] = useState(20);
+  const [custom, setCustom] = useState("");
+
+  const changeCustom = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+    setCustom(digits);
+    const parsed = Number(digits);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setPoints(Math.min(1000, parsed));
+    }
+  };
   const [busy, setBusy] = useState(false);
 
   const create = async () => {
-    if (!state.childId || title.trim().length < 2 || busy) return;
+    if (!state.childId || title.trim().length < 2 || busy || points < 1) return;
     setBusy(true);
     try {
       await createTaskApi(state.childId, title.trim(), points);
@@ -54,11 +64,21 @@ export default function NewTaskScreen() {
         <Text style={styles.label}>{t("pt.coinsLabel")}</Text>
         <View style={styles.presets}>
           {PRESETS.map((value) => (
-            <Pressable key={value} onPress={() => setPoints(value)} style={[styles.preset, points === value && styles.presetActive]}>
+            <Pressable key={value} onPress={() => { setPoints(value); setCustom(String(value)); }} style={[styles.preset, points === value && styles.presetActive]}>
               <Text style={[styles.presetText, points === value && styles.presetTextActive]}>+{value}</Text>
             </Pressable>
           ))}
         </View>
+        <TextInput
+          value={custom}
+          onChangeText={changeCustom}
+          placeholder={t("pt.customPlaceholder")}
+          placeholderTextColor={styles.placeholder.color as string}
+          style={styles.input}
+          keyboardType="number-pad"
+          maxLength={4}
+          inputMode="numeric"
+        />
         <Button label={t("pt.create")} onPress={() => void create()} loading={busy} />
         <Pressable onPress={() => router.back()} style={styles.cancel}>
           <Text style={styles.cancelText}>{t("common.cancel")}</Text>
