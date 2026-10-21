@@ -75,9 +75,10 @@ export default function ParentHomeScreen() {
   }, [loadMyCards, myCardBusy, showToast, t]);
   const [refreshing, setRefreshing] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const [pulled, setPulled] = useState(false);
   const pull = useRef(new Animated.Value(0)).current;
   const pullRef = useRef(0);
-  pull.addListener(({ value }) => { pullRef.current = value; });
+  pull.addListener(({ value }) => { pullRef.current = value; setPulled(value > 30); });
   const settle = (to: number) => Animated.spring(pull, { toValue: to, useNativeDriver: false, bounciness: 0 }).start();
   const pullGesture = useRef(
     PanResponder.create({
@@ -160,7 +161,7 @@ export default function ParentHomeScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.balanceRow}>
+          <View style={[styles.balanceRow, pulled && styles.hidden]}>
             <Text style={styles.balance}>{formatMoney(myCards.length > 0 && activeIndex === 0 ? parentBalance : state.balance, 0).replace(" BYN", "")}</Text>
             <Text style={styles.currency}>BYN</Text>
           <View style={styles.cardWrap}>
@@ -169,6 +170,7 @@ export default function ParentHomeScreen() {
                                   holder={user?.full_name ?? "Моя карта"}
                                   limitLeft={left}
                                   scrollY={pull}
+            balance={myCards.length > 0 && activeIndex === 0 ? parentBalance : state.balance}
                                   onIssue={() => void issueMyCard()}
                                   onIndexChange={setActiveIndex}
             onDetails={(card) => setPendingCard(card)}
@@ -179,7 +181,7 @@ export default function ParentHomeScreen() {
 
         </View>
 
-        <Animated.View style={[styles.panel, { transform: [{ translateY: pull }] }]}>
+        <Animated.View style={styles.panel}>
           <View style={styles.grabberWrap} {...pullGesture.panHandlers}>
             <View style={styles.grabber} />
           </View>
@@ -295,6 +297,7 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
     scroll: { paddingBottom: 110 },
+    hidden: { display: "none" },
     refresh: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: spacing.sm },
     refreshText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
     hero: { overflow: "hidden", paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg, backgroundColor: colors.bg },

@@ -12,7 +12,7 @@ import { useThemedStyles } from "@/theme/ThemeProvider";
 import { PaymentBrand } from "@/ui/PaymentBrand";
 import { Text } from "@/ui/Text";
 
-const COLLAPSED = 168;
+const COLLAPSED = 208;
 const EXPANDED = 300;
 const PULL = 150;
 
@@ -102,7 +102,7 @@ export function CardPeek({
     );
   }
 
-  const expandedHeight = Math.max(196, Math.round(((width || 340) - 2 * spacing.lg) / 1.586));
+  const expandedHeight = Math.max(232, Math.round((width || 340) / 1.55));
   const height = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [COLLAPSED, expandedHeight], extrapolate: "clamp" });
   const rotate = scrollY.interpolate({ inputRange: [0, PULL], outputRange: ["-4deg", "0deg"], extrapolate: "clamp" });
   const scale = scrollY.interpolate({ inputRange: [0, PULL], outputRange: [0.97, 1], extrapolate: "clamp" });
