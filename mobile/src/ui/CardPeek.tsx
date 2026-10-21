@@ -184,8 +184,8 @@ const styles = StyleSheet.create({
   },
   face: { width: "100%", height: "100%", transform: [{ scale: 1.06 }] },
   refresh: { position: "absolute", top: 14, right: 18, width: 26, height: 26, alignItems: "center", justifyContent: "center" },
-  holder: { position: "absolute", left: 18, top: 56, color: "#fff", fontSize: 13, fontWeight: "700", letterSpacing: 1.4, maxWidth: "60%", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
-  brand: { position: "absolute", right: 54, top: 8, transform: [{ scale: 1.4 }] },
+  holder: { position: "absolute", left: 12, top: 14, color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 1.4, maxWidth: "58%", backgroundColor: "#000", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6 },
+  brand: { position: "absolute", right: 14, top: 46, transform: [{ scale: 1.25 }] },
   details: {
     position: "absolute",
     left: 18,
